@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EJAC — Faça seu pedido de camiseta</title>
+<meta name="description" content="Peça sua camiseta oficial do EJAC (Esperança Jovem Aliada a Cristo). Preencha o formulário e garanta a sua.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%E2%9C%A8%3C/text%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Permanent+Marker&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Unbounded:wght@400;600;800;900&display=swap" rel="stylesheet">
+<style>
+
+  /* ============================================================
+     PALETA OFICIAL EJAC — mexa só aqui pra trocar as cores
+     ============================================================ */
+  :root {
+    --preto:   #000001;
+    --rosa:    #E97ACA;
+    --laranja: #C14D13;
+    --branco:  #FFFFFF;
+    --cinza:   #545454;
+
+    --font-display: 'Unbounded', sans-serif;
+    --font-body: 'Plus Jakarta Sans', sans-serif;
+    --font-scribble: 'Permanent Marker', cursive;
+  }
+
+  * { box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    margin: 0;
+    background: var(--preto);
+    color: var(--branco);
+    font-family: var(--font-body);
+    overflow-x: hidden;
+    position: relative;
+  }
+
+  /* ============================================================
+     FUNDO DE FAGULHAS — textura despojada, tipo fogueira/faísca
+     ============================================================ */
+  .spark-bg {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    background-color: var(--preto);
+    background-image:
+      radial-gradient(2px 2px at 10% 20%, var(--rosa) 0%, transparent 60%),
+      radial-gradient(1.5px 1.5px at 25% 65%, var(--laranja) 0%, transparent 60%),
+      radial-gradient(2px 2px at 40% 10%, var(--rosa) 0%, transparent 60%),
+      radial-gradient(1px 1px at 55% 80%, var(--branco) 0%, transparent 60%),
+      radial-gradient(2.5px 2.5px at 70% 30%, var(--laranja) 0%, transparent 60%),
+      radial-gradient(1.5px 1.5px at 85% 60%, var(--rosa) 0%, transparent 60%),
+      radial-gradient(1px 1px at 92% 15%, var(--branco) 0%, transparent 60%),
+      radial-gradient(2px 2px at 15% 90%, var(--laranja) 0%, transparent 60%),
+      radial-gradient(1.5px 1.5px at 60% 50%, var(--rosa) 0%, transparent 60%),
+      radial-gradient(1px 1px at 35% 40%, var(--branco) 0%, transparent 60%);
+    background-size: 100% 100%;
+    opacity: .55;
+    animation: faisca-pulsa 6s ease-in-out infinite;
+  }
+
+  @keyframes faisca-pulsa {
+    0%, 100% { opacity: .4; }
+    50% { opacity: .7; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .spark-bg { animation: none; }
+  }
+
+  main, header, footer { position: relative; z-index: 1; }
+
+  a { color: inherit; }
+
+  /* ============================================================
+     UTILITÁRIOS DE ESTILO
+     ============================================================ */
+  .sombra-dura {
+    text-shadow: 6px 6px 0 var(--rosa);
+  }
+
+  .sombra-dura-laranja {
+    text-shadow: 6px 6px 0 var(--laranja);
+  }
+
+  .rabisco {
+    font-family: var(--font-scribble);
+    color: var(--rosa);
+    display: inline-block;
+    transform: rotate(-4deg);
+  }
+
+  .container {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 0 24px;
+  }
+
+  /* ============================================================
+     NAV
+     ============================================================ */
+  .nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 24px;
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+
+  .logo {
+    font-family: var(--font-display);
+    font-weight: 900;
+    font-size: 1.5rem;
+    letter-spacing: .05em;
+    text-decoration: none;
+  }
+
+  .nav-cta {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: .8rem;
+    text-decoration: none;
+    background: var(--rosa);
+    color: var(--preto);
+    padding: 12px 20px;
+    border-radius: 999px;
+    border: 2px solid var(--branco);
+    box-shadow: 4px 4px 0 var(--laranja);
+    transition: transform .15s ease;
+    white-space: nowrap;
+  }
+
+  .nav-cta:hover { transform: translate(-2px, -2px); }
+
+  /* ============================================================
+     HERO
+     ============================================================ */
+  .hero {
+    padding: 40px 24px 80px;
+    max-width: 1100px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 1.1fr 1fr;
+    gap: 48px;
+    align-items: center;
+  }
+
+  .hero-eyebrow {
+    font-family: var(--font-scribble);
+    color: var(--rosa);
+    font-size: 1.1rem;
+    transform: rotate(-3deg);
+    display: inline-block;
+    margin-bottom: 8px;
+  }
+
+  .hero h1 {
+    font-family: var(--font-display);
+    font-weight: 900;
+    font-size: clamp(2.6rem, 6vw, 4.2rem);
+    line-height: 1.15;
+    letter-spacing: -.01em;
+    margin: 0 0 20px;
+    text-shadow: 4px 4px 0 var(--rosa);
+  }
+
+  /* a palavra em destaque já é rosa, então a sombra dela precisa
+     ser de outra cor — senão letra e sombra se misturam e fica ilegível */
+  .hero h1 span {
+    color: var(--rosa);
+    text-shadow: 4px 4px 0 var(--laranja);
+  }
+
+  .hero p {
+    font-size: 1.1rem;
+    color: #ddd;
+    max-width: 46ch;
+    margin: 0 0 28px;
+    line-height: 1.5;
+  }
+
+  .hero-cta {
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: 1rem;
+    text-decoration: none;
+    display: inline-block;
+    background: var(--laranja);
+    color: var(--branco);
+    padding: 18px 32px;
+    border-radius: 14px;
+    border: 3px solid var(--branco);
+    box-shadow: 8px 8px 0 var(--rosa);
+    transition: transform .15s ease, box-shadow .15s ease;
+  }
+
+  .hero-cta:hover {
+    transform: translate(-3px, -3px);
+    box-shadow: 11px 11px 0 var(--rosa);
+  }
+
+  /* Camisa (placeholder até chegar a arte oficial) */
+  .shirt-card {
+    position: relative;
+    background: #0d0d0d;
+    border: 3px solid var(--branco);
+    border-radius: 20px;
+    box-shadow: 10px 10px 0 var(--rosa);
+    padding: 28px;
+    text-align: center;
+  }
+
+  .shirt-toggle {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 18px;
+  }
+
+  .shirt-toggle button {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: .75rem;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+    background: transparent;
+    color: var(--branco);
+    border: 2px solid var(--cinza);
+    border-radius: 999px;
+    padding: 8px 18px;
+    cursor: pointer;
+    transition: all .15s ease;
+  }
+
+  .shirt-toggle button.ativo {
+    background: var(--rosa);
+    color: var(--preto);
+    border-color: var(--rosa);
+  }
+
+  .shirt-view { display: none; }
+  .shirt-view.ativo { display: block; }
+
+  .shirt-svg { width: 100%; max-width: 280px; height: auto; margin: 0 auto; display: block; }
+
+  .shirt-note {
+    margin-top: 16px;
+    font-size: .8rem;
+    color: var(--cinza);
+    font-style: italic;
+  }
+
+  /* ============================================================
+     SEÇÃO DE PEDIDO
+     ============================================================ */
+  .order {
+    padding: 40px 24px 100px;
+    max-width: 640px;
+    margin: 0 auto;
+  }
+
+  .order h2 {
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: clamp(1.8rem, 4vw, 2.4rem);
+    text-align: center;
+    margin-bottom: 8px;
+  }
+
+  .order-sub {
+    text-align: center;
+    color: #ccc;
+    margin-bottom: 36px;
+  }
+
+  form {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    background: #0d0d0d;
+    border: 2px solid var(--cinza);
+    border-radius: 20px;
+    padding: 32px;
+  }
+
+  label {
+    font-size: .85rem;
+    font-weight: 600;
+    color: var(--branco);
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  input, select {
+    font-family: var(--font-body);
+    font-size: 1rem;
+    padding: 14px 16px;
+    border-radius: 10px;
+    border: 2px solid var(--cinza);
+    background: var(--preto);
+    color: var(--branco);
+    outline: none;
+    transition: border-color .15s ease;
+  }
+
+  input:focus, select:focus { border-color: var(--rosa); }
+
+  input::placeholder { color: #777; }
+
+  /* Tabela de medidas — expansível junto do campo Tamanho */
+  .tabela-medidas {
+    margin-top: -6px;
+  }
+
+  .tabela-medidas summary {
+    font-size: .8rem;
+    font-weight: 700;
+    color: var(--rosa);
+    cursor: pointer;
+    list-style: none;
+    width: fit-content;
+  }
+
+  .tabela-medidas summary::-webkit-details-marker { display: none; }
+
+  .tabela-medidas table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 12px;
+    border-radius: 10px;
+    overflow: hidden;
+    font-size: .85rem;
+  }
+
+  .tabela-medidas th {
+    background: var(--laranja);
+    color: var(--branco);
+    font-family: var(--font-display);
+    font-weight: 700;
+    padding: 10px 8px;
+    text-align: center;
+  }
+
+  .tabela-medidas td {
+    padding: 8px;
+    text-align: center;
+    color: var(--branco);
+    border-bottom: 1px solid #2a2a2a;
+  }
+
+  .tabela-medidas tbody tr:nth-child(even) { background: #161616; }
+
+  button[type="submit"] {
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: 1rem;
+    background: var(--rosa);
+    color: var(--preto);
+    border: 3px solid var(--branco);
+    border-radius: 14px;
+    padding: 18px;
+    cursor: pointer;
+    box-shadow: 6px 6px 0 var(--laranja);
+    transition: transform .15s ease, box-shadow .15s ease;
+    margin-top: 8px;
+  }
+
+  button[type="submit"]:hover {
+    transform: translate(-2px, -2px);
+    box-shadow: 8px 8px 0 var(--laranja);
+  }
+
+  button[type="submit"]:disabled {
+    opacity: .6;
+    cursor: not-allowed;
+    transform: none;
+  }
+
+  .form-msg {
+    text-align: center;
+    font-weight: 700;
+    padding: 14px;
+    border-radius: 10px;
+    display: none;
+  }
+
+  .form-msg.sucesso {
+    display: block;
+    background: rgba(233, 122, 202, .15);
+    color: var(--rosa);
+    border: 2px solid var(--rosa);
+  }
+
+  .form-msg.erro {
+    display: block;
+    background: rgba(193, 77, 19, .15);
+    color: #ff9d6a;
+    border: 2px solid var(--laranja);
+  }
+
+  /* ============================================================
+     RODAPÉ
+     ============================================================ */
+  footer {
+    padding: 50px 24px 40px;
+    text-align: center;
+    border-top: 2px solid #1a1a1a;
+  }
+
+  .footer-sneaker { width: 70px; height: auto; opacity: .85; margin-bottom: 14px; }
+
+  footer p {
+    font-size: .8rem;
+    color: var(--cinza);
+    margin: 4px 0;
+  }
+
+  /* ============================================================
+     RESPONSIVO
+     ============================================================ */
+  @media (max-width: 800px) {
+    .hero {
+      grid-template-columns: 1fr;
+      padding-top: 20px;
+      padding-bottom: 50px;
+    }
+    .hero p { max-width: none; }
+    .sombra-dura, .sombra-dura-laranja { text-shadow: 4px 4px 0 var(--rosa); }
+  }
+
+</style>
+</head>
+<body>
+
+  <div class="spark-bg" aria-hidden="true"></div>
+
+  <header class="nav">
+    <a href="#topo" class="logo sombra-dura">EJAC</a>
+    <a href="#pedido" class="nav-cta">Pedir camiseta</a>
+  </header>
+
+  <main id="topo">
+    <section class="hero">
+      <div>
+        <span class="hero-eyebrow">✦ edição oficial ✦</span>
+        <h1>A camiseta<br>do <span>EJAC</span><br>é sua.</h1>
+        <p>Esperança Jovem Aliada a Cristo. Garante já a sua camiseta oficial — é só preencher o formulário com seus dados abaixo.</p>
+        <a href="#pedido" class="hero-cta">Faça o seu pedido →</a>
+      </div>
+
+      <div class="shirt-card">
+        <div class="shirt-toggle">
+          <button type="button" data-view="frente" class="ativo">Frente</button>
+          <button type="button" data-view="verso">Verso</button>
+        </div>
+
+        <!-- ==========================================================
+             ARTE DA CAMISETA (PLACEHOLDER)
+             Quando a foto real (frente/verso) chegar, troque os blocos
+             SVG abaixo por <img src="assets/camisa-frente.png"> e
+             <img src="assets/camisa-verso.png"> dentro de cada .shirt-view
+             ========================================================== -->
+        <div class="shirt-view ativo" id="view-frente">
+          <svg class="shirt-svg" viewBox="0 0 200 220" xmlns="http://www.w3.org/2000/svg">
+            <path d="M60 20 L20 45 L35 70 L55 58 L55 200 L145 200 L145 58 L165 70 L180 45 L140 20 L120 30 Q100 42 80 30 Z"
+                  fill="#111" stroke="#FFFFFF" stroke-width="4"/>
+            <rect x="72" y="80" width="56" height="56" rx="6" fill="none" stroke="#E97ACA" stroke-width="3"/>
+            <text x="100" y="115" text-anchor="middle" font-family="Unbounded, sans-serif" font-weight="900"
+                  font-size="16" fill="#E97ACA">EJAC</text>
+          </svg>
+        </div>
+
+        <div class="shirt-view" id="view-verso">
+          <svg class="shirt-svg" viewBox="0 0 200 220" xmlns="http://www.w3.org/2000/svg">
+            <path d="M60 20 L20 45 L35 70 L55 58 L55 200 L145 200 L145 58 L165 70 L180 45 L140 20 L120 30 Q100 42 80 30 Z"
+                  fill="#111" stroke="#FFFFFF" stroke-width="4"/>
+            <text x="100" y="105" text-anchor="middle" font-family="Unbounded, sans-serif" font-weight="900"
+                  font-size="14" fill="#C14D13">ESPERANÇA</text>
+            <text x="100" y="128" text-anchor="middle" font-family="Unbounded, sans-serif" font-weight="900"
+                  font-size="14" fill="#C14D13">JOVEM ALIADA</text>
+            <text x="100" y="151" text-anchor="middle" font-family="Unbounded, sans-serif" font-weight="900"
+                  font-size="14" fill="#C14D13">A CRISTO</text>
+          </svg>
+        </div>
+
+        <p class="shirt-note">Arte provisória — em breve substituímos pela foto real da camiseta.</p>
+      </div>
+    </section>
+
+    <section class="order" id="pedido">
+      <h2 class="sombra-dura-laranja">Faça o seu <span class="rabisco">pedido</span></h2>
+      <p class="order-sub">Preencha certinho, é assim que vai sair na camisa.</p>
+
+      <form id="form-pedido">
+        <label>
+          Nome completo
+          <input type="text" name="nomeCompleto" placeholder="Seu nome completo" required autocomplete="name">
+        </label>
+
+        <label>
+          Nome na camisa
+          <input type="text" name="nomeCamisa" placeholder="Como quer que apareça na camisa" required maxlength="20">
+        </label>
+
+        <label>
+          Número na camisa
+          <input type="text" name="numeroCamisa" placeholder="Ex: 7" required maxlength="3" inputmode="numeric">
+        </label>
+
+        <label>
+          Tamanho
+          <select name="tamanho" required>
+            <option value="" disabled selected>Escolha o tamanho</option>
+            <option value="PP">PP — 69×48 cm</option>
+            <option value="P">P — 72×50 cm</option>
+            <option value="M">M — 74×52 cm</option>
+            <option value="G">G — 76×54 cm</option>
+            <option value="GG">GG — 77×56 cm</option>
+            <option value="XG">XG — 79×58 cm</option>
+            <option value="G2">G2 — 77×60 cm</option>
+            <option value="G3">G3 — 79×62 cm</option>
+            <option value="G4">G4 — 83×66 cm</option>
+            <option value="G5">G5 — 88×69 cm</option>
+          </select>
+        </label>
+
+        <details class="tabela-medidas">
+          <summary>📏 Ver tabela de medidas completa</summary>
+          <table>
+            <thead>
+              <tr><th>Tamanho</th><th>Altura</th><th>Largura</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>PP</td><td>69 cm</td><td>48 cm</td></tr>
+              <tr><td>P</td><td>72 cm</td><td>50 cm</td></tr>
+              <tr><td>M</td><td>74 cm</td><td>52 cm</td></tr>
+              <tr><td>G</td><td>76 cm</td><td>54 cm</td></tr>
+              <tr><td>GG</td><td>77 cm</td><td>56 cm</td></tr>
+              <tr><td>XG</td><td>79 cm</td><td>58 cm</td></tr>
+              <tr><td>G2</td><td>77 cm</td><td>60 cm</td></tr>
+              <tr><td>G3</td><td>79 cm</td><td>62 cm</td></tr>
+              <tr><td>G4</td><td>83 cm</td><td>66 cm</td></tr>
+              <tr><td>G5</td><td>88 cm</td><td>69 cm</td></tr>
+            </tbody>
+          </table>
+        </details>
+
+        <button type="submit" id="btn-enviar">Enviar pedido</button>
+
+        <div class="form-msg" id="form-msg" role="status" aria-live="polite"></div>
+      </form>
+    </section>
+  </main>
+
+  <footer>
+    <svg class="footer-sneaker" viewBox="0 0 100 50" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="#E97ACA" stroke-width="2.5">
+      <path d="M5 40 Q5 30 15 28 L35 22 Q45 18 55 22 L75 30 Q90 32 92 40 Q92 44 85 44 L10 44 Q5 44 5 40 Z"/>
+      <path d="M15 28 L15 38 M35 22 L38 36 M55 22 L58 36" />
+      <path d="M75 30 Q80 24 88 26" />
+    </svg>
+    <p>EJAC — Esperança Jovem Aliada a Cristo</p>
+    <p>Feito com fé e código ✨</p>
+  </footer>
+
+<script>
+  // ============================================================
+  // CONFIGURAÇÃO — cole aqui a URL do seu Web App do Google Apps Script
+  // (veja o README.md para o passo a passo de como gerar essa URL)
+  // ============================================================
+  const SHEET_SCRIPT_URL = "COLE_AQUI_A_URL_DO_SEU_APPS_SCRIPT";
+
+  // Alternar entre frente e verso da camiseta
+  document.querySelectorAll('.shirt-toggle button').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.shirt-toggle button').forEach(b => b.classList.remove('ativo'));
+      document.querySelectorAll('.shirt-view').forEach(v => v.classList.remove('ativo'));
+      btn.classList.add('ativo');
+      document.getElementById('view-' + btn.dataset.view).classList.add('ativo');
+    });
+  });
+
+  // Envio do formulário para a planilha do Google
+  const form = document.getElementById('form-pedido');
+  const btn = document.getElementById('btn-enviar');
+  const msg = document.getElementById('form-msg');
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    if (SHEET_SCRIPT_URL.includes('COLE_AQUI')) {
+      msg.textContent = 'O formulário ainda não está conectado à planilha. Veja o README.md.';
+      msg.className = 'form-msg erro';
+      return;
+    }
+
+    btn.disabled = true;
+    btn.textContent = 'Enviando...';
+    msg.className = 'form-msg';
+    msg.textContent = '';
+
+    const dados = new URLSearchParams(new FormData(form));
+
+    try {
+      // O Apps Script não devolve cabeçalhos CORS, então usamos "no-cors":
+      // não conseguimos ler a resposta, mas o envio funciona normalmente.
+      await fetch(SHEET_SCRIPT_URL, { method: 'POST', mode: 'no-cors', body: dados });
+      msg.textContent = 'Pedido enviado com sucesso! 🎉';
+      msg.className = 'form-msg sucesso';
+      form.reset();
+    } catch (err) {
+      msg.textContent = 'Não foi possível enviar. Tente novamente em instantes.';
+      msg.className = 'form-msg erro';
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'Enviar pedido';
+    }
+  });
+</script>
+
+</body>
+</html>
