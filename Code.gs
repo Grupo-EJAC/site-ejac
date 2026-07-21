@@ -5,9 +5,12 @@
  * Como usar: veja o passo a passo completo no README.md.
  */
 
+// Cole aqui o ID da sua planilha (veja no README como pegar isso na URL)
+const SPREADSHEET_ID = '1YDek0Lrh0jUQ-njxWTnKtkxUYj8M8J2gxkyvOimeVKs';
+
 function doPost(e) {
-  var planilha = SpreadsheetApp.getActiveSpreadsheet();
-  var aba = planilha.getSheetByName('Pedidos') || planilha.getActiveSheet();
+  var planilha = SpreadsheetApp.openById(SPREADSHEET_ID);
+  var aba = planilha.getSheetByName('Pedidos') || planilha.getSheets()[0];
 
   // Cria o cabeçalho automaticamente se a aba estiver vazia
   if (aba.getLastRow() === 0) {

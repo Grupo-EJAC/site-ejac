@@ -11,17 +11,20 @@ Site de página única para os membros do EJAC (Esperança Jovem Aliada a Cristo
 ## Passo 1 — Criar a planilha que vai receber os pedidos
 
 1. Acesse [sheets.google.com](https://sheets.google.com) e crie uma planilha nova (pode chamar de "Pedidos Camiseta EJAC")
-2. No menu, clique em **Extensões → Apps Script**
-3. Apague o código de exemplo que aparece e cole todo o conteúdo do arquivo `Code.gs` deste projeto
-4. Clique no ícone de salvar (💾)
-5. Clique em **Implantar → Nova implantação**
-6. Clique na engrenagem ⚙️ ao lado de "Selecionar tipo" e escolha **App da Web**
-7. Configure assim:
+2. Copie o **ID da planilha** — é o trecho da URL entre `/d/` e `/edit`:
+   `https://docs.google.com/spreadsheets/d/`**`ESSE-TRECHO-AQUI`**`/edit`
+3. No menu, clique em **Extensões → Apps Script**
+4. Apague o código de exemplo que aparece e cole todo o conteúdo do arquivo `Code.gs` deste projeto
+5. Troque `'COLE_AQUI_O_ID_DA_PLANILHA'` (logo no topo do arquivo) pelo ID que você copiou no passo 2
+6. Clique no ícone de salvar (💾)
+7. Clique em **Implantar → Nova implantação**
+8. Clique na engrenagem ⚙️ ao lado de "Selecionar tipo" e escolha **App da Web**
+9. Configure assim:
    - **Executar como:** Eu (seu e-mail)
    - **Quem pode acessar:** Qualquer pessoa
-8. Clique em **Implantar**
-9. Na primeira vez, o Google vai pedir autorização — clique em **Autorizar acesso**, escolha sua conta, e se aparecer um aviso de "app não verificado", clique em **Acessar (nome do projeto) (não seguro)** → **Continuar** (é seguro, é o seu próprio script)
-10. Copie a **URL do app da Web** que aparece (algo como `https://script.google.com/macros/s/AKfycb.../exec`)
+10. Clique em **Implantar**
+11. Na primeira vez, o Google vai pedir autorização — clique em **Autorizar acesso**, escolha sua conta, e se aparecer um aviso de "app não verificado", clique em **Acessar (nome do projeto) (não seguro)** → **Continuar** (é seguro, é o seu próprio script)
+12. Copie a **URL do app da Web** que aparece (algo como `https://script.google.com/macros/s/AKfycb.../exec`)
 
 ## Passo 2 — Conectar o site à planilha
 
