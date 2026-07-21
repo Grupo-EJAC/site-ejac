@@ -93,6 +93,11 @@
     color: var(--rosa);
     display: inline-block;
     transform: rotate(-4deg);
+    font-size: 1.2em;
+    /* a fonte de rabisco é fina, então a sombra dura grossa do título
+       (pensada pra fonte bold) atrapalha a leitura — melhor sem */
+    text-shadow: none;
+    -webkit-text-stroke: .5px var(--rosa);
   }
 
   .container {
