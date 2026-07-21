@@ -94,9 +94,9 @@
     display: inline-block;
     transform: rotate(-4deg);
     font-size: 1.2em;
-    /* a fonte de rabisco é fina, então a sombra dura grossa do título
-       (pensada pra fonte bold) atrapalha a leitura — melhor sem */
-    text-shadow: none;
+    /* fonte de rabisco é fina, então a sombra fica menor que a do
+       título (que é bold) pra não engolir as letras */
+    text-shadow: 3px 3px 0 var(--laranja);
     -webkit-text-stroke: .5px var(--rosa);
   }
 
