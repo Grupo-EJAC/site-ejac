@@ -262,6 +262,109 @@
   }
 
   /* ============================================================
+     SEÇÃO DE PAGAMENTO
+     ============================================================ */
+  .pagamento {
+    padding: 0 24px 60px;
+    max-width: 640px;
+    margin: 0 auto;
+  }
+
+  .pagamento-card {
+    background: #0d0d0d;
+    border: 2px solid var(--cinza);
+    border-radius: 20px;
+    padding: 32px;
+    text-align: center;
+  }
+
+  .pagamento-preco {
+    font-family: var(--font-display);
+    font-weight: 900;
+    font-size: 3rem;
+    color: var(--branco);
+    text-shadow: 5px 5px 0 var(--rosa);
+    margin: 0;
+    line-height: 1;
+  }
+
+  .pagamento-preco span { font-size: 1.6rem; }
+
+  .pagamento-sub {
+    color: var(--cinza);
+    font-size: .9rem;
+    margin: 10px 0 28px;
+  }
+
+  .pagamento-opcao {
+    text-align: left;
+    border-top: 2px solid #222;
+    padding-top: 20px;
+    margin-top: 20px;
+  }
+
+  .pagamento-opcao:first-of-type {
+    border-top: none;
+    padding-top: 0;
+    margin-top: 0;
+  }
+
+  .pagamento-opcao h3 {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 1.05rem;
+    margin: 0 0 12px;
+  }
+
+  .rosa-texto { color: var(--rosa); }
+
+  .pix-box {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    background: var(--preto);
+    border: 2px solid var(--rosa);
+    border-radius: 12px;
+    padding: 12px 16px;
+    margin-bottom: 14px;
+  }
+
+  .pix-box code {
+    font-family: var(--font-body);
+    font-weight: 700;
+    font-size: 1rem;
+    color: var(--branco);
+    letter-spacing: .03em;
+    overflow-wrap: anywhere;
+  }
+
+  .pix-box button {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: .75rem;
+    background: var(--rosa);
+    color: var(--preto);
+    border: none;
+    border-radius: 999px;
+    padding: 8px 16px;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background .15s ease;
+  }
+
+  .pix-box button:hover { background: var(--branco); }
+
+  .pagamento-nota {
+    font-size: .85rem;
+    color: #ccc;
+    line-height: 1.5;
+    margin: 6px 0;
+  }
+
+  .pagamento-nota strong { color: var(--branco); }
+
+  /* ============================================================
      SEÇÃO DE PEDIDO
      ============================================================ */
   .order {
@@ -499,6 +602,28 @@
       </div>
     </section>
 
+    <section class="pagamento" id="pagamento">
+      <div class="pagamento-card">
+        <p class="pagamento-preco">R$ 90<span>,00</span></p>
+        <p class="pagamento-sub">valor da camiseta oficial</p>
+
+        <div class="pagamento-opcao">
+          <h3>Pix — <span class="rosa-texto">Mitra</span></h3>
+          <div class="pix-box">
+            <code id="pix-chave">76648500015390</code>
+            <button type="button" id="btn-copiar-pix">Copiar</button>
+          </div>
+          <p class="pagamento-nota">Coloque <strong>"Camiseta EJAC"</strong> na descrição do Pix.</p>
+          <p class="pagamento-nota">Pode pagar a 1ª parcela até <strong>dia a confirmar de agosto</strong>.</p>
+        </div>
+
+        <div class="pagamento-opcao">
+          <h3>Cartão de crédito</h3>
+          <p class="pagamento-nota">Direto na secretaria da paróquia:<br><strong>Rua Nova Aurora, 1340</strong></p>
+        </div>
+      </div>
+    </section>
+
     <section class="order" id="pedido">
       <h2 class="sombra-dura-laranja">Faça o seu <span class="rabisco">pedido</span></h2>
       <p class="order-sub">Preencha certinho, é assim que vai sair na camisa.</p>
@@ -588,6 +713,25 @@
       btn.classList.add('ativo');
       document.getElementById('view-' + btn.dataset.view).classList.add('ativo');
     });
+  });
+
+  // Copiar a chave Pix
+  const btnCopiarPix = document.getElementById('btn-copiar-pix');
+  btnCopiarPix.addEventListener('click', async () => {
+    const chave = document.getElementById('pix-chave').textContent;
+    try {
+      await navigator.clipboard.writeText(chave);
+    } catch (err) {
+      const temp = document.createElement('textarea');
+      temp.value = chave;
+      document.body.appendChild(temp);
+      temp.select();
+      document.execCommand('copy');
+      document.body.removeChild(temp);
+    }
+    const textoOriginal = btnCopiarPix.textContent;
+    btnCopiarPix.textContent = 'Copiado!';
+    setTimeout(() => { btnCopiarPix.textContent = textoOriginal; }, 2000);
   });
 
   // Envio do formulário para a planilha do Google
