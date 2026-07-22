@@ -4,7 +4,8 @@ Site de página única para os membros do EJAC (Esperança Jovem Aliada a Cristo
 
 ## Arquivos
 
-- `index.html` — o site inteiro (HTML + CSS + JS num arquivo só, fácil de mexer)
+- `index.html` — a página (HTML + CSS embutido; as cores ficam no topo do `<style>`)
+- `app.js` — a lógica do site (toggle da camisa, copiar Pix, envio + validação do formulário)
 - `Code.gs` — o "backend": um script do Google que recebe o formulário e grava na planilha
 - `README.md` — este guia
 
@@ -28,8 +29,8 @@ Site de página única para os membros do EJAC (Esperança Jovem Aliada a Cristo
 
 ## Passo 2 — Conectar o site à planilha
 
-1. Abra o `index.html`
-2. Procure esta linha perto do final do arquivo (dentro da tag `<script>`):
+1. Abra o `app.js`
+2. Procure esta linha no topo do arquivo:
    ```js
    const SHEET_SCRIPT_URL = "COLE_AQUI_A_URL_DO_SEU_APPS_SCRIPT";
    ```
@@ -38,7 +39,19 @@ Site de página única para os membros do EJAC (Esperança Jovem Aliada a Cristo
 
 Pronto — os pedidos feitos no site vão aparecer como novas linhas na aba **Pedidos** da sua planilha, já organizados por Data, Nome completo, Nome na camisa, Número na camisa e Tamanho.
 
-> **Nota:** se você alterar o `Code.gs` depois de já ter implantado, é preciso ir em **Implantar → Gerenciar implantações → editar (ícone de lápis) → Nova versão → Implantar** para a mudança valer.
+> **Nota importante:** sempre que alterar o `Code.gs` depois de já ter implantado, é preciso ir em **Implantar → Gerenciar implantações → editar (ícone de lápis) → Nova versão → Implantar** para a mudança valer. A URL do app **não muda**.
+
+## Segurança
+
+O site é estático (sem servidor nosso, sem senha, sem login), então a superfície de ataque é pequena. Mesmo assim, ele tem várias camadas de proteção:
+
+- **Anti-injeção de fórmula (o mais importante):** se alguém digitar algo como `=IMPORTXML(...)` num campo, o `Code.gs` prefixa com um apóstrofo antes de gravar, então o Google Sheets trata como **texto** e nunca executa a fórmula. Isso protege quem abre a planilha.
+- **Validação dupla:** os campos são validados no navegador (`app.js`) **e** de novo no servidor (`Code.gs`) — presença, tamanho máximo e lista fixa de tamanhos (P/M/G/...). Payload grande ou lixo é rejeitado.
+- **Honeypot anti-bot:** um campo invisível (`website`) que humanos não veem; se vier preenchido, o envio é descartado (bots costumam preencher tudo).
+- **Content-Security-Policy:** o `index.html` traz uma CSP estrita que só permite scripts do próprio site, estilos/fontes do Google Fonts e envio do formulário para o Apps Script. Bloqueia scripts de terceiros e conexões não autorizadas.
+- **Sem segredos no repositório:** a URL do Apps Script, a chave Pix e os telefones são públicos por natureza (precisam ser). O acesso à planilha continua protegido pela sua conta Google, não pela URL.
+
+**Limite honesto:** por ser um endpoint público e gratuito (sem captcha, pra não criar atrito), não dá pra impedir 100% um atacante determinado de enviar vários pedidos falsos manualmente. O honeypot + validação barram os bots comuns, que são a esmagadora maioria. Se algum dia isso virar problema, dá pra adicionar um captcha ou exigir login do Google.
 
 ## Passo 3 — Colocar a arte real da camiseta
 
