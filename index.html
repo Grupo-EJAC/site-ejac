@@ -278,17 +278,51 @@
     text-align: center;
   }
 
-  .pagamento-preco {
+  .pagamento-precos {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 18px;
+    flex-wrap: wrap;
+  }
+
+  .preco-opcao {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .preco-valor {
     font-family: var(--font-display);
     font-weight: 900;
-    font-size: 3rem;
+    font-size: 2.2rem;
     color: var(--branco);
-    text-shadow: 5px 5px 0 var(--rosa);
-    margin: 0;
+    text-shadow: 4px 4px 0 var(--rosa);
     line-height: 1;
   }
 
-  .pagamento-preco span { font-size: 1.6rem; }
+  .preco-valor small { font-size: 1.1rem; }
+
+  .preco-label {
+    font-size: .8rem;
+    color: var(--cinza);
+    margin-top: 8px;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+  }
+
+  .preco-ou {
+    font-family: var(--font-scribble);
+    color: var(--laranja);
+    font-size: 1.2rem;
+    transform: rotate(-6deg);
+  }
+
+  .pagamento-livre {
+    font-size: .85rem;
+    color: #ccc;
+    margin: 18px 0 0;
+  }
 
   .pagamento-sub {
     color: var(--cinza);
@@ -604,8 +638,20 @@
 
     <section class="pagamento" id="pagamento">
       <div class="pagamento-card">
-        <p class="pagamento-preco">R$ 90<span>,00</span></p>
         <p class="pagamento-sub">valor da camiseta oficial</p>
+
+        <div class="pagamento-precos">
+          <div class="preco-opcao">
+            <span class="preco-valor">R$ 90<small>,00</small></span>
+            <span class="preco-label">à vista</span>
+          </div>
+          <span class="preco-ou">ou</span>
+          <div class="preco-opcao">
+            <span class="preco-valor">R$ 45<small>,00</small></span>
+            <span class="preco-label">1ª parcela</span>
+          </div>
+        </div>
+        <p class="pagamento-livre">Fica à vontade pra pagar o valor inteiro de uma vez ou só a metade agora.</p>
 
         <div class="pagamento-opcao">
           <h3>Pix — <span class="rosa-texto">Mitra</span></h3>
@@ -614,7 +660,7 @@
             <button type="button" id="btn-copiar-pix">Copiar</button>
           </div>
           <p class="pagamento-nota">Coloque <strong>"Camiseta EJAC"</strong> na descrição do Pix.</p>
-          <p class="pagamento-nota">Pode pagar a 1ª parcela até <strong>dia a confirmar de agosto</strong>.</p>
+          <p class="pagamento-nota">Se optar por pagar a 1ª parcela (R$ 45,00), o prazo é até <strong>dia a confirmar de agosto</strong>.</p>
         </div>
 
         <div class="pagamento-opcao">
