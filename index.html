@@ -4,14 +4,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<!-- ============================================================
-     SEGURANÇA — Content Security Policy
-     Bloqueia tudo por padrão e libera só o necessário:
-     - scripts: apenas o app.js do próprio site (nada inline)
-     - estilos: o CSS embutido + a folha do Google Fonts
-     - fontes:  apenas o Google Fonts
-     - conexões (envio do form): apenas o Apps Script do Google
-     ============================================================ -->
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'none'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src https://script.google.com https://script.googleusercontent.com; form-action 'none'; frame-ancestors 'none'">
 <meta name="referrer" content="no-referrer">
 <meta name="robots" content="index, follow">
@@ -749,6 +741,12 @@
     margin: 4px 0;
   }
 
+  .footer-copyright {
+    font-size: .7rem;
+    opacity: .7;
+    margin-top: 10px;
+  }
+
   /* ============================================================
      RESPONSIVO
      ============================================================ */
@@ -787,9 +785,6 @@
       </div>
     </section>
 
-    <!-- ==========================================================
-         SHOWCASE — frente e verso da camiseta, sempre visíveis
-         ========================================================== -->
     <section class="showcase" id="camiseta">
       <h2 class="sombra-dura-laranja">A camiseta <span class="rabisco">oficial</span></h2>
       <p class="showcase-sub">Frente e verso — preta com arte em rosa e gola polo.</p>
@@ -811,8 +806,6 @@
       <p class="order-sub">Preencha certinho, é assim que vai sair na camisa.</p>
 
       <form id="form-pedido" novalidate>
-        <!-- Honeypot anti-bot: invisível para humanos. Se vier preenchido,
-             o envio é ignorado (bots costumam preencher todos os campos). -->
         <div class="hp-field" aria-hidden="true">
           <label>Não preencha este campo
             <input type="text" name="website" tabindex="-1" autocomplete="off">
@@ -948,6 +941,7 @@
       <path d="M75 30 Q80 24 88 26" />
     </svg>
     <p>EJAC — Esperança Jovem Aliada a Cristo</p>
+    <p class="footer-copyright">© 2026 EJAC — Esperança Jovem Aliada a Cristo. Todos os direitos reservados.</p>
   </footer>
 
 <script src="app.js" defer></script>

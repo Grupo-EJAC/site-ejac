@@ -1,8 +1,4 @@
-/* ============================================================
-   EJAC — lógica do site (copiar Pix, envio do form)
-   Arquivo externo para permitir uma CSP estrita (script-src 'self'),
-   sem nenhum script inline na página.
-   ============================================================ */
+// EJAC — © Esperança Jovem Aliada a Cristo
 
 // URL do Web App do Google Apps Script (veja o README.md pra gerar)
 const SHEET_SCRIPT_URL = "https://script.google.com/macros/s/AKfycby88ta4VEGOe5GdSnphLScnKoaQvBYhgyMkEWW28JtS9LeoSevpeflbXtTld3PkW_9aYg/exec";
@@ -59,8 +55,6 @@ if (form) {
       return;
     }
 
-    // Honeypot: se o campo invisível veio preenchido, é bot. Fingimos
-    // sucesso pra não dar pista, mas não enviamos nada.
     if ((form.website && form.website.value.trim()) !== '') {
       msg.textContent = 'Pedido enviado com sucesso! 🎉';
       msg.className = 'form-msg sucesso';
@@ -100,8 +94,6 @@ if (form) {
     const dados = new URLSearchParams({ nomeCompleto, nomeCamisa, numeroCamisa, tamanho });
 
     try {
-      // O Apps Script não devolve cabeçalhos CORS, então usamos "no-cors":
-      // não conseguimos ler a resposta, mas o envio funciona normalmente.
       await fetch(SHEET_SCRIPT_URL, { method: 'POST', mode: 'no-cors', body: dados });
       msg.textContent = 'Pedido enviado com sucesso! 🎉';
       msg.className = 'form-msg sucesso';
