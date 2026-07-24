@@ -1,5 +1,5 @@
 /* ============================================================
-   EJAC — lógica do site (toggle da camisa, copiar Pix, envio do form)
+   EJAC — lógica do site (copiar Pix, envio do form)
    Arquivo externo para permitir uma CSP estrita (script-src 'self'),
    sem nenhum script inline na página.
    ============================================================ */
@@ -14,19 +14,6 @@ const LIMITES = {
   numeroCamisa: 3,
 };
 const TAMANHOS_VALIDOS = ['PP', 'P', 'M', 'G', 'GG', 'XG', 'G2', 'G3', 'G4', 'G5'];
-
-// ------------------------------------------------------------
-// Alternar entre frente e verso da camiseta
-// ------------------------------------------------------------
-document.querySelectorAll('.shirt-toggle button').forEach(btn => {
-  btn.addEventListener('click', () => {
-    document.querySelectorAll('.shirt-toggle button').forEach(b => b.classList.remove('ativo'));
-    document.querySelectorAll('.shirt-view').forEach(v => v.classList.remove('ativo'));
-    btn.classList.add('ativo');
-    const alvo = document.getElementById('view-' + btn.dataset.view);
-    if (alvo) alvo.classList.add('ativo');
-  });
-});
 
 // ------------------------------------------------------------
 // Copiar a chave Pix

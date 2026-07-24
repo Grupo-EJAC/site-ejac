@@ -29,7 +29,7 @@
      ============================================================ */
   :root {
     --preto:   #000001;
-    --rosa:    #E97ACA;
+    --rosa:    #E4568F;
     --laranja: #C14D13;
     --branco:  #FFFFFF;
     --cinza:   #545454;
@@ -223,55 +223,112 @@
     box-shadow: 11px 11px 0 var(--rosa);
   }
 
-  /* Camisa (placeholder até chegar a arte oficial) */
-  .shirt-card {
+  /* Camisa flutuante no hero, com spotlight atrás */
+  .hero-shirt {
     position: relative;
-    background: #0d0d0d;
-    border: 3px solid var(--branco);
-    border-radius: 20px;
-    box-shadow: 10px 10px 0 var(--rosa);
-    padding: 28px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 420px;
+  }
+
+  .hero-shirt::before {
+    content: '';
+    position: absolute;
+    width: 120%;
+    height: 120%;
+    background: radial-gradient(circle, rgba(228,86,143,.35) 0%, rgba(228,86,143,.12) 35%, transparent 68%);
+    z-index: 0;
+    pointer-events: none;
+  }
+
+  .hero-shirt-img {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    max-width: 440px;
+    height: auto;
+    filter: drop-shadow(0 30px 45px rgba(228, 86, 143, .4))
+            drop-shadow(0 8px 15px rgba(0, 0, 0, .6));
+    animation: flutua 5s ease-in-out infinite;
+  }
+
+  @keyframes flutua {
+    0%, 100% { transform: translateY(0) rotate(-1deg); }
+    50% { transform: translateY(-16px) rotate(1deg); }
+  }
+
+  /* ============================================================
+     SHOWCASE — frente e verso lado a lado
+     ============================================================ */
+  .showcase {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 20px 24px 70px;
     text-align: center;
   }
 
-  .shirt-toggle {
-    display: flex;
-    justify-content: center;
-    gap: 10px;
-    margin-bottom: 18px;
+  .showcase h2 {
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: clamp(1.8rem, 4vw, 2.4rem);
+    margin: 0 0 8px;
   }
 
-  .shirt-toggle button {
+  .showcase-sub {
+    color: #ccc;
+    max-width: 52ch;
+    margin: 0 auto 44px;
+    line-height: 1.5;
+  }
+
+  .showcase-sub strong { color: var(--rosa); }
+
+  .showcase-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 30px;
+    align-items: end;
+  }
+
+  .showcase-item {
+    margin: 0;
+    position: relative;
+  }
+
+  .showcase-item img {
+    width: 100%;
+    max-width: 400px;
+    height: auto;
+    display: block;
+    margin: 0 auto;
+    filter: drop-shadow(0 22px 35px rgba(228, 86, 143, .3))
+            drop-shadow(0 6px 12px rgba(0, 0, 0, .5));
+    transition: transform .3s ease, filter .3s ease;
+  }
+
+  .showcase-item:hover img {
+    transform: translateY(-10px) scale(1.02);
+    filter: drop-shadow(0 30px 50px rgba(228, 86, 143, .5))
+            drop-shadow(0 8px 15px rgba(0, 0, 0, .6));
+  }
+
+  .showcase-item figcaption {
+    margin-top: 18px;
     font-family: var(--font-display);
     font-weight: 700;
-    font-size: .75rem;
-    letter-spacing: .04em;
-    text-transform: uppercase;
-    background: transparent;
-    color: var(--branco);
-    border: 2px solid var(--cinza);
-    border-radius: 999px;
-    padding: 8px 18px;
-    cursor: pointer;
-    transition: all .15s ease;
-  }
-
-  .shirt-toggle button.ativo {
-    background: var(--rosa);
-    color: var(--preto);
-    border-color: var(--rosa);
-  }
-
-  .shirt-view { display: none; }
-  .shirt-view.ativo { display: block; }
-
-  .shirt-svg { width: 100%; max-width: 280px; height: auto; margin: 0 auto; display: block; }
-
-  .shirt-note {
-    margin-top: 16px;
     font-size: .8rem;
-    color: var(--cinza);
-    font-style: italic;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--branco);
+    display: inline-block;
+    background: var(--laranja);
+    padding: 6px 18px;
+    border-radius: 999px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .hero-shirt-img { animation: none; }
   }
 
   /* ============================================================
@@ -605,7 +662,7 @@
 
   .form-msg.sucesso {
     display: block;
-    background: rgba(233, 122, 202, .15);
+    background: rgba(228, 86, 143, .15);
     color: var(--rosa);
     border: 2px solid var(--rosa);
   }
@@ -676,42 +733,27 @@
         <a href="#pedido" class="hero-cta">Faça o seu pedido →</a>
       </div>
 
-      <div class="shirt-card">
-        <div class="shirt-toggle">
-          <button type="button" data-view="frente" class="ativo">Frente</button>
-          <button type="button" data-view="verso">Verso</button>
-        </div>
+      <div class="hero-shirt">
+        <img src="assets/camisa-frente.png" alt="Camiseta oficial do EJAC — frente" class="hero-shirt-img">
+      </div>
+    </section>
 
-        <!-- ==========================================================
-             ARTE DA CAMISETA (PLACEHOLDER)
-             Quando a foto real (frente/verso) chegar, troque os blocos
-             SVG abaixo por <img src="assets/camisa-frente.png"> e
-             <img src="assets/camisa-verso.png"> dentro de cada .shirt-view
-             ========================================================== -->
-        <div class="shirt-view ativo" id="view-frente">
-          <svg class="shirt-svg" viewBox="0 0 200 220" xmlns="http://www.w3.org/2000/svg">
-            <path d="M60 20 L20 45 L35 70 L55 58 L55 200 L145 200 L145 58 L165 70 L180 45 L140 20 L120 30 Q100 42 80 30 Z"
-                  fill="#111" stroke="#FFFFFF" stroke-width="4"/>
-            <rect x="72" y="80" width="56" height="56" rx="6" fill="none" stroke="#E97ACA" stroke-width="3"/>
-            <text x="100" y="115" text-anchor="middle" font-family="Unbounded, sans-serif" font-weight="900"
-                  font-size="16" fill="#E97ACA">EJAC</text>
-          </svg>
-        </div>
+    <!-- ==========================================================
+         SHOWCASE — frente e verso da camiseta, sempre visíveis
+         ========================================================== -->
+    <section class="showcase" id="camiseta">
+      <h2 class="sombra-dura-laranja">A camiseta <span class="rabisco">oficial</span></h2>
+      <p class="showcase-sub">Frente e verso — preta com arte em rosa, gola polo e o icônico <strong>EJAC 94</strong> nas costas.</p>
 
-        <div class="shirt-view" id="view-verso">
-          <svg class="shirt-svg" viewBox="0 0 200 220" xmlns="http://www.w3.org/2000/svg">
-            <path d="M60 20 L20 45 L35 70 L55 58 L55 200 L145 200 L145 58 L165 70 L180 45 L140 20 L120 30 Q100 42 80 30 Z"
-                  fill="#111" stroke="#FFFFFF" stroke-width="4"/>
-            <text x="100" y="105" text-anchor="middle" font-family="Unbounded, sans-serif" font-weight="900"
-                  font-size="14" fill="#C14D13">ESPERANÇA</text>
-            <text x="100" y="128" text-anchor="middle" font-family="Unbounded, sans-serif" font-weight="900"
-                  font-size="14" fill="#C14D13">JOVEM ALIADA</text>
-            <text x="100" y="151" text-anchor="middle" font-family="Unbounded, sans-serif" font-weight="900"
-                  font-size="14" fill="#C14D13">A CRISTO</text>
-          </svg>
-        </div>
-
-        <p class="shirt-note">Arte provisória — em breve substituímos pela foto real da camiseta.</p>
+      <div class="showcase-grid">
+        <figure class="showcase-item">
+          <img src="assets/camisa-frente.png" alt="Camiseta EJAC — frente" loading="lazy">
+          <figcaption>Frente</figcaption>
+        </figure>
+        <figure class="showcase-item">
+          <img src="assets/camisa-verso.png" alt="Camiseta EJAC — verso" loading="lazy">
+          <figcaption>Verso</figcaption>
+        </figure>
       </div>
     </section>
 
@@ -846,7 +888,7 @@
   </main>
 
   <footer>
-    <svg class="footer-sneaker" viewBox="0 0 100 50" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="#E97ACA" stroke-width="2.5">
+    <svg class="footer-sneaker" viewBox="0 0 100 50" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="#E4568F" stroke-width="2.5">
       <path d="M5 40 Q5 30 15 28 L35 22 Q45 18 55 22 L75 30 Q90 32 92 40 Q92 44 85 44 L10 44 Q5 44 5 40 Z"/>
       <path d="M15 28 L15 38 M35 22 L38 36 M55 22 L58 36" />
       <path d="M75 30 Q80 24 88 26" />

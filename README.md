@@ -5,8 +5,9 @@ Site de página única para os membros do EJAC (Esperança Jovem Aliada a Cristo
 ## Arquivos
 
 - `index.html` — a página (HTML + CSS embutido; as cores ficam no topo do `<style>`)
-- `app.js` — a lógica do site (toggle da camisa, copiar Pix, envio + validação do formulário)
+- `app.js` — a lógica do site (copiar Pix, envio + validação do formulário)
 - `Code.gs` — o "backend": um script do Google que recebe o formulário e grava na planilha
+- `assets/camisa-frente.png` e `assets/camisa-verso.png` — foto oficial da camiseta, já com fundo removido
 - `README.md` — este guia
 
 ## Passo 1 — Criar a planilha que vai receber os pedidos
@@ -53,24 +54,12 @@ O site é estático (sem servidor nosso, sem senha, sem login), então a superf�
 
 **Limite honesto:** por ser um endpoint público e gratuito (sem captcha, pra não criar atrito), não dá pra impedir 100% um atacante determinado de enviar vários pedidos falsos manualmente. O honeypot + validação barram os bots comuns, que são a esmagadora maioria. Se algum dia isso virar problema, dá pra adicionar um captcha ou exigir login do Google.
 
-## Passo 3 — Colocar a arte real da camiseta
-
-O site já vem com uma ilustração provisória (frente e verso) da camiseta, com um botão para alternar entre as duas visões. Quando vocês tiverem a foto real:
-
-1. Salve as fotos como `camisa-frente.png` e `camisa-verso.png` numa pasta `assets/` ao lado do `index.html`
-2. No `index.html`, dentro de cada `<div class="shirt-view">`, troque o bloco `<svg>...</svg>` por:
-   ```html
-   <img src="assets/camisa-frente.png" alt="Camiseta EJAC - frente" class="shirt-svg">
-   ```
-   (e o equivalente `camisa-verso.png` na outra `<div>`)
-3. Pode apagar também o parágrafo "Arte provisória..." logo abaixo
-
-## Passo 4 — Publicar no GitHub Pages (grátis)
+## Passo 3 — Publicar no GitHub Pages (grátis)
 
 1. Crie uma conta no [github.com](https://github.com) se ainda não tiver
 2. Clique em **New repository**, dê um nome (ex: `site-ejac`) e crie
 3. Na página do repositório, clique em **Add file → Upload files**
-4. Arraste o `index.html` (e a pasta `assets/`, se já tiver as fotos da camisa) para lá e clique em **Commit changes**
+4. Arraste `index.html`, `app.js` e a pasta `assets/` (com as fotos da camiseta) para lá e clique em **Commit changes**
 5. Vá em **Settings → Pages**
 6. Em "Branch", selecione `main` e a pasta `/root`, depois clique em **Save**
 7. Espere 1–2 minutos e atualize a página — vai aparecer o link do site (algo como `https://seu-usuario.github.io/site-ejac/`)
@@ -82,12 +71,12 @@ Esse é o link que vocês vão divulicar pro grupo pedir a camiseta.
 | Cor | Hex |
 |---|---|
 | Preto | `#000001` |
-| Rosa | `#E97ACA` |
+| Rosa | `#E4568F` |
 | Laranja | `#C14D13` |
 | Branco | `#FFFFFF` |
 | Cinza | `#545454` |
 
-Todas centralizadas no topo do `<style>` do `index.html`, dentro de `:root`, caso precise ajustar algum tom.
+Todas centralizadas no topo do `<style>` do `index.html`, dentro de `:root`, caso precise ajustar algum tom. O rosa foi calibrado pra bater com a cor real da camiseta (amostrado direto da foto oficial), mais vibrante que o tom pastel do kit de marca original.
 
 ## Fontes
 
