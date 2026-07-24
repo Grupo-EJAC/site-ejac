@@ -44,6 +44,17 @@
     position: relative;
   }
 
+  .scroll-progress {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 3px;
+    width: 0%;
+    background: var(--rosa);
+    box-shadow: 0 0 8px var(--rosa);
+    z-index: 200;
+  }
+
   /* ============================================================
      FUNDO DE FAGULHAS — textura despojada, tipo fogueira/faísca
      ============================================================ */
@@ -152,6 +163,7 @@
      HERO
      ============================================================ */
   .hero {
+    position: relative;
     padding: 40px 24px 80px;
     max-width: 1100px;
     margin: 0 auto;
@@ -159,6 +171,15 @@
     grid-template-columns: 1.1fr 1fr;
     gap: 48px;
     align-items: center;
+  }
+
+  #hero-canvas {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 2;
   }
 
   .hero-eyebrow {
@@ -436,6 +457,7 @@
   }
 
   .pix-box button {
+    position: relative;
     font-family: var(--font-display);
     font-weight: 700;
     font-size: .75rem;
@@ -450,6 +472,22 @@
   }
 
   .pix-box button:hover { background: var(--branco); }
+
+  /* Confete ao copiar o Pix */
+  .confete {
+    position: fixed;
+    width: 7px;
+    height: 7px;
+    border-radius: 2px;
+    pointer-events: none;
+    z-index: 999;
+    animation: confete-voa .7s ease-out forwards;
+  }
+
+  @keyframes confete-voa {
+    0%   { transform: translate(0, 0) rotate(0deg); opacity: 1; }
+    100% { transform: var(--confete-fim) rotate(var(--confete-giro)); opacity: 0; }
+  }
 
   .pagamento-nota {
     font-size: .85rem;
@@ -624,6 +662,23 @@
 
   input::placeholder { color: #777; }
 
+  .campo-invalido {
+    border-color: var(--laranja) !important;
+    animation: campo-shake .4s ease;
+  }
+
+  @keyframes campo-shake {
+    0%, 100% { transform: translateX(0); }
+    20% { transform: translateX(-8px); }
+    40% { transform: translateX(8px); }
+    60% { transform: translateX(-6px); }
+    80% { transform: translateX(6px); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .campo-invalido { animation: none; }
+  }
+
   /* Tabela de medidas — expansível junto do campo Tamanho */
   .tabela-medidas {
     margin-top: -6px;
@@ -764,6 +819,8 @@
 </head>
 <body>
 
+  <div class="scroll-progress" id="scroll-progress" aria-hidden="true"></div>
+
   <div class="spark-bg" aria-hidden="true"></div>
 
   <header class="nav">
@@ -773,6 +830,7 @@
 
   <main id="topo">
     <section class="hero">
+      <canvas id="hero-canvas" aria-hidden="true"></canvas>
       <div>
         <span class="hero-eyebrow">✦ edição oficial ✦</span>
         <h1>A camiseta<br>do <span>EJAC</span><br>é sua.</h1>
