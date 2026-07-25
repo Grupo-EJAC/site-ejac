@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'none'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src https://script.google.com https://script.googleusercontent.com; form-action 'none'; frame-ancestors 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'none'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src https://script.google.com https://script.googleusercontent.com; form-action 'none'; frame-ancestors 'none'">
 <meta name="referrer" content="no-referrer">
 <meta name="robots" content="index, follow">
 
@@ -29,6 +29,16 @@
     --font-display: 'Unbounded', sans-serif;
     --font-body: 'Plus Jakarta Sans', sans-serif;
     --font-scribble: 'Permanent Marker', cursive;
+    --font-jersey: 'Jersey M54', var(--font-display);
+  }
+
+  /* Fonte oficial usada na estampa real da camiseta — usada só na
+     prévia ao vivo, pra ficar fiel ao que sai impresso de verdade */
+  @font-face {
+    font-family: 'Jersey M54';
+    src: url('assets/fonts/jersey-m54.ttf') format('truetype');
+    font-weight: normal;
+    font-display: swap;
   }
 
   * { box-sizing: border-box; }
@@ -65,12 +75,12 @@
     pointer-events: none;
     background-color: var(--preto);
     background-image:
-      radial-gradient(2px 2px at 10% 20%, var(--rosa) 0%, transparent 60%),
+      radial-gradient(2px 2px at 10% 20%, var(--laranja) 0%, transparent 60%),
       radial-gradient(1.5px 1.5px at 25% 65%, var(--laranja) 0%, transparent 60%),
       radial-gradient(2px 2px at 40% 10%, var(--rosa) 0%, transparent 60%),
       radial-gradient(1px 1px at 55% 80%, var(--branco) 0%, transparent 60%),
       radial-gradient(2.5px 2.5px at 70% 30%, var(--laranja) 0%, transparent 60%),
-      radial-gradient(1.5px 1.5px at 85% 60%, var(--rosa) 0%, transparent 60%),
+      radial-gradient(1.5px 1.5px at 85% 60%, var(--laranja) 0%, transparent 60%),
       radial-gradient(1px 1px at 92% 15%, var(--branco) 0%, transparent 60%),
       radial-gradient(2px 2px at 15% 90%, var(--laranja) 0%, transparent 60%),
       radial-gradient(1.5px 1.5px at 60% 50%, var(--rosa) 0%, transparent 60%),
@@ -87,6 +97,16 @@
 
   @media (prefers-reduced-motion: reduce) {
     .spark-bg { animation: none; }
+  }
+
+  /* Fagulhas ambiente simples, no site inteiro (não só no hero) */
+  #bg-embers {
+    position: fixed;
+    inset: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 0;
+    pointer-events: none;
   }
 
   main, header, footer { position: relative; z-index: 1; }
@@ -679,6 +699,87 @@
     .campo-invalido { animation: none; }
   }
 
+  /* ============================================================
+     PRÉVIA AO VIVO — nome/número sobre a foto real da camiseta
+     ============================================================ */
+  .preview-wrap {
+    margin-top: -6px;
+  }
+
+  .preview-titulo {
+    font-family: var(--font-scribble);
+    color: var(--rosa);
+    font-size: .95rem;
+    text-align: center;
+    transform: rotate(-2deg);
+    margin: 0 0 10px;
+  }
+
+  .preview-camisa {
+    position: relative;
+    container-type: inline-size;
+    max-width: 260px;
+    margin: 0 auto;
+    border-radius: 14px;
+    overflow: hidden;
+    background: radial-gradient(circle, rgba(228,86,143,.18) 0%, transparent 70%);
+  }
+
+  .preview-camisa img {
+    width: 100%;
+    height: auto;
+    display: block;
+  }
+
+  /* Camadas externas: só cuidam de posicionar sobre a foto, sem fundo próprio */
+  .preview-nome,
+  .preview-numero {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 90%;
+    max-width: 90cqw;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+  }
+
+  .preview-nome { top: 13%; height: 17%; }
+  .preview-numero { top: 29%; height: 37%; }
+
+  /* O span interno é quem tem o fundo, e ele abraça só o texto (não a
+     caixa toda) — fica com cara de estampa de verdade, não de adesivo */
+  .preview-nome span,
+  .preview-numero span {
+    display: inline-block;
+    max-width: 100%;
+    background: #121212;
+    color: var(--rosa);
+    font-family: var(--font-jersey);
+    font-weight: normal;
+    text-transform: uppercase;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 1;
+    border-radius: .2em;
+    padding: .12em .35em;
+  }
+
+  .preview-nome span {
+    font-size: 7cqw;
+    /* cobre pelo menos a largura do "EJAC" original, mesmo se o nome
+       digitado for mais curto */
+    min-width: 42cqw;
+    text-align: center;
+  }
+  .preview-numero span {
+    font-size: 18cqw;
+    min-width: 64cqw;
+    text-align: center;
+  }
+
   /* Tabela de medidas — expansível junto do campo Tamanho */
   .tabela-medidas {
     margin-top: -6px;
@@ -822,6 +923,7 @@
   <div class="scroll-progress" id="scroll-progress" aria-hidden="true"></div>
 
   <div class="spark-bg" aria-hidden="true"></div>
+  <canvas id="bg-embers" aria-hidden="true"></canvas>
 
   <header class="nav">
     <a href="#topo" class="logo sombra-dura">EJAC</a>
@@ -884,6 +986,15 @@
           Número na camisa
           <input type="text" name="numeroCamisa" placeholder="Ex: 7" required maxlength="3" inputmode="numeric" pattern="[0-9]{1,3}">
         </label>
+
+        <div class="preview-wrap">
+          <p class="preview-titulo">✦ Prévia de como vai ficar</p>
+          <div class="preview-camisa">
+            <img src="assets/camisa-verso.png" alt="Prévia do verso da camiseta" loading="lazy">
+            <div class="preview-nome"><span id="preview-nome">EJAC</span></div>
+            <div class="preview-numero"><span id="preview-numero">94</span></div>
+          </div>
+        </div>
 
         <label>
           Tamanho
