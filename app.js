@@ -250,21 +250,22 @@ const inputNumeroCamisa = document.querySelector('input[name="numeroCamisa"]');
 const previewNome = document.getElementById('preview-nome');
 const previewNumero = document.getElementById('preview-numero');
 
-// Tamanhos calibrados com Canvas measureText (altura real do glifo) pra
-// bater exatamente com "EJAC"/"94" da estampa real: 14.91cqw pra 4 letras,
-// 35.53cqw pra 2 dígitos. O scaleX (no CSS) fica fixo — é a correção da
-// fonte Jersey M54, não depende do texto. Só o font-size encolhe.
+// Tamanho base = o da estampa real (17cqw pra 4 letras, 57.79cqw pra 2
+// dígitos), calibrado com Canvas measureText. Textos maiores que o padrão
+// encolhem pra não estourar a área impressa; o scaleX fica no CSS, fixo.
+const BASE_NOME = 17, BASE_NUMERO = 57.79;
+
 function atualizarPreviewNome() {
   const texto = inputNomeCamisa.value.trim() || 'EJAC';
   previewNome.textContent = texto;
-  const escala = Math.min(14.91, 59.64 / texto.length);
+  const escala = Math.min(BASE_NOME, BASE_NOME * 4 / texto.length);
   previewNome.style.fontSize = escala + 'cqw';
 }
 
 function atualizarPreviewNumero() {
   const texto = inputNumeroCamisa.value.trim() || '94';
   previewNumero.textContent = texto;
-  const escala = Math.min(35.53, 71.06 / texto.length);
+  const escala = Math.min(BASE_NUMERO, BASE_NUMERO * 2 / texto.length);
   previewNumero.style.fontSize = escala + 'cqw';
 }
 

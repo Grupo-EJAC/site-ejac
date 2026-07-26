@@ -742,10 +742,19 @@
     top: 50%;
     max-width: 90cqw;
     pointer-events: none;
+    /* flex (em vez de inline) pra caixa abraçar o texto exatamente — no
+       fluxo inline a "strut" da linha de base adiciona altura extra
+       embaixo e desalinha a centralização vertical */
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
 
-  .preview-nome { top: 23%; transform: translate(-50%, -50%); }
-  .preview-numero { top: 48.1%; transform: translate(-50%, -50%); }
+  /* Posições medidas pixel a pixel na foto original (a que tem EJAC/94
+     impressos) e mapeadas pra esta foto. Note que não são 50% em X: a
+     camisa está levemente fora de centro na foto. */
+  .preview-nome { left: 47.06%; top: 23.1%; transform: translate(-50%, -50%); }
+  .preview-numero { left: 48.44%; top: 47.93%; transform: translate(-50%, -50%); }
 
   /* A foto de base já vem sem nome/número (área em branco de verdade),
      então o texto entra direto, sem precisar de fundo pra cobrir nada */
@@ -765,18 +774,17 @@
     text-shadow: 0 1px 2px rgba(0,0,0,.5);
   }
 
-  /* Calibrado com Canvas measureText (altura real do glifo) + scaleX
-     pra bater EXATAMENTE na largura e altura do "EJAC"/"94" da foto
-     original — o scaleX corrige a fonte Jersey M54 sendo naturalmente
-     mais condensada que a estampa real. */
+  /* font-size e scaleX resolvidos pra bater ao mesmo tempo na LARGURA e
+     na ALTURA do "EJAC"/"94" da estampa real (medido com Canvas
+     measureText, usando a altura real do glifo — não a caixa da linha). */
   .preview-nome span {
-    font-size: 14.91cqw;
-    transform: scaleX(1.167);
+    font-size: 17cqw;
+    transform: scaleX(1.024);
     transform-origin: center;
   }
   .preview-numero span {
-    font-size: 35.53cqw;
-    transform: scaleX(1.662);
+    font-size: 57.79cqw;
+    transform: scaleX(0.829);
     transform-origin: center;
   }
 
