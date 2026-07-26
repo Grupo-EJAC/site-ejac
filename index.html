@@ -731,30 +731,28 @@
     display: block;
   }
 
-  /* Camadas externas: só cuidam de posicionar sobre a foto, sem fundo próprio */
+  /* Camadas externas: só cuidam de posicionar sobre a foto, sem fundo
+     próprio. Usa o ponto central exato medido na foto original (mais
+     preciso que caixa com altura fixa, funciona com qualquer tamanho
+     de fonte sem desalinhar). */
   .preview-nome,
   .preview-numero {
     position: absolute;
     left: 50%;
-    transform: translateX(-50%);
-    width: 90%;
+    top: 50%;
     max-width: 90cqw;
-    display: flex;
-    align-items: center;
-    justify-content: center;
     pointer-events: none;
   }
 
-  .preview-nome { top: 13%; height: 17%; }
-  .preview-numero { top: 29%; height: 37%; }
+  .preview-nome { top: 23%; transform: translate(-50%, -50%); }
+  .preview-numero { top: 48.1%; transform: translate(-50%, -50%); }
 
-  /* O span interno é quem tem o fundo, e ele abraça só o texto (não a
-     caixa toda) — fica com cara de estampa de verdade, não de adesivo */
+  /* A foto de base já vem sem nome/número (área em branco de verdade),
+     então o texto entra direto, sem precisar de fundo pra cobrir nada */
   .preview-nome span,
   .preview-numero span {
     display: inline-block;
     max-width: 100%;
-    background: #121212;
     color: var(--rosa);
     font-family: var(--font-jersey);
     font-weight: normal;
@@ -763,21 +761,23 @@
     overflow: hidden;
     text-overflow: ellipsis;
     line-height: 1;
-    border-radius: .2em;
-    padding: .12em .35em;
+    text-align: center;
+    text-shadow: 0 1px 2px rgba(0,0,0,.5);
   }
 
+  /* Calibrado com Canvas measureText (altura real do glifo) + scaleX
+     pra bater EXATAMENTE na largura e altura do "EJAC"/"94" da foto
+     original — o scaleX corrige a fonte Jersey M54 sendo naturalmente
+     mais condensada que a estampa real. */
   .preview-nome span {
-    font-size: 7cqw;
-    /* cobre pelo menos a largura do "EJAC" original, mesmo se o nome
-       digitado for mais curto */
-    min-width: 42cqw;
-    text-align: center;
+    font-size: 14.91cqw;
+    transform: scaleX(1.167);
+    transform-origin: center;
   }
   .preview-numero span {
-    font-size: 18cqw;
-    min-width: 64cqw;
-    text-align: center;
+    font-size: 35.53cqw;
+    transform: scaleX(1.662);
+    transform-origin: center;
   }
 
   /* Tabela de medidas — expansível junto do campo Tamanho */
@@ -990,7 +990,7 @@
         <div class="preview-wrap">
           <p class="preview-titulo">✦ Prévia de como vai ficar</p>
           <div class="preview-camisa">
-            <img src="assets/camisa-verso.png" alt="Prévia do verso da camiseta" loading="lazy">
+            <img src="assets/camisa-verso-limpa.png" alt="Prévia do verso da camiseta" loading="lazy">
             <div class="preview-nome"><span id="preview-nome">EJAC</span></div>
             <div class="preview-numero"><span id="preview-numero">94</span></div>
           </div>
