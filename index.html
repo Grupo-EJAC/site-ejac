@@ -99,13 +99,15 @@
     .spark-bg { animation: none; }
   }
 
-  /* Fagulhas ambiente simples, no site inteiro (não só no hero) */
+  /* Brasas ambiente no site inteiro. Ficam ACIMA do conteúdo (z-index 5)
+     porque as seções têm fundo opaco — atrás, sumiriam. São pouquíssimas
+     e translúcidas, então flutuam sem atrapalhar a leitura. */
   #bg-embers {
     position: fixed;
     inset: 0;
     width: 100vw;
     height: 100vh;
-    z-index: 0;
+    z-index: 5;
     pointer-events: none;
   }
 
@@ -750,10 +752,11 @@
     justify-content: center;
   }
 
-  /* Posições medidas pixel a pixel na foto original (a que tem EJAC/94
-     impressos) e mapeadas pra esta foto. Note que não são 50% em X: a
-     camisa está levemente fora de centro na foto. */
-  .preview-nome { left: 47.06%; top: 23.1%; transform: translate(-50%, -50%); }
+  /* Altura e tamanho vêm da estampa real (medidos na foto original).
+     Já o eixo X é o centro real da camisa nesta foto — 48.44%, não 50%,
+     porque a camisa está levemente fora de centro (confirmado por três
+     referências: texto "EU SOU" 48.38%, barra 48.56%, gola 49.44%). */
+  .preview-nome { left: 48.44%; top: 23.1%; transform: translate(-50%, -50%); }
   .preview-numero { left: 48.44%; top: 47.93%; transform: translate(-50%, -50%); }
 
   /* A foto de base já vem sem nome/número (área em branco de verdade),

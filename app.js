@@ -3,12 +3,12 @@
 const PREFERE_MENOS_MOVIMENTO = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 // ------------------------------------------------------------
-// Fagulhas ambiente simples, no site inteiro (tipo fogueira) —
-// bem mais discretas que as do hero, quase sempre laranja
+// Brasas ambiente no site inteiro — bem poucas, rosa, subindo devagar
 // ------------------------------------------------------------
 const bgEmbersCanvas = document.getElementById('bg-embers');
 if (bgEmbersCanvas && !PREFERE_MENOS_MOVIMENTO) {
   const bctx = bgEmbersCanvas.getContext('2d');
+  const MAX_BRASAS = 14;
   let brasas = [];
 
   function ajustarTamanhoBg() {
@@ -26,31 +26,35 @@ if (bgEmbersCanvas && !PREFERE_MENOS_MOVIMENTO) {
       vy: -Math.random() * 0.5 - 0.15,
       vida: 1,
       raio: Math.random() * 1.5 + 1,
-      // quase sempre laranja, rosa só de vez em quando (fogueira, não confete)
-      cor: Math.random() > 0.8 ? '228, 86, 143' : '196, 77, 19',
     });
-    if (brasas.length > 40) brasas.splice(0, brasas.length - 40);
+    if (brasas.length > MAX_BRASAS) brasas.splice(0, brasas.length - MAX_BRASAS);
   }
 
   function loopBg() {
+    requestAnimationFrame(loopBg); // agenda antes de desenhar (loop à prova de falha)
     bctx.clearRect(0, 0, bgEmbersCanvas.width, bgEmbersCanvas.height);
     brasas = brasas.filter(b => b.vida > 0);
     brasas.forEach(b => {
       b.x += b.vx;
       b.y += b.vy;
-      b.vida -= 0.004;
+      b.vida -= 0.0025; // some bem devagar (~6.5s de vida)
+      const raio = Math.max(0, b.raio * b.vida); // arc() quebra com raio negativo
+      if (raio <= 0) return;
+      const alfa = Math.max(0, b.vida) * 0.65;
       bctx.beginPath();
-      bctx.arc(b.x, b.y, b.raio * b.vida, 0, Math.PI * 2);
-      bctx.fillStyle = `rgba(${b.cor}, ${b.vida * 0.7})`;
+      bctx.arc(b.x, b.y, raio, 0, Math.PI * 2);
+      bctx.fillStyle = `rgba(228, 86, 143, ${alfa})`;
+      bctx.shadowColor = `rgba(228, 86, 143, ${alfa})`;
+      bctx.shadowBlur = 6; // brilho suave, cara de brasa acesa
       bctx.fill();
     });
-    requestAnimationFrame(loopBg);
+    bctx.shadowBlur = 0;
   }
   requestAnimationFrame(loopBg);
 
   (function nasceBrasa() {
     criarBrasa();
-    setTimeout(nasceBrasa, 900 + Math.random() * 900);
+    setTimeout(nasceBrasa, 1400 + Math.random() * 1600);
   })();
 }
 
@@ -126,14 +130,28 @@ if (heroCanvas && !PREFERE_MENOS_MOVIMENTO && window.matchMedia('(pointer: fine)
   const hero = heroCanvas.closest('.hero');
   let particulas = [];
 
+  // O canvas precisa acompanhar o tamanho do hero. Só medir no load não
+  // basta: a foto da camisa carrega depois e faz o hero crescer — aí o
+  // canvas ficaria com resolução menor, esticado pelo CSS, e as faíscas
+  // cairiam em coordenadas erradas (parecendo que "sumiram").
   function ajustarTamanho() {
-    heroCanvas.width = hero.clientWidth;
-    heroCanvas.height = hero.clientHeight;
+    const l = Math.round(hero.clientWidth);
+    const a = Math.round(hero.clientHeight);
+    if (l > 0 && a > 0 && (heroCanvas.width !== l || heroCanvas.height !== a)) {
+      heroCanvas.width = l;
+      heroCanvas.height = a;
+    }
   }
   ajustarTamanho();
   window.addEventListener('resize', ajustarTamanho);
+  if (window.ResizeObserver) new ResizeObserver(ajustarTamanho).observe(hero);
 
-  function criarParticula(x, y) {
+  // decaimento por frame (60fps): 0.006 ≈ 2.8s de vida | 0.011 ≈ 1.5s
+  const DECAI_NORMAL = 0.006;
+  const DECAI_SAIDA = 0.011;
+  let mouseDentro = false;
+
+  function criarParticula(x, y, decaimento = DECAI_NORMAL) {
     particulas.push({
       x, y,
       vx: (Math.random() - 0.5) * 0.6,
@@ -141,41 +159,67 @@ if (heroCanvas && !PREFERE_MENOS_MOVIMENTO && window.matchMedia('(pointer: fine)
       vida: 1,
       raio: Math.random() * 2 + 1.5,
       cor: Math.random() > 0.5 ? '196, 77, 19' : '228, 86, 143',
+      decaimento,
     });
     if (particulas.length > 140) particulas.splice(0, particulas.length - 140);
   }
 
   function loop() {
+    // agenda o próximo frame ANTES de desenhar: se algo falhar no meio do
+    // desenho, o loop continua vivo (senão as faíscas sumiam pra sempre)
+    requestAnimationFrame(loop);
     ctx.clearRect(0, 0, heroCanvas.width, heroCanvas.height);
     particulas = particulas.filter(p => p.vida > 0);
     particulas.forEach(p => {
       p.x += p.vx;
       p.y += p.vy;
-      p.vida -= 0.006; // desaparece devagar (~2.7s), pra sentir como rastro/brasa
+      p.vida -= p.decaimento;
+      // raio nunca pode ser negativo: vida acabou de ser decrementada e
+      // pode ter passado de zero, e arc() com raio negativo lança erro
+      const raio = Math.max(0, p.raio * p.vida);
+      if (raio <= 0) return;
       ctx.beginPath();
-      ctx.arc(p.x, p.y, p.raio * p.vida, 0, Math.PI * 2);
-      ctx.fillStyle = `rgba(${p.cor}, ${p.vida})`;
+      ctx.arc(p.x, p.y, raio, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(${p.cor}, ${Math.max(0, p.vida)})`;
       ctx.fill();
     });
-    requestAnimationFrame(loop); // roda pra sempre, não desliga sozinho
   }
   requestAnimationFrame(loop);
 
-  // Fagulhas ambiente: nascem sozinhas de tempos em tempos, mesmo sem
-  // interação, pra sensação de "fogueira viva" nunca sumir de vez.
+  // Fagulhas ambiente enquanto o mouse está sobre o hero — assim, ao sair,
+  // o que resta some de vez (e não fica nascendo faísca nova no meio do fade)
   function fagulhaAmbiente() {
-    if (heroCanvas.width > 0 && heroCanvas.height > 0) {
+    if (mouseDentro && heroCanvas.width > 0 && heroCanvas.height > 0) {
       criarParticula(Math.random() * heroCanvas.width, heroCanvas.height * (0.6 + Math.random() * 0.4));
     }
     setTimeout(fagulhaAmbiente, 350 + Math.random() * 400);
   }
   fagulhaAmbiente();
 
+  hero.addEventListener('mouseenter', () => { mouseDentro = true; });
+
+  // Rastro do mouse: sempre que passa pelo hero, nascem faíscas na hora
   hero.addEventListener('mousemove', (e) => {
+    mouseDentro = true;
+    ajustarTamanho(); // garante que o canvas está no tamanho certo
     const rect = hero.getBoundingClientRect();
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
     criarParticula(x, y);
+    criarParticula(x + (Math.random() - 0.5) * 6, y + (Math.random() - 0.5) * 6);
+  });
+
+  // Ao cruzar a borda do canvas: um último sopro de faíscas no ponto de
+  // saída e tudo o que está na tela apaga junto, em ~1.5s
+  hero.addEventListener('mouseleave', (e) => {
+    mouseDentro = false;
+    const rect = hero.getBoundingClientRect();
+    const x = Math.min(Math.max(e.clientX - rect.left, 0), rect.width);
+    const y = Math.min(Math.max(e.clientY - rect.top, 0), rect.height);
+    for (let i = 0; i < 8; i++) {
+      criarParticula(x + (Math.random() - 0.5) * 14, y + (Math.random() - 0.5) * 14, DECAI_SAIDA);
+    }
+    particulas.forEach(p => { p.decaimento = Math.max(p.decaimento, DECAI_SAIDA); });
   });
 }
 
