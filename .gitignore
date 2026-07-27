@@ -1,10 +1,16 @@
+# Configuração local de ferramentas
 .claude/
 
-# Fotos originais de alta resolução (fonte) — só os recortes finais em
-# assets/ vão pro site, pra não pesar o repositório
+# Arquivos de origem (arte em alta resolução, PDFs de marca). Só os
+# recortes finais otimizados em assets/ vão pro site — assim o
+# repositório fica leve e o site carrega rápido.
 Prancheta 1.jpg.jpeg
 Prancheta 2.jpg.jpeg
 camiseta_EJAC_HD.jpg
 camiseta_EJAC_HD_2x.png
 costas limpa.jpeg
 Jersey M54.png
+EJAC LOGO.pdf
+
+# Rascunhos temporários
+_previa-*.html

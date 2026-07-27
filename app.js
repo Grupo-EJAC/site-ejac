@@ -1,4 +1,9 @@
 // EJAC — © Esperança Jovem Aliada a Cristo
+//
+// Tudo roda dentro de uma IIFE em modo estrito: nada vaza pro escopo
+// global da página, evitando conflito com qualquer outro script.
+(function () {
+'use strict';
 
 const PREFERE_MENOS_MOVIMENTO = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
@@ -8,7 +13,7 @@ const PREFERE_MENOS_MOVIMENTO = window.matchMedia('(prefers-reduced-motion: redu
 const bgEmbersCanvas = document.getElementById('bg-embers');
 if (bgEmbersCanvas && !PREFERE_MENOS_MOVIMENTO) {
   const bctx = bgEmbersCanvas.getContext('2d');
-  const MAX_BRASAS = 14;
+  const MAX_BRASAS = 34;
   let brasas = [];
 
   function ajustarTamanhoBg() {
@@ -21,13 +26,22 @@ if (bgEmbersCanvas && !PREFERE_MENOS_MOVIMENTO) {
   function criarBrasa() {
     brasas.push({
       x: Math.random() * bgEmbersCanvas.width,
-      y: bgEmbersCanvas.height + 10,
+      // nasce espalhada na parte de baixo (não só na borda), pra a tela
+      // já começar com brasas no ar em vez de esperar elas subirem
+      y: bgEmbersCanvas.height * (0.75 + Math.random() * 0.35),
       vx: (Math.random() - 0.5) * 0.3,
       vy: -Math.random() * 0.5 - 0.15,
       vida: 1,
       raio: Math.random() * 1.5 + 1,
     });
     if (brasas.length > MAX_BRASAS) brasas.splice(0, brasas.length - MAX_BRASAS);
+  }
+
+  // já começa com algumas no ar, senão a primeira tela fica vazia
+  for (let i = 0; i < 10; i++) {
+    criarBrasa();
+    brasas[brasas.length - 1].vida = 0.3 + Math.random() * 0.7;
+    brasas[brasas.length - 1].y = Math.random() * bgEmbersCanvas.height;
   }
 
   function loopBg() {
@@ -54,7 +68,7 @@ if (bgEmbersCanvas && !PREFERE_MENOS_MOVIMENTO) {
 
   (function nasceBrasa() {
     criarBrasa();
-    setTimeout(nasceBrasa, 1400 + Math.random() * 1600);
+    setTimeout(nasceBrasa, 450 + Math.random() * 650);
   })();
 }
 
@@ -293,6 +307,15 @@ const inputNomeCamisa = document.querySelector('input[name="nomeCamisa"]');
 const inputNumeroCamisa = document.querySelector('input[name="numeroCamisa"]');
 const previewNome = document.getElementById('preview-nome');
 const previewNumero = document.getElementById('preview-numero');
+const previewLegenda = document.getElementById('preview-legenda');
+
+// A prévia é desenhada visualmente sobre a foto, então leitor de tela não
+// "vê" nada. Esta legenda (aria-live) narra o resultado em texto.
+function atualizarLegendaPreview() {
+  if (!previewLegenda) return;
+  previewLegenda.textContent =
+    `Prévia: nome ${previewNome.textContent}, número ${previewNumero.textContent}`;
+}
 
 // Tamanho base = o da estampa real (17cqw pra 4 letras, 57.79cqw pra 2
 // dígitos), calibrado com Canvas measureText. Textos maiores que o padrão
@@ -304,6 +327,7 @@ function atualizarPreviewNome() {
   previewNome.textContent = texto;
   const escala = Math.min(BASE_NOME, BASE_NOME * 4 / texto.length);
   previewNome.style.fontSize = escala + 'cqw';
+  atualizarLegendaPreview();
 }
 
 function atualizarPreviewNumero() {
@@ -311,6 +335,7 @@ function atualizarPreviewNumero() {
   previewNumero.textContent = texto;
   const escala = Math.min(BASE_NUMERO, BASE_NUMERO * 2 / texto.length);
   previewNumero.style.fontSize = escala + 'cqw';
+  atualizarLegendaPreview();
 }
 
 if (inputNomeCamisa && previewNome) {
@@ -411,3 +436,5 @@ if (form) {
     }
   });
 }
+
+})();

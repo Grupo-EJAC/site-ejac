@@ -4,11 +4,19 @@ Site de página única para os membros do EJAC (Esperança Jovem Aliada a Cristo
 
 ## Arquivos
 
-- `index.html` — a página (HTML + CSS embutido; as cores ficam no topo do `<style>`)
-- `app.js` — a lógica do site (copiar Pix, envio + validação do formulário)
-- `Code.gs` — o "backend": um script do Google que recebe o formulário e grava na planilha
-- `assets/camisa-frente.png` e `assets/camisa-verso.png` — foto oficial da camiseta, já com fundo removido
-- `README.md` — este guia
+| Arquivo | O que é |
+|---|---|
+| `index.html` | A página: só o conteúdo (nenhum CSS ou JS embutido) |
+| `styles.css` | Todo o visual. **As cores ficam no `:root`, no topo** — mexa só ali pra mudar a identidade |
+| `app.js` | A lógica: prévia ao vivo, copiar Pix, validação e envio do formulário |
+| `Code.gs` | O "backend": script do Google que recebe o formulário e grava na planilha |
+| `favicon.svg` | Ícone da aba, baseado no logo do EJAC |
+| `assets/` | Fotos da camiseta (fundo removido) e a fonte da estampa |
+
+> **Por que CSS e JS ficam fora do HTML:** além de organizar, isso permite uma
+> política de segurança (CSP) que bloqueia *qualquer* script ou estilo injetado
+> na página. Se voltar a escrever `<style>` ou `<script>` direto no HTML, o
+> navegador vai bloquear — é proposital.
 
 ## Passo 1 — Criar a planilha que vai receber os pedidos
 
@@ -49,17 +57,29 @@ O site é estático (sem servidor nosso, sem senha, sem login), então a superf�
 - **Anti-injeção de fórmula (o mais importante):** se alguém digitar algo como `=IMPORTXML(...)` num campo, o `Code.gs` prefixa com um apóstrofo antes de gravar, então o Google Sheets trata como **texto** e nunca executa a fórmula. Isso protege quem abre a planilha.
 - **Validação dupla:** os campos são validados no navegador (`app.js`) **e** de novo no servidor (`Code.gs`) — presença, tamanho máximo e lista fixa de tamanhos (P/M/G/...). Payload grande ou lixo é rejeitado.
 - **Honeypot anti-bot:** um campo invisível (`website`) que humanos não veem; se vier preenchido, o envio é descartado (bots costumam preencher tudo).
-- **Content-Security-Policy:** o `index.html` traz uma CSP estrita que só permite scripts do próprio site, estilos/fontes do Google Fonts e envio do formulário para o Apps Script. Bloqueia scripts de terceiros e conexões não autorizadas.
-- **Sem segredos no repositório:** a URL do Apps Script, a chave Pix e os telefones são públicos por natureza (precisam ser). O acesso à planilha continua protegido pela sua conta Google, não pela URL.
+- **Content-Security-Policy sem `unsafe-inline`:** a CSP nega tudo por padrão e libera só o essencial. Como nenhum CSS ou JS fica embutido no HTML, o navegador **bloqueia qualquer script ou estilo injetado** na página — a defesa mais forte contra XSS. Também bloqueia envio de formulário pra fora (`form-action 'none'`) e o site ser colocado dentro de um iframe (`frame-ancestors 'none'`, evita clickjacking).
+- **`referrer: no-referrer`:** ao clicar num link externo (WhatsApp), o destino não recebe de onde a pessoa veio.
+- **Links externos com `noopener noreferrer`:** a página aberta não ganha acesso à nossa via `window.opener`.
+- **Sem segredos no repositório:** a URL do Apps Script, a chave Pix e os telefones são públicos por natureza (precisam ser). O acesso à planilha continua protegido pela sua conta Google, não pela URL. Arte original e PDFs de marca ficam no `.gitignore`.
 
 **Limite honesto:** por ser um endpoint público e gratuito (sem captcha, pra não criar atrito), não dá pra impedir 100% um atacante determinado de enviar vários pedidos falsos manualmente. O honeypot + validação barram os bots comuns, que são a esmagadora maioria. Se algum dia isso virar problema, dá pra adicionar um captcha ou exigir login do Google.
+
+## Acessibilidade
+
+O site foi feito pra funcionar pra todo mundo, inclusive quem navega só pelo teclado ou usa leitor de tela:
+
+- Anel de foco visível em todos os links, botões e campos (`:focus-visible`)
+- Atalho "pular para o formulário" que aparece ao apertar Tab
+- Contraste de texto dentro do WCAG AA (o cinza secundário é 7.4:1 no fundo preto)
+- A prévia da camiseta é visual, então uma legenda em texto anuncia nome e número pra leitores de tela
+- Todas as animações (faíscas, brasas, confete) desligam sozinhas se a pessoa tiver "reduzir movimento" ativado no sistema
 
 ## Passo 3 — Publicar no GitHub Pages (grátis)
 
 1. Crie uma conta no [github.com](https://github.com) se ainda não tiver
 2. Clique em **New repository**, dê um nome (ex: `site-ejac`) e crie
 3. Na página do repositório, clique em **Add file → Upload files**
-4. Arraste `index.html`, `app.js` e a pasta `assets/` (com as fotos da camiseta) para lá e clique em **Commit changes**
+4. Arraste `index.html`, `styles.css`, `app.js`, `favicon.svg` e a pasta `assets/` para lá e clique em **Commit changes**
 5. Vá em **Settings → Pages**
 6. Em "Branch", selecione `main` e a pasta `/root`, depois clique em **Save**
 7. Espere 1–2 minutos e atualize a página — vai aparecer o link do site (algo como `https://seu-usuario.github.io/site-ejac/`)

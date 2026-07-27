@@ -4,932 +4,41 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'none'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src https://script.google.com https://script.googleusercontent.com; form-action 'none'; frame-ancestors 'none'">
+<!-- Content-Security-Policy: nega tudo por padrão e libera só o necessário.
+     Sem 'unsafe-inline' em nenhum lugar — todo CSS e JS vive em arquivo
+     próprio, então script e estilo injetados são bloqueados pelo navegador. -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'none'; script-src 'self'; style-src 'self' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src https://script.google.com https://script.googleusercontent.com; form-action 'none'; frame-ancestors 'none'; upgrade-insecure-requests">
 <meta name="referrer" content="no-referrer">
 <meta name="robots" content="index, follow">
+<meta name="theme-color" content="#000001">
 
-<title>EJAC — Faça seu pedido de camiseta</title>
-<meta name="description" content="Peça sua camiseta oficial do EJAC (Esperança Jovem Aliada a Cristo). Preencha o formulário e garanta a sua.">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%E2%9C%A8%3C/text%3E%3C/svg%3E">
+<title>EJAC — Peça sua camiseta oficial</title>
+<meta name="description" content="Peça a camiseta oficial do EJAC (Esperança Jovem Aliada a Cristo). Escolha nome, número e tamanho, veja a prévia na hora e garanta a sua.">
+<link rel="canonical" href="https://grupo-ejac.github.io/site-ejac/">
+
+<!-- Prévia ao compartilhar o link (WhatsApp, Instagram, etc.) -->
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="EJAC">
+<meta property="og:locale" content="pt_BR">
+<meta property="og:title" content="EJAC — Peça sua camiseta oficial">
+<meta property="og:description" content="Escolha nome, número e tamanho, veja a prévia na hora e garanta a sua camiseta oficial do EJAC.">
+<meta property="og:url" content="https://grupo-ejac.github.io/site-ejac/">
+<meta property="og:image" content="https://grupo-ejac.github.io/site-ejac/assets/camisa-frente.png">
+<meta property="og:image:alt" content="Camiseta oficial do EJAC, preta com arte em rosa">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="EJAC — Peça sua camiseta oficial">
+<meta name="twitter:description" content="Escolha nome, número e tamanho, veja a prévia na hora e garanta a sua camiseta oficial do EJAC.">
+<meta name="twitter:image" content="https://grupo-ejac.github.io/site-ejac/assets/camisa-frente.png">
+
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Permanent+Marker&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Unbounded:wght@400;600;800;900&display=swap" rel="stylesheet">
-<style>
-
-  /* ============================================================
-     PALETA OFICIAL EJAC — mexa só aqui pra trocar as cores
-     ============================================================ */
-  :root {
-    --preto:   #000001;
-    --rosa:    #E4568F;
-    --laranja: #C14D13;
-    --branco:  #FFFFFF;
-    --cinza:   #545454;
-
-    --font-display: 'Unbounded', sans-serif;
-    --font-body: 'Plus Jakarta Sans', sans-serif;
-    --font-scribble: 'Permanent Marker', cursive;
-    --font-jersey: 'Jersey M54', var(--font-display);
-  }
-
-  /* Fonte oficial usada na estampa real da camiseta — usada só na
-     prévia ao vivo, pra ficar fiel ao que sai impresso de verdade */
-  @font-face {
-    font-family: 'Jersey M54';
-    src: url('assets/fonts/jersey-m54.ttf') format('truetype');
-    font-weight: normal;
-    font-display: swap;
-  }
-
-  * { box-sizing: border-box; }
-
-  html { scroll-behavior: smooth; }
-
-  body {
-    margin: 0;
-    background: var(--preto);
-    color: var(--branco);
-    font-family: var(--font-body);
-    overflow-x: hidden;
-    position: relative;
-  }
-
-  .scroll-progress {
-    position: fixed;
-    top: 0;
-    left: 0;
-    height: 3px;
-    width: 0%;
-    background: var(--rosa);
-    box-shadow: 0 0 8px var(--rosa);
-    z-index: 200;
-  }
-
-  /* ============================================================
-     FUNDO DE FAGULHAS — textura despojada, tipo fogueira/faísca
-     ============================================================ */
-  .spark-bg {
-    position: fixed;
-    inset: 0;
-    z-index: 0;
-    pointer-events: none;
-    background-color: var(--preto);
-    background-image:
-      radial-gradient(2px 2px at 10% 20%, var(--laranja) 0%, transparent 60%),
-      radial-gradient(1.5px 1.5px at 25% 65%, var(--laranja) 0%, transparent 60%),
-      radial-gradient(2px 2px at 40% 10%, var(--rosa) 0%, transparent 60%),
-      radial-gradient(1px 1px at 55% 80%, var(--branco) 0%, transparent 60%),
-      radial-gradient(2.5px 2.5px at 70% 30%, var(--laranja) 0%, transparent 60%),
-      radial-gradient(1.5px 1.5px at 85% 60%, var(--laranja) 0%, transparent 60%),
-      radial-gradient(1px 1px at 92% 15%, var(--branco) 0%, transparent 60%),
-      radial-gradient(2px 2px at 15% 90%, var(--laranja) 0%, transparent 60%),
-      radial-gradient(1.5px 1.5px at 60% 50%, var(--rosa) 0%, transparent 60%),
-      radial-gradient(1px 1px at 35% 40%, var(--branco) 0%, transparent 60%);
-    background-size: 100% 100%;
-    opacity: .55;
-    animation: faisca-pulsa 6s ease-in-out infinite;
-  }
-
-  @keyframes faisca-pulsa {
-    0%, 100% { opacity: .4; }
-    50% { opacity: .7; }
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    .spark-bg { animation: none; }
-  }
-
-  /* Brasas ambiente no site inteiro. Ficam ACIMA do conteúdo (z-index 5)
-     porque as seções têm fundo opaco — atrás, sumiriam. São pouquíssimas
-     e translúcidas, então flutuam sem atrapalhar a leitura. */
-  #bg-embers {
-    position: fixed;
-    inset: 0;
-    width: 100vw;
-    height: 100vh;
-    z-index: 5;
-    pointer-events: none;
-  }
-
-  main, header, footer { position: relative; z-index: 1; }
-
-  a { color: inherit; }
-
-  /* ============================================================
-     UTILITÁRIOS DE ESTILO
-     ============================================================ */
-  .sombra-dura {
-    text-shadow: 6px 6px 0 var(--rosa);
-  }
-
-  .sombra-dura-laranja {
-    text-shadow: 6px 6px 0 var(--laranja);
-  }
-
-  .rabisco {
-    font-family: var(--font-scribble);
-    color: var(--rosa);
-    display: inline-block;
-    transform: rotate(-4deg);
-    font-size: 1.2em;
-    /* fonte de rabisco é fina, então a sombra fica menor que a do
-       título (que é bold) pra não engolir as letras */
-    text-shadow: 3px 3px 0 var(--laranja);
-    -webkit-text-stroke: .5px var(--rosa);
-  }
-
-  .container {
-    max-width: 1100px;
-    margin: 0 auto;
-    padding: 0 24px;
-  }
-
-  /* ============================================================
-     NAV
-     ============================================================ */
-  .nav {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 24px;
-    max-width: 1100px;
-    margin: 0 auto;
-  }
-
-  .logo {
-    font-family: var(--font-display);
-    font-weight: 900;
-    font-size: 1.5rem;
-    letter-spacing: .05em;
-    text-decoration: none;
-  }
-
-  .nav-cta {
-    font-family: var(--font-display);
-    font-weight: 700;
-    font-size: .8rem;
-    text-decoration: none;
-    background: var(--rosa);
-    color: var(--preto);
-    padding: 12px 20px;
-    border-radius: 999px;
-    border: 2px solid var(--branco);
-    box-shadow: 4px 4px 0 var(--laranja);
-    transition: transform .15s ease;
-    white-space: nowrap;
-  }
-
-  .nav-cta:hover { transform: translate(-2px, -2px); }
-
-  /* ============================================================
-     HERO
-     ============================================================ */
-  .hero {
-    position: relative;
-    padding: 40px 24px 80px;
-    max-width: 1100px;
-    margin: 0 auto;
-    display: grid;
-    grid-template-columns: 1.1fr 1fr;
-    gap: 48px;
-    align-items: center;
-  }
-
-  #hero-canvas {
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    pointer-events: none;
-    z-index: 2;
-  }
-
-  .hero-eyebrow {
-    font-family: var(--font-scribble);
-    color: var(--rosa);
-    font-size: 1.1rem;
-    transform: rotate(-3deg);
-    display: inline-block;
-    margin-bottom: 8px;
-  }
-
-  .hero h1 {
-    font-family: var(--font-display);
-    font-weight: 900;
-    font-size: clamp(2.6rem, 6vw, 4.2rem);
-    line-height: 1.15;
-    letter-spacing: -.01em;
-    margin: 0 0 20px;
-    text-shadow: 4px 4px 0 var(--rosa);
-  }
-
-  /* a palavra em destaque já é rosa, então a sombra dela precisa
-     ser de outra cor — senão letra e sombra se misturam e fica ilegível */
-  .hero h1 span {
-    color: var(--rosa);
-    text-shadow: 4px 4px 0 var(--laranja);
-  }
-
-  .hero p {
-    font-size: 1.1rem;
-    color: #ddd;
-    max-width: 46ch;
-    margin: 0 0 28px;
-    line-height: 1.5;
-  }
-
-  .hero-cta {
-    font-family: var(--font-display);
-    font-weight: 800;
-    font-size: 1rem;
-    text-decoration: none;
-    display: inline-block;
-    background: var(--laranja);
-    color: var(--branco);
-    padding: 18px 32px;
-    border-radius: 14px;
-    border: 3px solid var(--branco);
-    box-shadow: 8px 8px 0 var(--rosa);
-    transition: transform .15s ease, box-shadow .15s ease;
-  }
-
-  .hero-cta:hover {
-    transform: translate(-3px, -3px);
-    box-shadow: 11px 11px 0 var(--rosa);
-  }
-
-  /* Camisa flutuante no hero, com spotlight atrás */
-  .hero-shirt {
-    position: relative;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    min-height: 420px;
-  }
-
-  .hero-shirt::before {
-    content: '';
-    position: absolute;
-    width: 120%;
-    height: 120%;
-    background: radial-gradient(circle, rgba(228,86,143,.35) 0%, rgba(228,86,143,.12) 35%, transparent 68%);
-    z-index: 0;
-    pointer-events: none;
-  }
-
-  .hero-shirt-img {
-    position: relative;
-    z-index: 1;
-    width: 100%;
-    max-width: 440px;
-    height: auto;
-    filter: drop-shadow(0 30px 45px rgba(228, 86, 143, .4))
-            drop-shadow(0 8px 15px rgba(0, 0, 0, .6));
-    animation: flutua 5s ease-in-out infinite;
-  }
-
-  @keyframes flutua {
-    0%, 100% { transform: translateY(0) rotate(-1deg); }
-    50% { transform: translateY(-16px) rotate(1deg); }
-  }
-
-  /* ============================================================
-     SHOWCASE — frente e verso lado a lado
-     ============================================================ */
-  .showcase {
-    max-width: 1000px;
-    margin: 0 auto;
-    padding: 20px 24px 70px;
-    text-align: center;
-  }
-
-  .showcase h2 {
-    font-family: var(--font-display);
-    font-weight: 800;
-    font-size: clamp(1.8rem, 4vw, 2.4rem);
-    margin: 0 0 8px;
-  }
-
-  .showcase-sub {
-    color: #ccc;
-    max-width: 52ch;
-    margin: 0 auto 44px;
-    line-height: 1.5;
-  }
-
-  .showcase-sub strong { color: var(--rosa); }
-
-  .showcase-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 30px;
-    align-items: end;
-  }
-
-  .showcase-item {
-    margin: 0;
-    position: relative;
-  }
-
-  .showcase-item img {
-    width: 100%;
-    max-width: 400px;
-    height: auto;
-    display: block;
-    margin: 0 auto;
-    filter: drop-shadow(0 22px 35px rgba(228, 86, 143, .3))
-            drop-shadow(0 6px 12px rgba(0, 0, 0, .5));
-    transition: transform .3s ease, filter .3s ease;
-  }
-
-  .showcase-item:hover img {
-    transform: translateY(-10px) scale(1.02);
-    filter: drop-shadow(0 30px 50px rgba(228, 86, 143, .5))
-            drop-shadow(0 8px 15px rgba(0, 0, 0, .6));
-  }
-
-  .showcase-item figcaption {
-    margin-top: 18px;
-    font-family: var(--font-display);
-    font-weight: 700;
-    font-size: .8rem;
-    letter-spacing: .12em;
-    text-transform: uppercase;
-    color: var(--branco);
-    display: inline-block;
-    background: var(--laranja);
-    padding: 6px 18px;
-    border-radius: 999px;
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    .hero-shirt-img { animation: none; }
-  }
-
-  /* ============================================================
-     SEÇÃO DE PAGAMENTO
-     ============================================================ */
-  .pagamento {
-    padding: 0 24px 60px;
-    max-width: 640px;
-    margin: 0 auto;
-  }
-
-  .pagamento-card {
-    background: #0d0d0d;
-    border: 2px solid var(--cinza);
-    border-radius: 20px;
-    padding: 32px;
-    text-align: center;
-  }
-
-  .pagamento-precos {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 18px;
-    flex-wrap: wrap;
-  }
-
-  .preco-opcao {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-  }
-
-  .preco-valor {
-    font-family: var(--font-display);
-    font-weight: 900;
-    font-size: 2.2rem;
-    color: var(--branco);
-    text-shadow: 4px 4px 0 var(--rosa);
-    line-height: 1;
-  }
-
-  .preco-valor small { font-size: 1.1rem; }
-
-  .preco-label {
-    font-size: .8rem;
-    color: var(--cinza);
-    margin-top: 8px;
-    text-transform: uppercase;
-    letter-spacing: .04em;
-  }
-
-  .preco-ou {
-    font-family: var(--font-scribble);
-    color: var(--laranja);
-    font-size: 1.2rem;
-    transform: rotate(-6deg);
-  }
-
-  .pagamento-livre {
-    font-size: .85rem;
-    color: #ccc;
-    margin: 18px 0 0;
-  }
-
-  .pagamento-sub {
-    color: var(--cinza);
-    font-size: .9rem;
-    margin: 10px 0 28px;
-  }
-
-  .pagamento-opcao {
-    text-align: left;
-    border-top: 2px solid #222;
-    padding-top: 20px;
-    margin-top: 20px;
-  }
-
-  .pagamento-opcao:first-of-type {
-    border-top: none;
-    padding-top: 0;
-    margin-top: 0;
-  }
-
-  .pagamento-opcao h3 {
-    font-family: var(--font-display);
-    font-weight: 700;
-    font-size: 1.05rem;
-    margin: 0 0 12px;
-  }
-
-  .rosa-texto { color: var(--rosa); }
-
-  .pix-box {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-    background: var(--preto);
-    border: 2px solid var(--rosa);
-    border-radius: 12px;
-    padding: 12px 16px;
-    margin-bottom: 14px;
-  }
-
-  .pix-box code {
-    font-family: var(--font-body);
-    font-weight: 700;
-    font-size: 1rem;
-    color: var(--branco);
-    letter-spacing: .03em;
-    overflow-wrap: anywhere;
-  }
-
-  .pix-box button {
-    position: relative;
-    font-family: var(--font-display);
-    font-weight: 700;
-    font-size: .75rem;
-    background: var(--rosa);
-    color: var(--preto);
-    border: none;
-    border-radius: 999px;
-    padding: 8px 16px;
-    cursor: pointer;
-    white-space: nowrap;
-    transition: background .15s ease;
-  }
-
-  .pix-box button:hover { background: var(--branco); }
-
-  /* Confete ao copiar o Pix */
-  .confete {
-    position: fixed;
-    width: 7px;
-    height: 7px;
-    border-radius: 2px;
-    pointer-events: none;
-    z-index: 999;
-    animation: confete-voa .7s ease-out forwards;
-  }
-
-  @keyframes confete-voa {
-    0%   { transform: translate(0, 0) rotate(0deg); opacity: 1; }
-    100% { transform: var(--confete-fim) rotate(var(--confete-giro)); opacity: 0; }
-  }
-
-  .pagamento-nota {
-    font-size: .85rem;
-    color: #ccc;
-    line-height: 1.5;
-    margin: 6px 0;
-  }
-
-  .pagamento-nota strong { color: var(--branco); }
-
-  .aviso-comprovante {
-    margin-top: 24px;
-    background: rgba(193, 77, 19, .12);
-    border: 2px solid var(--laranja);
-    border-radius: 16px;
-    padding: 22px;
-    text-align: center;
-  }
-
-  .aviso-titulo {
-    font-family: var(--font-display);
-    font-weight: 700;
-    font-size: .95rem;
-    color: var(--branco);
-    margin: 0 0 8px;
-  }
-
-  .aviso-texto {
-    font-size: .85rem;
-    color: #ddd;
-    margin: 0 0 18px;
-  }
-
-  .aviso-passos {
-    list-style: none;
-    counter-reset: passo;
-    text-align: left;
-    max-width: 420px;
-    margin: 0 auto 16px;
-    padding: 0;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-  }
-
-  .aviso-passos li {
-    counter-increment: passo;
-    display: flex;
-    align-items: baseline;
-    gap: 10px;
-    font-size: .85rem;
-    color: #ddd;
-    line-height: 1.4;
-  }
-
-  .aviso-passos li::before {
-    content: counter(passo);
-    flex-shrink: 0;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 22px;
-    height: 22px;
-    border-radius: 50%;
-    background: var(--laranja);
-    color: var(--branco);
-    font-family: var(--font-display);
-    font-weight: 700;
-    font-size: .75rem;
-  }
-
-  .aviso-passos li strong { color: var(--branco); }
-
-  .aviso-destaque {
-    font-weight: 700;
-    color: var(--rosa);
-    border-top: 1px solid rgba(255,255,255,.15);
-    padding-top: 14px;
-  }
-
-  .aviso-destaque strong { color: var(--rosa); }
-
-  .coordenadores {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 10px;
-  }
-
-  .coordenadores a {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-family: var(--font-body);
-    font-weight: 700;
-    font-size: .85rem;
-    text-decoration: none;
-    background: var(--preto);
-    color: var(--branco);
-    border: 2px solid var(--branco);
-    border-radius: 999px;
-    padding: 10px 18px;
-    transition: transform .15s ease, background .15s ease;
-  }
-
-  .coordenadores a svg { width: 16px; height: 16px; color: #25D366; flex-shrink: 0; }
-
-  .coordenadores a:hover {
-    background: var(--rosa);
-    color: var(--preto);
-    border-color: var(--rosa);
-    transform: translate(-2px, -2px);
-  }
-
-  .coordenadores a:hover svg { color: var(--preto); }
-
-  /* ============================================================
-     SEÇÃO DE PEDIDO
-     ============================================================ */
-  .order {
-    padding: 40px 24px 100px;
-    max-width: 640px;
-    margin: 0 auto;
-  }
-
-  .order h2 {
-    font-family: var(--font-display);
-    font-weight: 800;
-    font-size: clamp(1.8rem, 4vw, 2.4rem);
-    text-align: center;
-    margin-bottom: 8px;
-  }
-
-  .order-sub {
-    text-align: center;
-    color: #ccc;
-    margin-bottom: 36px;
-  }
-
-  form {
-    display: flex;
-    flex-direction: column;
-    gap: 18px;
-    background: #0d0d0d;
-    border: 2px solid var(--cinza);
-    border-radius: 20px;
-    padding: 32px;
-  }
-
-  label {
-    font-size: .85rem;
-    font-weight: 600;
-    color: var(--branco);
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-  }
-
-  input, select {
-    font-family: var(--font-body);
-    font-size: 1rem;
-    padding: 14px 16px;
-    border-radius: 10px;
-    border: 2px solid var(--cinza);
-    background: var(--preto);
-    color: var(--branco);
-    outline: none;
-    transition: border-color .15s ease;
-  }
-
-  input:focus, select:focus { border-color: var(--rosa); }
-
-  input::placeholder { color: #777; }
-
-  .campo-invalido {
-    border-color: var(--laranja) !important;
-    animation: campo-shake .4s ease;
-  }
-
-  @keyframes campo-shake {
-    0%, 100% { transform: translateX(0); }
-    20% { transform: translateX(-8px); }
-    40% { transform: translateX(8px); }
-    60% { transform: translateX(-6px); }
-    80% { transform: translateX(6px); }
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    .campo-invalido { animation: none; }
-  }
-
-  /* ============================================================
-     PRÉVIA AO VIVO — nome/número sobre a foto real da camiseta
-     ============================================================ */
-  .preview-wrap {
-    margin-top: -6px;
-  }
-
-  .preview-titulo {
-    font-family: var(--font-scribble);
-    color: var(--rosa);
-    font-size: .95rem;
-    text-align: center;
-    transform: rotate(-2deg);
-    margin: 0 0 10px;
-  }
-
-  .preview-camisa {
-    position: relative;
-    container-type: inline-size;
-    max-width: 260px;
-    margin: 0 auto;
-    border-radius: 14px;
-    overflow: hidden;
-    background: radial-gradient(circle, rgba(228,86,143,.18) 0%, transparent 70%);
-  }
-
-  .preview-camisa img {
-    width: 100%;
-    height: auto;
-    display: block;
-  }
-
-  /* Camadas externas: só cuidam de posicionar sobre a foto, sem fundo
-     próprio. Usa o ponto central exato medido na foto original (mais
-     preciso que caixa com altura fixa, funciona com qualquer tamanho
-     de fonte sem desalinhar). */
-  .preview-nome,
-  .preview-numero {
-    position: absolute;
-    left: 50%;
-    top: 50%;
-    max-width: 90cqw;
-    pointer-events: none;
-    /* flex (em vez de inline) pra caixa abraçar o texto exatamente — no
-       fluxo inline a "strut" da linha de base adiciona altura extra
-       embaixo e desalinha a centralização vertical */
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-
-  /* Altura e tamanho vêm da estampa real (medidos na foto original).
-     Já o eixo X é o centro real da camisa nesta foto — 48.44%, não 50%,
-     porque a camisa está levemente fora de centro (confirmado por três
-     referências: texto "EU SOU" 48.38%, barra 48.56%, gola 49.44%). */
-  .preview-nome { left: 48.44%; top: 23.1%; transform: translate(-50%, -50%); }
-  .preview-numero { left: 48.44%; top: 47.93%; transform: translate(-50%, -50%); }
-
-  /* A foto de base já vem sem nome/número (área em branco de verdade),
-     então o texto entra direto, sem precisar de fundo pra cobrir nada */
-  .preview-nome span,
-  .preview-numero span {
-    display: inline-block;
-    max-width: 100%;
-    color: var(--rosa);
-    font-family: var(--font-jersey);
-    font-weight: normal;
-    text-transform: uppercase;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    line-height: 1;
-    text-align: center;
-    text-shadow: 0 1px 2px rgba(0,0,0,.5);
-  }
-
-  /* font-size e scaleX resolvidos pra bater ao mesmo tempo na LARGURA e
-     na ALTURA do "EJAC"/"94" da estampa real (medido com Canvas
-     measureText, usando a altura real do glifo — não a caixa da linha). */
-  .preview-nome span {
-    font-size: 17cqw;
-    transform: scaleX(1.024);
-    transform-origin: center;
-  }
-  .preview-numero span {
-    font-size: 57.79cqw;
-    transform: scaleX(0.829);
-    transform-origin: center;
-  }
-
-  /* Tabela de medidas — expansível junto do campo Tamanho */
-  .tabela-medidas {
-    margin-top: -6px;
-  }
-
-  .tabela-medidas summary {
-    font-size: .8rem;
-    font-weight: 700;
-    color: var(--rosa);
-    cursor: pointer;
-    list-style: none;
-    width: fit-content;
-  }
-
-  .tabela-medidas summary::-webkit-details-marker { display: none; }
-
-  .tabela-medidas table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 12px;
-    border-radius: 10px;
-    overflow: hidden;
-    font-size: .85rem;
-  }
-
-  .tabela-medidas th {
-    background: var(--laranja);
-    color: var(--branco);
-    font-family: var(--font-display);
-    font-weight: 700;
-    padding: 10px 8px;
-    text-align: center;
-  }
-
-  .tabela-medidas td {
-    padding: 8px;
-    text-align: center;
-    color: var(--branco);
-    border-bottom: 1px solid #2a2a2a;
-  }
-
-  .tabela-medidas tbody tr:nth-child(even) { background: #161616; }
-
-  button[type="submit"] {
-    font-family: var(--font-display);
-    font-weight: 800;
-    font-size: 1rem;
-    background: var(--rosa);
-    color: var(--preto);
-    border: 3px solid var(--branco);
-    border-radius: 14px;
-    padding: 18px;
-    cursor: pointer;
-    box-shadow: 6px 6px 0 var(--laranja);
-    transition: transform .15s ease, box-shadow .15s ease;
-    margin-top: 8px;
-  }
-
-  button[type="submit"]:hover {
-    transform: translate(-2px, -2px);
-    box-shadow: 8px 8px 0 var(--laranja);
-  }
-
-  button[type="submit"]:disabled {
-    opacity: .6;
-    cursor: not-allowed;
-    transform: none;
-  }
-
-  .form-msg {
-    text-align: center;
-    font-weight: 700;
-    padding: 14px;
-    border-radius: 10px;
-    display: none;
-  }
-
-  .form-msg.sucesso {
-    display: block;
-    background: rgba(228, 86, 143, .15);
-    color: var(--rosa);
-    border: 2px solid var(--rosa);
-  }
-
-  .form-msg.erro {
-    display: block;
-    background: rgba(193, 77, 19, .15);
-    color: #ff9d6a;
-    border: 2px solid var(--laranja);
-  }
-
-  /* Honeypot anti-bot: fora da tela, sem display:none (que bots detectam) */
-  .hp-field {
-    position: absolute;
-    left: -9999px;
-    width: 1px;
-    height: 1px;
-    overflow: hidden;
-  }
-
-  /* ============================================================
-     RODAPÉ
-     ============================================================ */
-  footer {
-    padding: 50px 24px 40px;
-    text-align: center;
-    border-top: 2px solid #1a1a1a;
-  }
-
-  .footer-sneaker { width: 70px; height: auto; opacity: .85; margin-bottom: 14px; }
-
-  footer p {
-    font-size: .8rem;
-    color: var(--cinza);
-    margin: 4px 0;
-  }
-
-  .footer-copyright {
-    font-size: .7rem;
-    opacity: .7;
-    margin-top: 10px;
-  }
-
-  /* ============================================================
-     RESPONSIVO
-     ============================================================ */
-  @media (max-width: 800px) {
-    .hero {
-      grid-template-columns: 1fr;
-      padding-top: 20px;
-      padding-bottom: 50px;
-    }
-    .hero p { max-width: none; }
-    .sombra-dura, .sombra-dura-laranja { text-shadow: 4px 4px 0 var(--rosa); }
-  }
-
-</style>
+<link rel="stylesheet" href="styles.css">
 </head>
 <body>
+
+  <a href="#pedido" class="pular-para">Pular para o formulário de pedido</a>
 
   <div class="scroll-progress" id="scroll-progress" aria-hidden="true"></div>
 
@@ -952,7 +61,8 @@
       </div>
 
       <div class="hero-shirt">
-        <img src="assets/camisa-frente.png" alt="Camiseta oficial do EJAC — frente" class="hero-shirt-img">
+        <img src="assets/camisa-frente.png" alt="Camiseta oficial do EJAC — frente"
+             class="hero-shirt-img" width="800" height="974" fetchpriority="high">
       </div>
     </section>
 
@@ -962,11 +72,13 @@
 
       <div class="showcase-grid">
         <figure class="showcase-item">
-          <img src="assets/camisa-frente.png" alt="Camiseta EJAC — frente" loading="lazy">
+          <img src="assets/camisa-frente.png" alt="Frente da camiseta do EJAC: preta com listras finas, gola polo rosa e arte gráfica em rosa no peito"
+               loading="lazy" width="800" height="974">
           <figcaption>Frente</figcaption>
         </figure>
         <figure class="showcase-item">
-          <img src="assets/camisa-verso.png" alt="Camiseta EJAC — verso" loading="lazy">
+          <img src="assets/camisa-verso.png" alt="Verso da camiseta do EJAC: nome e número em rosa, com o brasão da Paróquia Profeta Elias embaixo"
+               loading="lazy" width="800" height="1009">
           <figcaption>Verso</figcaption>
         </figure>
       </div>
@@ -975,6 +87,14 @@
     <section class="order" id="pedido">
       <h2 class="sombra-dura-laranja">Faça o seu <span class="rabisco">pedido</span></h2>
       <p class="order-sub">Preencha certinho, é assim que vai sair na camisa.</p>
+
+      <noscript>
+        <p class="form-msg erro">
+          Este formulário precisa de JavaScript para enviar o pedido. Ative o
+          JavaScript ou fale direto com um dos coordenadores pelo WhatsApp,
+          na seção de pagamento abaixo.
+        </p>
+      </noscript>
 
       <form id="form-pedido" novalidate>
         <div class="hp-field" aria-hidden="true">
@@ -1001,10 +121,13 @@
         <div class="preview-wrap">
           <p class="preview-titulo">✦ Prévia de como vai ficar</p>
           <div class="preview-camisa">
-            <img src="assets/camisa-verso-limpa.png" alt="Prévia do verso da camiseta" loading="lazy">
+            <img src="assets/camisa-verso-limpa.png" alt="" loading="lazy" width="520" height="675">
             <div class="preview-nome"><span id="preview-nome">EJAC</span></div>
             <div class="preview-numero"><span id="preview-numero">94</span></div>
           </div>
+          <p class="preview-legenda" role="status" aria-live="polite" id="preview-legenda">
+            Prévia: nome <strong>EJAC</strong>, número <strong>94</strong>
+          </p>
         </div>
 
         <label>
@@ -1027,8 +150,9 @@
         <details class="tabela-medidas">
           <summary>📏 Ver tabela de medidas completa</summary>
           <table>
+            <caption class="sr-only">Medidas de cada tamanho, em centímetros</caption>
             <thead>
-              <tr><th>Tamanho</th><th>Altura</th><th>Largura</th></tr>
+              <tr><th scope="col">Tamanho</th><th scope="col">Altura</th><th scope="col">Largura</th></tr>
             </thead>
             <tbody>
               <tr><td>PP</td><td>69 cm</td><td>48 cm</td></tr>
@@ -1051,7 +175,8 @@
       </form>
     </section>
 
-    <section class="pagamento" id="pagamento">
+    <section class="pagamento" id="pagamento" aria-labelledby="titulo-pagamento">
+      <h2 id="titulo-pagamento" class="sr-only">Pagamento</h2>
       <div class="pagamento-card">
         <p class="pagamento-sub">valor da camiseta oficial</p>
 
@@ -1093,19 +218,19 @@
         </ol>
         <p class="aviso-texto aviso-destaque">Sem enviar o comprovante, o pedido <strong>não é confirmado</strong>.</p>
         <div class="coordenadores">
-          <a href="https://wa.me/5541999477616" target="_blank" rel="noopener">
+          <a href="https://wa.me/5541999477616" target="_blank" rel="noopener noreferrer">
             <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12c0 1.85.5 3.58 1.36 5.07L2 22l5.08-1.33A9.94 9.94 0 0 0 12 22c5.52 0 10-4.48 10-10S17.52 2 12 2zm0 18c-1.62 0-3.14-.44-4.44-1.2l-.32-.19-3.02.79.8-2.94-.2-.31A7.94 7.94 0 0 1 4 12c0-4.41 3.59-8 8-8s8 3.59 8 8-3.59 8-8 8zm4.38-5.98c-.24-.12-1.43-.7-1.65-.79-.22-.08-.38-.12-.55.12-.16.24-.63.79-.77.95-.14.16-.28.18-.52.06-.24-.12-1.01-.37-1.92-1.18-.71-.63-1.19-1.42-1.33-1.66-.14-.24-.02-.37.11-.49.11-.11.24-.28.36-.42.12-.14.16-.24.24-.4.08-.16.04-.3-.02-.42-.06-.12-.55-1.32-.75-1.81-.2-.48-.4-.41-.55-.42-.14-.01-.3-.01-.46-.01-.16 0-.42.06-.64.3-.22.24-.84.82-.84 2s.86 2.32.98 2.48c.12.16 1.7 2.6 4.12 3.64.58.25 1.03.4 1.38.51.58.18 1.11.16 1.53.1.47-.07 1.43-.58 1.63-1.15.2-.56.2-1.04.14-1.15-.06-.1-.22-.16-.46-.28z"/></svg>
             Diego
           </a>
-          <a href="https://wa.me/5541998302751" target="_blank" rel="noopener">
+          <a href="https://wa.me/5541998302751" target="_blank" rel="noopener noreferrer">
             <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12c0 1.85.5 3.58 1.36 5.07L2 22l5.08-1.33A9.94 9.94 0 0 0 12 22c5.52 0 10-4.48 10-10S17.52 2 12 2zm0 18c-1.62 0-3.14-.44-4.44-1.2l-.32-.19-3.02.79.8-2.94-.2-.31A7.94 7.94 0 0 1 4 12c0-4.41 3.59-8 8-8s8 3.59 8 8-3.59 8-8 8zm4.38-5.98c-.24-.12-1.43-.7-1.65-.79-.22-.08-.38-.12-.55.12-.16.24-.63.79-.77.95-.14.16-.28.18-.52.06-.24-.12-1.01-.37-1.92-1.18-.71-.63-1.19-1.42-1.33-1.66-.14-.24-.02-.37.11-.49.11-.11.24-.28.36-.42.12-.14.16-.24.24-.4.08-.16.04-.3-.02-.42-.06-.12-.55-1.32-.75-1.81-.2-.48-.4-.41-.55-.42-.14-.01-.3-.01-.46-.01-.16 0-.42.06-.64.3-.22.24-.84.82-.84 2s.86 2.32.98 2.48c.12.16 1.7 2.6 4.12 3.64.58.25 1.03.4 1.38.51.58.18 1.11.16 1.53.1.47-.07 1.43-.58 1.63-1.15.2-.56.2-1.04.14-1.15-.06-.1-.22-.16-.46-.28z"/></svg>
             Jaque
           </a>
-          <a href="https://wa.me/5541987092366" target="_blank" rel="noopener">
+          <a href="https://wa.me/5541987092366" target="_blank" rel="noopener noreferrer">
             <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12c0 1.85.5 3.58 1.36 5.07L2 22l5.08-1.33A9.94 9.94 0 0 0 12 22c5.52 0 10-4.48 10-10S17.52 2 12 2zm0 18c-1.62 0-3.14-.44-4.44-1.2l-.32-.19-3.02.79.8-2.94-.2-.31A7.94 7.94 0 0 1 4 12c0-4.41 3.59-8 8-8s8 3.59 8 8-3.59 8-8 8zm4.38-5.98c-.24-.12-1.43-.7-1.65-.79-.22-.08-.38-.12-.55.12-.16.24-.63.79-.77.95-.14.16-.28.18-.52.06-.24-.12-1.01-.37-1.92-1.18-.71-.63-1.19-1.42-1.33-1.66-.14-.24-.02-.37.11-.49.11-.11.24-.28.36-.42.12-.14.16-.24.24-.4.08-.16.04-.3-.02-.42-.06-.12-.55-1.32-.75-1.81-.2-.48-.4-.41-.55-.42-.14-.01-.3-.01-.46-.01-.16 0-.42.06-.64.3-.22.24-.84.82-.84 2s.86 2.32.98 2.48c.12.16 1.7 2.6 4.12 3.64.58.25 1.03.4 1.38.51.58.18 1.11.16 1.53.1.47-.07 1.43-.58 1.63-1.15.2-.56.2-1.04.14-1.15-.06-.1-.22-.16-.46-.28z"/></svg>
             Leandro
           </a>
-          <a href="https://wa.me/5541991436380" target="_blank" rel="noopener">
+          <a href="https://wa.me/5541991436380" target="_blank" rel="noopener noreferrer">
             <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12c0 1.85.5 3.58 1.36 5.07L2 22l5.08-1.33A9.94 9.94 0 0 0 12 22c5.52 0 10-4.48 10-10S17.52 2 12 2zm0 18c-1.62 0-3.14-.44-4.44-1.2l-.32-.19-3.02.79.8-2.94-.2-.31A7.94 7.94 0 0 1 4 12c0-4.41 3.59-8 8-8s8 3.59 8 8-3.59 8-8 8zm4.38-5.98c-.24-.12-1.43-.7-1.65-.79-.22-.08-.38-.12-.55.12-.16.24-.63.79-.77.95-.14.16-.28.18-.52.06-.24-.12-1.01-.37-1.92-1.18-.71-.63-1.19-1.42-1.33-1.66-.14-.24-.02-.37.11-.49.11-.11.24-.28.36-.42.12-.14.16-.24.24-.4.08-.16.04-.3-.02-.42-.06-.12-.55-1.32-.75-1.81-.2-.48-.4-.41-.55-.42-.14-.01-.3-.01-.46-.01-.16 0-.42.06-.64.3-.22.24-.84.82-.84 2s.86 2.32.98 2.48c.12.16 1.7 2.6 4.12 3.64.58.25 1.03.4 1.38.51.58.18 1.11.16 1.53.1.47-.07 1.43-.58 1.63-1.15.2-.56.2-1.04.14-1.15-.06-.1-.22-.16-.46-.28z"/></svg>
             Lucas
           </a>
