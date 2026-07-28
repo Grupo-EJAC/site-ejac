@@ -5,6 +5,19 @@
 (function () {
 'use strict';
 
+// ------------------------------------------------------------
+// Proteção anti-clickjacking via JS
+// O GitHub Pages não permite configurar cabeçalhos HTTP (X-Frame-Options,
+// Strict-Transport-Security), só arquivos estáticos. E a diretiva
+// "frame-ancestors" da nossa CSP não funciona quando entregue por <meta>
+// (só funciona por cabeçalho HTTP real — regra do próprio padrão CSP).
+// Como reforço, se alguém tentar colocar o site dentro de um iframe de
+// outra página, isso aqui força a navegação a sair do iframe.
+// ------------------------------------------------------------
+if (window.top !== window.self) {
+  window.top.location = window.self.location;
+}
+
 const PREFERE_MENOS_MOVIMENTO = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 // ------------------------------------------------------------
