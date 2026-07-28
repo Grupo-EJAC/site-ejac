@@ -551,6 +551,22 @@
 
   .pagamento-nota strong { color: var(--branco); }
 
+  /* Destaque do prazo mínimo pra confirmar o pedido — mais forte que uma
+     nota comum, pra ninguém perder o prazo por passar batido */
+  .pagamento-prazo {
+    background: rgba(193, 77, 19, .18);
+    border: 2px solid var(--laranja);
+    border-radius: 10px;
+    padding: 12px 16px;
+    margin-top: 12px;
+    font-size: .9rem;
+    font-weight: 600;
+    color: var(--branco);
+    line-height: 1.4;
+  }
+
+  .pagamento-prazo strong { color: var(--rosa); }
+
   .aviso-comprovante {
     margin-top: 24px;
     background: rgba(193, 77, 19, .12);
