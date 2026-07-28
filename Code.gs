@@ -19,7 +19,7 @@
 const SPREADSHEET_ID = '1YDek0Lrh0jUQ-njxWTnKtkxUYj8M8J2gxkyvOimeVKs';
 
 // Limites de tamanho por campo (devem bater com o app.js)
-const LIMITES = { nomeCompleto: 80, nomeCamisa: 20, numeroCamisa: 3 };
+const LIMITES = { nomeCompleto: 80, nomeCamisa: 20, numeroCamisa: 3, ip: 45 };
 
 // Tamanhos aceitos (whitelist)
 const TAMANHOS_VALIDOS = ['PP', 'P', 'M', 'G', 'GG', 'XG', 'G2', 'G3', 'G4', 'G5'];
@@ -53,6 +53,7 @@ function doPost(e) {
     var nomeCamisa   = String(dados.nomeCamisa   || '').trim();
     var numeroCamisa = String(dados.numeroCamisa || '').trim();
     var tamanho      = String(dados.tamanho      || '').trim();
+    var ip           = String(dados.ip           || '').trim();
 
     // Validação no servidor
     if (!nomeCompleto || !nomeCamisa || !numeroCamisa || !tamanho) {
@@ -74,7 +75,7 @@ function doPost(e) {
 
     // Cria o cabeçalho automaticamente se a aba estiver vazia
     if (aba.getLastRow() === 0) {
-      aba.appendRow(['Data', 'Nome completo', 'Nome na camisa', 'Número na camisa', 'Tamanho']);
+      aba.appendRow(['Data', 'Nome completo', 'Nome na camisa', 'Número na camisa', 'Tamanho', 'IP']);
     }
 
     aba.appendRow([
@@ -82,7 +83,8 @@ function doPost(e) {
       sanitizar(nomeCompleto, LIMITES.nomeCompleto),
       sanitizar(nomeCamisa,   LIMITES.nomeCamisa),
       sanitizar(numeroCamisa, LIMITES.numeroCamisa),
-      tamanho  // já validado contra a whitelist
+      tamanho,  // já validado contra a whitelist
+      sanitizar(ip, LIMITES.ip)
     ]);
 
     return json({ resultado: 'sucesso' });

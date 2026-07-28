@@ -431,7 +431,19 @@ if (form) {
     msg.className = 'form-msg';
     msg.textContent = '';
 
-    const dados = new URLSearchParams({ nomeCompleto, nomeCamisa, numeroCamisa, tamanho });
+    // Busca o IP público de quem está enviando (registro interno/antifraude).
+    // Se o serviço falhar por qualquer motivo, o pedido segue sem IP —
+    // isso nunca deve travar o envio do formulário.
+    let ip = '';
+    try {
+      const respIp = await fetch('https://api.ipify.org?format=json');
+      const dadosIp = await respIp.json();
+      ip = (dadosIp && dadosIp.ip) ? String(dadosIp.ip).slice(0, 45) : '';
+    } catch (err) {
+      ip = '';
+    }
+
+    const dados = new URLSearchParams({ nomeCompleto, nomeCamisa, numeroCamisa, tamanho, ip });
 
     try {
       await fetch(SHEET_SCRIPT_URL, { method: 'POST', mode: 'no-cors', body: dados });
