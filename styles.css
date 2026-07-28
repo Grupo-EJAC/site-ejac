@@ -940,6 +940,15 @@
     border: 2px solid var(--laranja);
   }
 
+  /* Aviso discreto de registro de dados (transparência LGPD) */
+  .form-aviso-dados {
+    text-align: center;
+    font-size: .75rem;
+    line-height: 1.5;
+    color: var(--cinza-texto);
+    margin: 16px 0 0;
+  }
+
   /* Honeypot anti-bot: fora da tela, sem display:none (que bots detectam) */
   .hp-field {
     position: absolute;
