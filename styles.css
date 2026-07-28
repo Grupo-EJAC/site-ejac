@@ -437,13 +437,28 @@
   .preco-valor {
     font-family: var(--font-display);
     font-weight: 900;
-    font-size: 3rem;
+    font-size: 2.2rem;
     color: var(--branco);
-    text-shadow: 5px 5px 0 var(--rosa);
+    text-shadow: 4px 4px 0 var(--rosa);
     line-height: 1;
   }
 
-  .preco-valor small { font-size: 1.4rem; }
+  .preco-valor small { font-size: 1.1rem; }
+
+  .preco-label {
+    font-size: .8rem;
+    color: var(--cinza-texto);
+    margin-top: 8px;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+  }
+
+  .preco-ou {
+    font-family: var(--font-scribble);
+    color: var(--laranja);
+    font-size: 1.2rem;
+    transform: rotate(-6deg);
+  }
 
   .pagamento-sub {
     color: var(--cinza-texto);
