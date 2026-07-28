@@ -73,9 +73,12 @@ function doPost(e) {
     var planilha = SpreadsheetApp.openById(SPREADSHEET_ID);
     var aba = planilha.getSheetByName('Pedidos') || planilha.getSheets()[0];
 
-    // Cria o cabeçalho automaticamente se a aba estiver vazia
+    // Cabeçalho: cria do zero se a aba estiver vazia; se a planilha já
+    // existia antes da coluna de IP, só completa o título que falta.
     if (aba.getLastRow() === 0) {
       aba.appendRow(['Data', 'Nome completo', 'Nome na camisa', 'Número na camisa', 'Tamanho', 'IP']);
+    } else if (!aba.getRange(1, 6).getValue()) {
+      aba.getRange(1, 6).setValue('IP');
     }
 
     aba.appendRow([
