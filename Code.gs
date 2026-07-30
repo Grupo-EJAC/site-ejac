@@ -50,18 +50,22 @@ function doPost(e) {
     }
 
     var nomeCompleto = String(dados.nomeCompleto || '').trim();
+    var whatsapp     = String(dados.whatsapp     || '').trim();
     var nomeCamisa   = String(dados.nomeCamisa   || '').trim();
     var numeroCamisa = String(dados.numeroCamisa || '').trim();
     var tamanho      = String(dados.tamanho      || '').trim();
     var ip           = String(dados.ip           || '').trim();
 
     // Validação no servidor
-    if (!nomeCompleto || !nomeCamisa || !numeroCamisa || !tamanho) {
+    if (!nomeCompleto || !whatsapp || !nomeCamisa || !numeroCamisa || !tamanho) {
       return json({ resultado: 'erro', motivo: 'campos_obrigatorios' });
     }
     if (nomeCompleto.length > LIMITES.nomeCompleto ||
         nomeCamisa.length   > LIMITES.nomeCamisa) {
       return json({ resultado: 'erro', motivo: 'campo_longo' });
+    }
+    if (!/^[0-9]{10,11}$/.test(whatsapp)) {
+      return json({ resultado: 'erro', motivo: 'whatsapp_invalido' });
     }
     if (!/^[0-9]{1,3}$/.test(numeroCamisa)) {
       return json({ resultado: 'erro', motivo: 'numero_invalido' });
@@ -74,11 +78,12 @@ function doPost(e) {
     var aba = planilha.getSheetByName('Pedidos') || planilha.getSheets()[0];
 
     // Cabeçalho: cria do zero se a aba estiver vazia; se a planilha já
-    // existia antes da coluna de IP, só completa o título que falta.
+    // existia antes de alguma coluna nova, só completa o título que falta.
     if (aba.getLastRow() === 0) {
-      aba.appendRow(['Data', 'Nome completo', 'Nome na camisa', 'Número na camisa', 'Tamanho', 'IP']);
-    } else if (!aba.getRange(1, 6).getValue()) {
-      aba.getRange(1, 6).setValue('IP');
+      aba.appendRow(['Data', 'Nome completo', 'Nome na camisa', 'Número na camisa', 'Tamanho', 'IP', 'WhatsApp']);
+    } else {
+      if (!aba.getRange(1, 6).getValue()) aba.getRange(1, 6).setValue('IP');
+      if (!aba.getRange(1, 7).getValue()) aba.getRange(1, 7).setValue('WhatsApp');
     }
 
     aba.appendRow([
@@ -87,7 +92,8 @@ function doPost(e) {
       sanitizar(nomeCamisa,   LIMITES.nomeCamisa),
       sanitizar(numeroCamisa, LIMITES.numeroCamisa),
       tamanho,  // já validado contra a whitelist
-      sanitizar(ip, LIMITES.ip)
+      sanitizar(ip, LIMITES.ip),
+      whatsapp  // já validado contra o formato (10-11 dígitos)
     ]);
 
     return json({ resultado: 'sucesso' });

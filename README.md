@@ -46,7 +46,7 @@ Site de página única para os membros do EJAC (Esperança Jovem Aliada a Cristo
 3. Troque `"COLE_AQUI_A_URL_DO_SEU_APPS_SCRIPT"` pela URL que você copiou no passo anterior
 4. Salve o arquivo
 
-Pronto — os pedidos feitos no site vão aparecer como novas linhas na aba **Pedidos** da sua planilha, já organizados por Data, Nome completo, Nome na camisa, Número na camisa e Tamanho.
+Pronto — os pedidos feitos no site vão aparecer como novas linhas na aba **Pedidos** da sua planilha, já organizados por Data, Nome completo, Nome na camisa, Número na camisa, Tamanho, IP e WhatsApp.
 
 > **Nota importante:** sempre que alterar o `Code.gs` depois de já ter implantado, é preciso ir em **Implantar → Gerenciar implantações → editar (ícone de lápis) → Nova versão → Implantar** para a mudança valer. A URL do app **não muda**.
 

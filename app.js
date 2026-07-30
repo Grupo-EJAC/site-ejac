@@ -396,14 +396,16 @@ if (form) {
 
     // Coleta e limpeza dos dados
     const nomeCompleto = form.nomeCompleto.value.trim();
+    const whatsapp = form.whatsapp.value.replace(/\D/g, '');
     const nomeCamisa = form.nomeCamisa.value.trim();
     const numeroCamisa = form.numeroCamisa.value.trim();
     const tamanho = form.tamanho.value;
 
     // Validação no cliente (o servidor revalida tudo)
-    if (!nomeCompleto || !nomeCamisa || !numeroCamisa || !tamanho) {
+    if (!nomeCompleto || !whatsapp || !nomeCamisa || !numeroCamisa || !tamanho) {
       mostrarErro('Preencha todos os campos antes de enviar.');
       if (!nomeCompleto) destacarInvalido(form.nomeCompleto);
+      if (!whatsapp) destacarInvalido(form.whatsapp);
       if (!nomeCamisa) destacarInvalido(form.nomeCamisa);
       if (!numeroCamisa) destacarInvalido(form.numeroCamisa);
       if (!tamanho) destacarInvalido(form.tamanho);
@@ -413,6 +415,11 @@ if (form) {
       mostrarErro('Algum campo está longo demais. Revise e tente de novo.');
       if (nomeCompleto.length > LIMITES.nomeCompleto) destacarInvalido(form.nomeCompleto);
       if (nomeCamisa.length > LIMITES.nomeCamisa) destacarInvalido(form.nomeCamisa);
+      return;
+    }
+    if (!/^[0-9]{10,11}$/.test(whatsapp)) {
+      mostrarErro('Digite um WhatsApp válido, com DDD (ex: 41999998888).');
+      destacarInvalido(form.whatsapp);
       return;
     }
     if (!/^[0-9]{1,3}$/.test(numeroCamisa)) {
@@ -443,7 +450,7 @@ if (form) {
       ip = '';
     }
 
-    const dados = new URLSearchParams({ nomeCompleto, nomeCamisa, numeroCamisa, tamanho, ip });
+    const dados = new URLSearchParams({ nomeCompleto, whatsapp, nomeCamisa, numeroCamisa, tamanho, ip });
 
     try {
       await fetch(SHEET_SCRIPT_URL, { method: 'POST', mode: 'no-cors', body: dados });
