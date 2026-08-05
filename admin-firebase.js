@@ -1,8 +1,9 @@
 // EJAC — Painel administrativo: pedidos de camiseta + cesta básica
-// (com WhatsApp/IP), com login Google. Quem entra vê e pode excluir; a
-// lista de quem PODE entrar mora no firestore.rules (função
-// emailsAdmin()), não aqui — este arquivo não decide autorização, só
-// tenta ler os dados e reage se o servidor recusar.
+// (com WhatsApp/IP) + moderação do mural de neon, com login Google.
+// Quem entra vê e pode excluir; a lista de quem PODE entrar mora no
+// firestore.rules (função emailsAdmin()), não aqui — este arquivo não
+// decide autorização, só tenta ler os dados e reage se o servidor
+// recusar.
 
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.17.1/firebase-app.js';
 import {
@@ -89,14 +90,17 @@ if (firebaseConfig.apiKey.includes('COLE_AQUI')) {
   const colCamiseta = collection(db, 'camisetaPedidos');
   const colCestaContatos = collection(db, 'cestaContatos');
   const colCestaContribuicoes = collection(db, 'cestaContribuicoes');
+  const colMuralTracos = collection(db, 'muralTracos');
 
   let pararCamiseta = null;
   let pararCesta = null;
+  let pararMural = null;
   let pedidosCamisetaAtuais = [];
 
   function pararListeners() {
     if (pararCamiseta) { pararCamiseta(); pararCamiseta = null; }
     if (pararCesta) { pararCesta(); pararCesta = null; }
+    if (pararMural) { pararMural(); pararMural = null; }
   }
 
   // ---------------- Camisetas ----------------
@@ -246,6 +250,47 @@ if (firebaseConfig.apiKey.includes('COLE_AQUI')) {
     });
   }
 
+  // ---------------- Mural de neon ----------------
+
+  let idsTracosAtuais = [];
+
+  function renderResumoMural(snapshot) {
+    idsTracosAtuais = snapshot.docs.map((d) => d.id);
+    const resumoEl = document.getElementById('mural-resumo');
+    if (!resumoEl) return;
+    resumoEl.textContent = '';
+    const total = document.createElement('span');
+    total.className = 'admin-stat admin-stat-total';
+    total.textContent = `${idsTracosAtuais.length} traço${idsTracosAtuais.length === 1 ? '' : 's'}`;
+    resumoEl.appendChild(total);
+  }
+
+  const btnLimparMural = document.getElementById('btn-limpar-mural');
+  if (btnLimparMural) {
+    btnLimparMural.addEventListener('click', async () => {
+      if (idsTracosAtuais.length === 0) {
+        alert('O mural já está vazio.');
+        return;
+      }
+      if (!confirm(`Apagar todos os ${idsTracosAtuais.length} traços do mural? Essa ação não pode ser desfeita.`)) return;
+      btnLimparMural.disabled = true;
+      try {
+        // Lotes têm limite de 500 operações — na prática o mural nunca
+        // deve chegar nem perto disso, mas divide por segurança.
+        for (let i = 0; i < idsTracosAtuais.length; i += 450) {
+          const pedaco = idsTracosAtuais.slice(i, i + 450);
+          const lote = writeBatch(db);
+          pedaco.forEach((id) => lote.delete(doc(colMuralTracos, id)));
+          await lote.commit();
+        }
+      } catch (err) {
+        alert('Não foi possível limpar o mural. Tente de novo.');
+      } finally {
+        btnLimparMural.disabled = false;
+      }
+    });
+  }
+
   // ---------------- Login / autorização ----------------
 
   if (btnLogin) {
@@ -297,5 +342,6 @@ if (firebaseConfig.apiKey.includes('COLE_AQUI')) {
 
     pararCamiseta = onSnapshot(query(colCamiseta, orderBy('criadoEm', 'desc')), renderCamiseta);
     pararCesta = onSnapshot(query(colCestaContatos, orderBy('criadoEm', 'desc')), renderCesta);
+    pararMural = onSnapshot(colMuralTracos, renderResumoMural);
   });
 }

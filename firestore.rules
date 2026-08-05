@@ -1,4 +1,4 @@
-// EJAC — Regras de segurança do Firestore (camiseta + cesta básica + painel admin).
+// EJAC — Regras de segurança do Firestore (camiseta + cesta básica + mural + painel admin).
 //
 // Cole isso no Firebase Console: Firestore Database → Regras → colar
 // tudo → Publicar. Isso é o que de fato valida cada envio e protege os
@@ -120,6 +120,35 @@ service cloud.firestore {
         && request.resource.data.tamanho in tamanhosValidos()
         && request.resource.data.ip is string && request.resource.data.ip.size() <= 45
         && request.resource.data.criadoEm == request.time;
+    }
+
+    // ---------- Mural de neon ----------
+
+    // Traços finalizados do quadro colaborativo. Qualquer sessão com
+    // login anônimo pode criar um traço (é a feature — desenhar sem
+    // barreira nenhuma), mas só o dono do traço nunca pode alterar
+    // depois de criado, e só o admin consegue apagar (moderação, se
+    // alguém desenhar algo impróprio — o painel tem um botão "Limpar
+    // mural" que apaga tudo de uma vez).
+    function pontosValidos(pontos) {
+      return pontos is list && pontos.size() >= 2 && pontos.size() <= 500;
+    }
+
+    function corValida(cor) {
+      return cor == 'rosa' || cor == 'laranja';
+    }
+
+    match /muralTracos/{id} {
+      allow read: if true;
+      allow create: if request.auth != null
+        && request.resource.data.keys().hasOnly(['uid', 'nome', 'cor', 'pontos', 'criadoEm'])
+        && request.resource.data.uid == request.auth.uid
+        && nomeValido(request.resource.data.nome)
+        && corValida(request.resource.data.cor)
+        && pontosValidos(request.resource.data.pontos)
+        && request.resource.data.criadoEm == request.time;
+      allow update: if false;
+      allow delete: if isAdmin();
     }
 
     // Tudo mais fica bloqueado por padrão.
