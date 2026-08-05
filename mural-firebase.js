@@ -321,6 +321,7 @@ if (rtdb) {
 let desenhando = false;
 let pontosDoTraco = []; // pontos decimados — é o que vai pro Firestore
 let ultimoPontoBruto = null; // pra desenhar local liso, sem esperar decimação
+let pointerAtivoId = null; // só um traço por vez; um segundo dedo (ex.: palma no celular) é ignorado
 
 function coordNormalizada(e) {
   const rect = canvas.getBoundingClientRect();
@@ -356,7 +357,9 @@ canvas.addEventListener('pointerdown', (e) => {
     abrirModalNome();
     return;
   }
+  if (desenhando) return; // já tem um traço em andamento — ignora um segundo dedo/ponteiro
   desenhando = true;
+  pointerAtivoId = e.pointerId;
   canvas.setPointerCapture(e.pointerId);
   const p = coordNormalizada(e);
   pontosDoTraco = [p];
@@ -365,7 +368,7 @@ canvas.addEventListener('pointerdown', (e) => {
 });
 
 canvas.addEventListener('pointermove', (e) => {
-  if (!desenhando) return;
+  if (!desenhando || e.pointerId !== pointerAtivoId) return;
   e.preventDefault();
   const p = coordNormalizada(e);
   const dims = { dpr: window.devicePixelRatio || 1 };
@@ -378,9 +381,10 @@ canvas.addEventListener('pointermove', (e) => {
   enviarPresenca(p.x, p.y);
 }, { passive: false });
 
-async function finalizarTraco() {
-  if (!desenhando) return;
+async function finalizarTraco(e) {
+  if (!desenhando || (e && e.pointerId !== pointerAtivoId)) return;
   desenhando = false;
+  pointerAtivoId = null;
   limparPresenca();
 
   const pontosParaSalvar = pontosDoTraco;
@@ -409,6 +413,6 @@ async function finalizarTraco() {
 
 canvas.addEventListener('pointerup', finalizarTraco);
 canvas.addEventListener('pointercancel', finalizarTraco);
-canvas.addEventListener('pointerleave', () => { if (desenhando) finalizarTraco(); });
+canvas.addEventListener('pointerleave', (e) => { if (desenhando && e.pointerId === pointerAtivoId) finalizarTraco(e); });
 
 window.addEventListener('beforeunload', limparPresenca);
