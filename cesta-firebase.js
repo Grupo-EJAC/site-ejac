@@ -31,6 +31,15 @@ function formatarNumero(n) {
   return String(arred).replace('.', ',');
 }
 
+// "kg" e "L" são abreviação, não pluralizam. As demais unidades do
+// catálogo (unidade, pote, caixa) são palavras por extenso e seguem a
+// regra normal do português: só fica plural quando a quantidade não é 1.
+const UNIDADES_INVARIAVEIS = new Set(['kg', 'L']);
+function pluralizarUnidade(unidade, quantidade) {
+  if (UNIDADES_INVARIAVEIS.has(unidade) || quantidade === 1) return unidade;
+  return unidade + 's';
+}
+
 let statusCesta = {};
 let contribuicoesCesta = {}; // itemId -> [{ nome, quantidade }]
 
@@ -73,7 +82,7 @@ function criarLinhaCesta(item) {
     const strong = document.createElement('strong');
     strong.textContent = formatarNumero(coletado);
     qtdEl.appendChild(strong);
-    qtdEl.appendChild(document.createTextNode(` de ${formatarNumero(item.meta)} ${item.unidade}`));
+    qtdEl.appendChild(document.createTextNode(` de ${formatarNumero(item.meta)} ${pluralizarUnidade(item.unidade, item.meta)}`));
   }
 
   topo.appendChild(nomeEl);
@@ -100,7 +109,7 @@ function criarLinhaCesta(item) {
       const nomeSpan = document.createElement('span');
       nomeSpan.textContent = c.nome || 'Anônimo';
       const qtdSpan = document.createElement('span');
-      qtdSpan.textContent = `${formatarNumero(c.quantidade)} ${item.unidade}`;
+      qtdSpan.textContent = `${formatarNumero(c.quantidade)} ${pluralizarUnidade(item.unidade, c.quantidade)}`;
       linha.appendChild(nomeSpan);
       linha.appendChild(qtdSpan);
       lista.appendChild(linha);
@@ -133,7 +142,7 @@ function atualizarHintCesta() {
   } else {
     cestaHintEl.appendChild(document.createTextNode('Faltam '));
     const strong = document.createElement('strong');
-    strong.textContent = `${formatarNumero(falta)} ${item.unidade}`;
+    strong.textContent = `${formatarNumero(falta)} ${pluralizarUnidade(item.unidade, falta)}`;
     cestaHintEl.appendChild(strong);
     cestaHintEl.appendChild(document.createTextNode(' pra completar esse item.'));
   }
