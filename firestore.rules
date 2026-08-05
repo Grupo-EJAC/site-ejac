@@ -22,15 +22,16 @@ service cloud.firestore {
 
     // ---------- Quem é admin ----------
 
-    // Coordenadores com acesso a /admin/ (ver pedidos, ver WhatsApp/IP
-    // da cesta, excluir itens). Sempre em minúsculas — a comparação em
-    // isAdmin() também baixa a caixa do e-mail logado, então não importa
-    // como a pessoa digitou o Gmail dela originalmente.
+    // Coordenadores com acesso a /admin/ (ver pedidos de camiseta, ver
+    // IP da cesta, excluir itens). Sempre em minúsculas — a comparação
+    // em isAdmin() também baixa a caixa do e-mail logado, então não
+    // importa como a pessoa digitou o Gmail dela originalmente.
     function emailsAdmin() {
       return [
         'diegoavanco04@gmail.com',
         'leeeandroalmeida881@gmail.com',
-        'j4queline.s4nts@gmail.com'
+        'j4queline.s4nts@gmail.com',
+        'lm452020@gmail.com'
       ];
     }
 
