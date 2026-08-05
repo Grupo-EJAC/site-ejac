@@ -7,7 +7,7 @@
 <!-- Content-Security-Policy: nega tudo por padrão e libera só o necessário.
      Sem 'unsafe-inline' em nenhum lugar — todo CSS e JS vive em arquivo
      próprio, então script e estilo injetados são bloqueados pelo navegador. -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'none'; script-src 'self' https://www.gstatic.com; style-src 'self' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src https://firestore.googleapis.com https://api.ipify.org; form-action 'none'; frame-ancestors 'none'; upgrade-insecure-requests">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'none'; script-src 'self' https://www.gstatic.com; style-src 'self' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src https://firestore.googleapis.com https://script.google.com https://script.googleusercontent.com https://api.ipify.org; form-action 'none'; frame-ancestors 'none'; upgrade-insecure-requests">
 <meta name="referrer" content="no-referrer">
 <meta name="robots" content="index, follow">
 <meta name="theme-color" content="#000001">

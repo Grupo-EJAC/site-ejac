@@ -1,6 +1,6 @@
 # Site EJAC — Pedido de Camiseta e Cesta Básica
 
-Site pros membros do EJAC (Esperança Jovem Aliada a Cristo) pedirem a camiseta oficial e colaborarem com a cesta básica do grupo. 100% gratuito, hospedado no GitHub Pages, sem servidor próprio — tudo (camiseta, cesta básica e o painel administrativo) grava direto num banco **Firestore (Firebase)**, com atualização em tempo real e sem planilha nenhuma.
+Site pros membros do EJAC (Esperança Jovem Aliada a Cristo) pedirem a camiseta oficial e colaborarem com a cesta básica do grupo. 100% gratuito, hospedado no GitHub Pages, sem servidor próprio — tudo (camiseta, cesta básica e o painel administrativo) grava direto num banco **Firestore (Firebase)**, com atualização em tempo real. Os pedidos de camiseta também caem, em paralelo, numa planilha do Google (por pedido do grupo, como cópia/backup — o Firestore continua sendo a fonte usada pelo site e pelo painel).
 
 ## Arquivos
 
@@ -11,7 +11,8 @@ Site pros membros do EJAC (Esperança Jovem Aliada a Cristo) pedirem a camiseta 
 | `admin/index.html` | Painel administrativo (`/admin/`, login Google) — relatório dos pedidos de camiseta e da cesta básica, com opção de excluir |
 | `styles.css` | Todo o visual. **As cores ficam no `:root`, no topo** — mexa só ali pra mudar a identidade |
 | `app.js` | Efeitos visuais e utilitários de UI compartilhados entre as páginas (prévia da camisa, copiar Pix, som, animação de campo inválido) |
-| `camiseta-firebase.js` | Grava o pedido de camiseta no Firestore |
+| `camiseta-firebase.js` | Grava o pedido de camiseta no Firestore (principal) e também na planilha do Google, via `Code.gs` (cópia) |
+| `Code.gs` | Script do Google que recebe a cópia dos pedidos de camiseta e grava na planilha — veja o Passo F |
 | `cesta-firebase.js` | Lê e grava as contribuições da cesta básica no Firestore, em tempo real |
 | `admin-firebase.js` | Login Google, leitura dos dados (inclusive WhatsApp dos pedidos de camiseta e IP das duas coisas) e exclusão de registros — só funciona pra e-mails autorizados |
 | `firebase-config.js` | A configuração do projeto Firebase (um só lugar, compartilhado pelos três módulos acima) |
@@ -35,7 +36,7 @@ Site pros membros do EJAC (Esperança Jovem Aliada a Cristo) pedirem a camiseta 
 
 ## Como o site funciona (visão geral)
 
-- **Camiseta** (`/`): formulário público, sem visibilidade nenhuma — só o painel admin lê os pedidos.
+- **Camiseta** (`/`): formulário público, sem visibilidade nenhuma — só o painel admin lê os pedidos. Grava no Firestore (é o que o site/painel realmente usa) e manda uma cópia pra planilha do Google via `Code.gs`, como backup — se a planilha falhar por algum motivo, o pedido continua seguro no Firestore.
 - **Cesta básica** (`/cesta/`): formulário público onde os membros escolhem um item de uma lista fixa e dizem quanto vão trazer (a quantidade toda ou só uma parte) — só pede nome, sem WhatsApp. **Nome, item e quantidade ficam visíveis na própria página** (foi um pedido do grupo, pra dar controle de quem já trouxe o quê), atualizando em tempo real pra quem estiver com a página aberta. O IP **nunca aparece no site** — fica numa coleção separada, só legível pelo painel admin.
 - **Painel admin** (`/admin/`): login com conta Google. Só e-mails na lista `emailsAdmin()` do `firestore.rules` conseguem entrar — qualquer outra conta Google cai numa tela de "acesso não autorizado". De lá dá pra ver todos os pedidos de camiseta (com resumo por tamanho e exportar CSV), ver a cesta básica com IP incluído, e **excluir qualquer registro errado ou falso** direto pela interface, sem precisar abrir o Firebase Console.
 - Não existe cota fixa por pessoa na cesta: qualquer um pode contribuir com qualquer item, em qualquer quantidade (até um teto de 3× a meta, só pra barrar erro de digitação). Se um item já estiver completo, a página avisa mas ainda deixa contribuir a mais.
@@ -92,6 +93,7 @@ O site é estático (sem servidor nosso), então a superfície de ataque é pequ
 - **`referrer: no-referrer`:** ao clicar num link externo (WhatsApp), o destino não recebe de onde a pessoa veio.
 - **Links externos com `noopener noreferrer`:** a página aberta não ganha acesso à nossa via `window.opener`.
 - **Registro de IP:** junto com cada pedido/contribuição é gravado o IP de quem enviou, pra dar rastreabilidade em caso de pedido falso. O IP é obtido pelo navegador via `api.ipify.org` — ou seja, dá pra forjar num envio direto ao Firestore, então serve como indício, não como prova. Se a busca falhar, o envio segue normalmente sem IP. Há um aviso discreto nos formulários informando o registro, como manda o princípio de transparência da LGPD.
+- **Anti-injeção de fórmula na planilha:** a cópia dos pedidos de camiseta que cai no Google Sheets passa pelo `Code.gs`, que prefixa com apóstrofo qualquer valor começando com `=`, `+`, `-` ou `@` antes de gravar — assim o Sheets trata como **texto** e nunca executa como fórmula, protegendo quem abre a planilha.
 - **`/admin/` tem `noindex, nofollow`:** não aparece em buscadores. Isso não é a proteção real (quem protege são as regras + login), é só pra não aparecer por acidente numa busca.
 - **Sem segredos no repositório:** a config do Firebase, a chave Pix e os telefones são públicos por natureza (precisam ser). Arte original e PDFs de marca ficam no `.gitignore`.
 
@@ -112,12 +114,29 @@ O site foi feito pra funcionar pra todo mundo, inclusive quem navega só pelo te
 1. Crie uma conta no [github.com](https://github.com) se ainda não tiver
 2. Clique em **New repository**, dê um nome (ex: `site-ejac`) e crie
 3. Na página do repositório, clique em **Add file → Upload files**
-4. Arraste `index.html`, `styles.css`, `app.js`, `camiseta-firebase.js`, `cesta-firebase.js`, `admin-firebase.js`, `firebase-config.js`, `catalogos.js`, `favicon.svg` e as pastas `assets/`, `cesta/` e `admin/` (arrastando a pasta inteira, não só o `index.html` de dentro dela, pra manter `cesta/index.html` e `admin/index.html` no lugar certo) e clique em **Commit changes** (o `firestore.rules` não precisa subir pro GitHub Pages — ele só é usado dentro do Firebase Console, no Passo B)
+4. Arraste `index.html`, `styles.css`, `app.js`, `camiseta-firebase.js`, `cesta-firebase.js`, `admin-firebase.js`, `firebase-config.js`, `catalogos.js`, `favicon.svg` e as pastas `assets/`, `cesta/` e `admin/` (arrastando a pasta inteira, não só o `index.html` de dentro dela, pra manter `cesta/index.html` e `admin/index.html` no lugar certo) e clique em **Commit changes** (`firestore.rules` e `Code.gs` não precisam subir pro GitHub Pages — o primeiro é usado no Firebase Console (Passo B), o segundo no editor do Apps Script (Passo F))
 5. Vá em **Settings → Pages**
 6. Em "Branch", selecione `main` e a pasta `/root`, depois clique em **Save**
 7. Espere 1–2 minutos e atualize a página — vai aparecer o link do site (algo como `https://seu-usuario.github.io/site-ejac/`)
 
 Esse é o link que vocês vão divulgar pro grupo pedir a camiseta e colaborar com a cesta.
+
+## Passo F — Conectar a cópia dos pedidos de camiseta na planilha
+
+O Firestore já é suficiente pro site e pro painel funcionarem — esse passo é só pra também termos uma cópia dos pedidos de camiseta numa planilha do Google, por preferência do grupo.
+
+1. Acesse [sheets.google.com](https://sheets.google.com) e crie uma planilha nova (ex: "Pedidos Camiseta EJAC")
+2. Copie o **ID da planilha** — o trecho da URL entre `/d/` e `/edit`: `https://docs.google.com/spreadsheets/d/`**`ESSE-TRECHO-AQUI`**`/edit`
+3. No menu da planilha, clique em **Extensões → Apps Script**, apague o código de exemplo e cole todo o conteúdo do `Code.gs` deste projeto
+4. Troque `'COLE_AQUI_O_ID_DA_PLANILHA'` (topo do arquivo) pelo ID copiado no passo 2 → salve (💾)
+5. **Implantar → Nova implantação** → ⚙️ → **App da Web** → Executar como **Eu**, Quem pode acessar **Qualquer pessoa** → **Implantar**
+6. Na primeira vez, autorize o acesso (é o seu próprio script, pode confiar mesmo com o aviso de "não verificado")
+7. Copie a **URL do app da Web** (`https://script.google.com/macros/s/.../exec`) e cole no `camiseta-firebase.js`, na constante `SHEET_SCRIPT_URL` (topo do arquivo)
+8. No `index.html`, confira se o CSP (`connect-src`) já libera `https://script.google.com` e `https://script.googleusercontent.com` — se você recriou o projeto do zero, pode ter tirado essas linhas junto com a limpeza do Firebase
+
+> **Nota:** sempre que alterar o `Code.gs` depois de implantado, é preciso ir em **Implantar → Gerenciar implantações → editar (lápis) → Nova versão → Implantar** pra mudança valer. A URL não muda.
+
+Como a gravação na planilha usa `mode: 'no-cors'`, o navegador nunca sabe se ela deu certo ou não — por isso ela **nunca bloqueia nem exibe erro** pro usuário. Se a planilha parar de receber pedidos por algum motivo (deployment revogado, etc.), o site continua funcionando normal e nada se perde: os pedidos continuam chegando no Firestore, visíveis no painel `/admin/`.
 
 ## Paleta de cores oficial
 

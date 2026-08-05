@@ -1,4 +1,4 @@
-// EJAC — Pedido de camiseta, gravado direto no Firestore (sem planilha).
+// EJAC — Pedido de camiseta, gravado no Firestore E na planilha do Google.
 //
 // Sem servidor próprio: o navegador fala direto com o Firestore. A
 // validação que vale de verdade é a do firestore.rules — a validação
@@ -7,6 +7,12 @@
 // Os pedidos (nome, WhatsApp, nome/número na camisa, tamanho) NÃO são
 // públicos — só o painel admin (/admin/) consegue ler, editar ou
 // excluir, depois de login com um e-mail autorizado (ver firestore.rules).
+//
+// O Firestore é a gravação principal (se ela falhar, o pedido falha).
+// A planilha (Code.gs) é gravada em seguida, best-effort: por vir via
+// `mode: 'no-cors'` não dá pra saber se deu certo do lado do navegador,
+// então uma falha ali não trava nem avisa erro pro usuário — o pedido
+// já está seguro no Firestore de qualquer jeito.
 
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.17.1/firebase-app.js';
 import {
@@ -14,6 +20,9 @@ import {
 } from 'https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js';
 import { firebaseConfig } from './firebase-config.js';
 import { TAMANHOS_VALIDOS } from './catalogos.js';
+
+// URL do Web App do Google Apps Script (veja o README.md pra gerar a sua)
+const SHEET_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby88ta4VEGOe5GdSnphLScnKoaQvBYhgyMkEWW28JtS9LeoSevpeflbXtTld3PkW_9aYg/exec';
 
 const NOME_MAX = 80;
 const NOME_CAMISA_MAX = 20;
@@ -121,6 +130,14 @@ if (form) {
       form.reset();
       if (window.EJAC && window.EJAC.atualizarPreviewNome) window.EJAC.atualizarPreviewNome();
       if (window.EJAC && window.EJAC.atualizarPreviewNumero) window.EJAC.atualizarPreviewNumero();
+
+      // Cópia pra planilha — best-effort, não afeta o sucesso já confirmado acima
+      try {
+        const dadosSheet = new URLSearchParams({ nomeCompleto, whatsapp, nomeCamisa, numeroCamisa, tamanho, ip });
+        await fetch(SHEET_SCRIPT_URL, { method: 'POST', mode: 'no-cors', body: dadosSheet });
+      } catch (err) {
+        // Silencioso de propósito: o pedido já está seguro no Firestore.
+      }
     } catch (err) {
       mostrarErro('Não foi possível enviar. Tente novamente em instantes.');
     } finally {
