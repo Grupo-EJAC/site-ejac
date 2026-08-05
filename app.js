@@ -276,17 +276,6 @@ function lancarConfete(origemEl) {
   }
 }
 
-// URL do Web App do Google Apps Script (veja o README.md pra gerar)
-const SHEET_SCRIPT_URL = "https://script.google.com/macros/s/AKfycby88ta4VEGOe5GdSnphLScnKoaQvBYhgyMkEWW28JtS9LeoSevpeflbXtTld3PkW_9aYg/exec";
-
-// Limites de validação (espelham o que o Code.gs valida no servidor)
-const LIMITES = {
-  nomeCompleto: 80,
-  nomeCamisa: 20,
-  numeroCamisa: 3,
-};
-const TAMANHOS_VALIDOS = ['PP', 'P', 'M', 'G', 'GG', 'XG', 'G2', 'G3', 'G4', 'G5'];
-
 // ------------------------------------------------------------
 // Copiar a chave Pix
 // ------------------------------------------------------------
@@ -336,6 +325,7 @@ function atualizarLegendaPreview() {
 const BASE_NOME = 17, BASE_NUMERO = 57.79;
 
 function atualizarPreviewNome() {
+  if (!inputNomeCamisa || !previewNome) return;
   const texto = inputNomeCamisa.value.trim() || 'EJAC';
   previewNome.textContent = texto;
   const escala = Math.min(BASE_NOME, BASE_NOME * 4 / texto.length);
@@ -344,6 +334,7 @@ function atualizarPreviewNome() {
 }
 
 function atualizarPreviewNumero() {
+  if (!inputNumeroCamisa || !previewNumero) return;
   const texto = inputNumeroCamisa.value.trim() || '94';
   previewNumero.textContent = texto;
   const escala = Math.min(BASE_NUMERO, BASE_NUMERO * 2 / texto.length);
@@ -358,18 +349,6 @@ if (inputNumeroCamisa && previewNumero) {
   inputNumeroCamisa.addEventListener('input', atualizarPreviewNumero);
 }
 
-// ------------------------------------------------------------
-// Envio do formulário para a planilha do Google
-// ------------------------------------------------------------
-const form = document.getElementById('form-pedido');
-const btn = document.getElementById('btn-enviar');
-const msg = document.getElementById('form-msg');
-
-function mostrarErro(texto) {
-  msg.textContent = texto;
-  msg.className = 'form-msg erro';
-}
-
 function destacarInvalido(el) {
   if (!el || PREFERE_MENOS_MOVIMENTO) return;
   el.classList.remove('campo-invalido');
@@ -378,95 +357,19 @@ function destacarInvalido(el) {
   el.addEventListener('animationend', () => el.classList.remove('campo-invalido'), { once: true });
 }
 
-if (form) {
-  form.addEventListener('submit', async (e) => {
-    e.preventDefault();
-
-    if (SHEET_SCRIPT_URL.includes('COLE_AQUI')) {
-      mostrarErro('O formulário ainda não está conectado à planilha. Veja o README.md.');
-      return;
-    }
-
-    if ((form.website && form.website.value.trim()) !== '') {
-      msg.textContent = 'Pedido enviado com sucesso! 🎉';
-      msg.className = 'form-msg sucesso';
-      form.reset();
-      return;
-    }
-
-    // Coleta e limpeza dos dados
-    const nomeCompleto = form.nomeCompleto.value.trim();
-    const whatsapp = form.whatsapp.value.replace(/\D/g, '');
-    const nomeCamisa = form.nomeCamisa.value.trim();
-    const numeroCamisa = form.numeroCamisa.value.trim();
-    const tamanho = form.tamanho.value;
-
-    // Validação no cliente (o servidor revalida tudo)
-    if (!nomeCompleto || !whatsapp || !nomeCamisa || !numeroCamisa || !tamanho) {
-      mostrarErro('Preencha todos os campos antes de enviar.');
-      if (!nomeCompleto) destacarInvalido(form.nomeCompleto);
-      if (!whatsapp) destacarInvalido(form.whatsapp);
-      if (!nomeCamisa) destacarInvalido(form.nomeCamisa);
-      if (!numeroCamisa) destacarInvalido(form.numeroCamisa);
-      if (!tamanho) destacarInvalido(form.tamanho);
-      return;
-    }
-    if (nomeCompleto.length > LIMITES.nomeCompleto || nomeCamisa.length > LIMITES.nomeCamisa) {
-      mostrarErro('Algum campo está longo demais. Revise e tente de novo.');
-      if (nomeCompleto.length > LIMITES.nomeCompleto) destacarInvalido(form.nomeCompleto);
-      if (nomeCamisa.length > LIMITES.nomeCamisa) destacarInvalido(form.nomeCamisa);
-      return;
-    }
-    if (!/^[0-9]{10,11}$/.test(whatsapp)) {
-      mostrarErro('Digite um WhatsApp válido, com DDD (ex: 41999998888).');
-      destacarInvalido(form.whatsapp);
-      return;
-    }
-    if (!/^[0-9]{1,3}$/.test(numeroCamisa)) {
-      mostrarErro('O número na camisa deve ter só dígitos (ex: 7).');
-      destacarInvalido(form.numeroCamisa);
-      return;
-    }
-    if (!TAMANHOS_VALIDOS.includes(tamanho)) {
-      mostrarErro('Escolha um tamanho válido.');
-      destacarInvalido(form.tamanho);
-      return;
-    }
-
-    btn.disabled = true;
-    btn.textContent = 'Enviando...';
-    msg.className = 'form-msg';
-    msg.textContent = '';
-
-    // Busca o IP público de quem está enviando (registro interno/antifraude).
-    // Se o serviço falhar por qualquer motivo, o pedido segue sem IP —
-    // isso nunca deve travar o envio do formulário.
-    let ip = '';
-    try {
-      const respIp = await fetch('https://api.ipify.org?format=json');
-      const dadosIp = await respIp.json();
-      ip = (dadosIp && dadosIp.ip) ? String(dadosIp.ip).slice(0, 45) : '';
-    } catch (err) {
-      ip = '';
-    }
-
-    const dados = new URLSearchParams({ nomeCompleto, whatsapp, nomeCamisa, numeroCamisa, tamanho, ip });
-
-    try {
-      await fetch(SHEET_SCRIPT_URL, { method: 'POST', mode: 'no-cors', body: dados });
-      msg.textContent = 'Pedido enviado com sucesso! 🎉';
-      msg.className = 'form-msg sucesso';
-      tocarSucesso();
-      form.reset();
-      if (previewNome) atualizarPreviewNome();
-      if (previewNumero) atualizarPreviewNumero();
-    } catch (err) {
-      mostrarErro('Não foi possível enviar. Tente novamente em instantes.');
-    } finally {
-      btn.disabled = false;
-      btn.textContent = 'Enviar pedido';
-    }
-  });
-}
+// O envio dos formulários (camiseta e cesta básica) mudou pra Firestore
+// — a lógica de cada um mora em camiseta-firebase.js e cesta-firebase.js,
+// carregados só na página correspondente. Esses utilitários de UI (som,
+// prévia da camisa, animação de campo inválido) são compartilhados com
+// esses módulos via window.EJAC, já que são <script type="module"> e não
+// enxergam as funções desta IIFE diretamente.
+window.EJAC = {
+  tocarClick,
+  tocarSucesso,
+  destacarInvalido,
+  atualizarPreviewNome,
+  atualizarPreviewNumero,
+  PREFERE_MENOS_MOVIMENTO,
+};
 
 })();

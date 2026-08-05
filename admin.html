@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<!-- Content-Security-Policy: nega tudo por padrão e libera só o necessário.
+     Sem 'unsafe-inline' em nenhum lugar — todo CSS e JS vive em arquivo
+     próprio, então script e estilo injetados são bloqueados pelo navegador. -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'none'; script-src 'self' https://www.gstatic.com; style-src 'self' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src https://firestore.googleapis.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com; form-action 'none'; frame-ancestors 'none'; upgrade-insecure-requests">
+<meta name="referrer" content="no-referrer">
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#000001">
+
+<title>EJAC - Painel administrativo</title>
+
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Permanent+Marker&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Unbounded:wght@400;600;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <div class="scroll-progress" id="scroll-progress" aria-hidden="true"></div>
+  <div class="spark-bg" aria-hidden="true"></div>
+  <canvas id="bg-embers" aria-hidden="true"></canvas>
+
+  <header class="nav">
+    <a href="index.html" class="logo sombra-dura">EJAC</a>
+    <div class="nav-links">
+      <a href="index.html" class="nav-cta nav-cta-secundario">Voltar ao site</a>
+    </div>
+  </header>
+
+  <main id="topo">
+    <section class="admin-tela" id="admin-carregando">
+      <p class="admin-carregando-texto">Carregando...</p>
+    </section>
+
+    <section class="admin-tela" id="admin-login" hidden>
+      <h1 class="sombra-dura-laranja">Painel <span class="rabisco">administrativo</span></h1>
+      <p class="admin-sub">Acesso restrito aos coordenadores do EJAC. Entre com a conta Google autorizada.</p>
+      <noscript>
+        <p class="form-msg erro">Esta página precisa de JavaScript pra funcionar.</p>
+      </noscript>
+      <button type="button" id="btn-login-google" class="hero-cta">Entrar com Google →</button>
+      <p class="admin-nota-config" id="admin-nota-config" hidden>O painel ainda não está conectado ao Firebase. Veja o README.md.</p>
+    </section>
+
+    <section class="admin-tela" id="admin-erro-acesso" hidden>
+      <h1 class="sombra-dura-laranja">Acesso <span class="rabisco">não autorizado</span></h1>
+      <p class="admin-sub">A conta <strong id="erro-email"></strong> não está na lista de coordenadores com acesso a este painel. Se acha que isso é um engano, peça pra adicionarem seu e-mail na lista <code>emailsAdmin()</code> do <code>firestore.rules</code>.</p>
+      <button type="button" id="btn-logout-erro" class="hero-cta">Sair e tentar outra conta</button>
+    </section>
+
+    <section class="admin-painel" id="admin-painel" hidden>
+      <div class="admin-topo">
+        <p>Logado como <strong id="admin-usuario"></strong></p>
+        <button type="button" id="btn-logout" class="nav-cta nav-cta-secundario">Sair</button>
+      </div>
+
+      <div class="admin-tabs" role="tablist">
+        <button type="button" class="admin-tab-btn ativo" data-tab="camiseta" role="tab" aria-selected="true">Camisetas</button>
+        <button type="button" class="admin-tab-btn" data-tab="cesta" role="tab" aria-selected="false">Cesta básica</button>
+      </div>
+
+      <div class="admin-tab-painel" data-tab="camiseta">
+        <div class="admin-resumo" id="camiseta-resumo"></div>
+        <button type="button" id="btn-exportar-csv" class="nav-cta">Exportar CSV</button>
+        <div class="admin-tabela-wrap">
+          <table class="admin-tabela">
+            <thead>
+              <tr>
+                <th scope="col">Data</th>
+                <th scope="col">Nome completo</th>
+                <th scope="col">Nome na camisa</th>
+                <th scope="col">Nº</th>
+                <th scope="col">Tamanho</th>
+                <th scope="col">WhatsApp</th>
+                <th scope="col">IP</th>
+                <th scope="col"><span class="sr-only">Ações</span></th>
+              </tr>
+            </thead>
+            <tbody id="camiseta-tbody">
+              <tr><td colspan="8">Carregando pedidos...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="admin-tab-painel" data-tab="cesta" hidden>
+        <div class="admin-resumo" id="cesta-resumo"></div>
+        <div class="admin-tabela-wrap">
+          <table class="admin-tabela">
+            <thead>
+              <tr>
+                <th scope="col">Data</th>
+                <th scope="col">Nome</th>
+                <th scope="col">Item</th>
+                <th scope="col">Quantidade</th>
+                <th scope="col">WhatsApp</th>
+                <th scope="col">IP</th>
+                <th scope="col"><span class="sr-only">Ações</span></th>
+              </tr>
+            </thead>
+            <tbody id="cesta-tbody">
+              <tr><td colspan="7">Carregando contribuições...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <p class="footer-copyright">© 2026 EJAC (Esperança Jovem Aliada a Cristo). Painel de uso interno.</p>
+  </footer>
+
+<script src="app.js" defer></script>
+<script type="module" src="admin-firebase.js"></script>
+
+</body>
+</html>

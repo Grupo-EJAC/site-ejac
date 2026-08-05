@@ -1,0 +1,128 @@
+// EJAC — Regras de segurança do Firestore (camiseta + cesta básica + painel admin).
+//
+// Cole isso no Firebase Console: Firestore Database → Regras → colar
+// tudo → Publicar. Isso é o que de fato valida cada envio e protege os
+// dados — os módulos .js do site só fazem validação "de cortesia" no
+// navegador, que qualquer um pode pular; quem barra de verdade é isto.
+//
+// Ninguém (nem o próprio site) pode ler os pedidos de camiseta, ler o
+// WhatsApp/IP da cesta, ou apagar/editar qualquer coisa, a não ser que
+// esteja logado com um e-mail da lista ADMIN abaixo (login Google, feito
+// no admin.html). É assim que o painel admin funciona sem senha própria
+// nem backend nosso: quem autentica é o Firebase, quem autoriza é a
+// lista de e-mails aqui embaixo.
+//
+// Se a lista de itens da cesta mudar, atualize a função metas() aqui
+// TAMBÉM, além do cesta-firebase.js e do <select> no cesta.html.
+
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ---------- Quem é admin ----------
+
+    // Coordenadores com acesso ao admin.html (ver pedidos, ver WhatsApp/IP
+    // da cesta, excluir itens). Sempre em minúsculas — a comparação em
+    // isAdmin() também baixa a caixa do e-mail logado, então não importa
+    // como a pessoa digitou o Gmail dela originalmente.
+    function emailsAdmin() {
+      return [
+        'diegoavanco04@gmail.com',
+        'leeeandroalmeida881@gmail.com'
+      ];
+    }
+
+    function isAdmin() {
+      return request.auth != null
+        && request.auth.token.email != null
+        && request.auth.token.email.lower() in emailsAdmin();
+    }
+
+    // ---------- Validações compartilhadas ----------
+
+    function nomeValido(nome) {
+      return nome is string && nome.size() > 0 && nome.size() <= 80;
+    }
+
+    function whatsappValido(whatsapp) {
+      return whatsapp is string && whatsapp.matches('^[0-9]{10,11}$');
+    }
+
+    // ---------- Cesta básica colaborativa ----------
+
+    // Meta de cada item — teto de sanidade (aceita até 3x a meta por
+    // contribuição, pra barrar "9999" digitado por engano).
+    function metas() {
+      return {
+        'arroz': 12, 'feijao': 2, 'bolacha': 1, 'acucar': 1, 'tempero': 1,
+        'cafe': 2, 'macarrao': 8, 'oleo': 3, 'cha': 1, 'suco': 4,
+        'extrato': 10, 'leite': 2, 'farofa': 1, 'vinagre': 1, 'sal': 1,
+        'vina': 8, 'creme_leite': 2, 'cebola': 3, 'alho': 0.3,
+      };
+    }
+
+    function quantidadeValida(itemId, quantidade) {
+      return itemId in metas()
+        && quantidade is number
+        && quantidade > 0
+        && quantidade <= metas()[itemId] * 3;
+    }
+
+    function grupoIdValido(grupoId) {
+      return grupoId is string && grupoId.size() > 0 && grupoId.size() <= 100;
+    }
+
+    // Dados públicos: nome, item e quantidade — aparecem na cesta.html de
+    // propósito, é o "quem já trouxe o quê" que o grupo pediu pra ver.
+    match /cestaContribuicoes/{id} {
+      allow read: if true;
+      allow create: if request.resource.data.keys().hasOnly(['grupoId', 'nome', 'item', 'quantidade', 'criadoEm'])
+        && grupoIdValido(request.resource.data.grupoId)
+        && nomeValido(request.resource.data.nome)
+        && quantidadeValida(request.resource.data.item, request.resource.data.quantidade)
+        && request.resource.data.criadoEm == request.time;
+      allow update, delete: if isAdmin();
+    }
+
+    // Dados privados: WhatsApp e IP (antifraude/contato) — só o painel
+    // admin lê, nunca a página pública da cesta.
+    match /cestaContatos/{id} {
+      allow read: if isAdmin();
+      allow create: if request.resource.data.keys().hasOnly(['grupoId', 'nome', 'whatsapp', 'item', 'quantidade', 'ip', 'criadoEm'])
+        && grupoIdValido(request.resource.data.grupoId)
+        && nomeValido(request.resource.data.nome)
+        && whatsappValido(request.resource.data.whatsapp)
+        && quantidadeValida(request.resource.data.item, request.resource.data.quantidade)
+        && request.resource.data.ip is string && request.resource.data.ip.size() <= 45
+        && request.resource.data.criadoEm == request.time;
+      allow update, delete: if isAdmin();
+    }
+
+    // ---------- Pedido de camiseta ----------
+
+    function tamanhosValidos() {
+      return ['PP', 'P', 'M', 'G', 'GG', 'XG', 'G2', 'G3', 'G4', 'G5'];
+    }
+
+    // Qualquer um pode criar um pedido (é o formulário público), mas só
+    // o painel admin consegue listar, corrigir ou excluir — os pedidos
+    // têm nome + WhatsApp, não é informação pra ficar exposta.
+    match /camisetaPedidos/{id} {
+      allow read, update, delete: if isAdmin();
+      allow create: if request.resource.data.keys().hasOnly(['nomeCompleto', 'whatsapp', 'nomeCamisa', 'numeroCamisa', 'tamanho', 'ip', 'criadoEm'])
+        && nomeValido(request.resource.data.nomeCompleto)
+        && whatsappValido(request.resource.data.whatsapp)
+        && request.resource.data.nomeCamisa is string && request.resource.data.nomeCamisa.size() > 0 && request.resource.data.nomeCamisa.size() <= 20
+        && request.resource.data.numeroCamisa is string && request.resource.data.numeroCamisa.matches('^[0-9]{1,3}$')
+        && request.resource.data.tamanho in tamanhosValidos()
+        && request.resource.data.ip is string && request.resource.data.ip.size() <= 45
+        && request.resource.data.criadoEm == request.time;
+    }
+
+    // Tudo mais fica bloqueado por padrão.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

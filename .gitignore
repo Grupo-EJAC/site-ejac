@@ -14,3 +14,9 @@ EJAC LOGO.pdf
 
 # Rascunhos temporários
 _previa-*.html
+
+# Firebase CLI (arquivos locais, nunca segredo, mas não precisam ir pro repo)
+.firebase/
+firebase-debug.log
+firestore-debug.log
+ui-debug.log

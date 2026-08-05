@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<!-- Content-Security-Policy: nega tudo por padrão e libera só o necessário.
+     Sem 'unsafe-inline' em nenhum lugar — todo CSS e JS vive em arquivo
+     próprio, então script e estilo injetados são bloqueados pelo navegador. -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'none'; script-src 'self' https://www.gstatic.com; style-src 'self' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src https://firestore.googleapis.com https://api.ipify.org; form-action 'none'; frame-ancestors 'none'; upgrade-insecure-requests">
+<meta name="referrer" content="no-referrer">
+<meta name="robots" content="index, follow">
+<meta name="theme-color" content="#000001">
+
+<title>EJAC - Cesta básica colaborativa</title>
+<meta name="description" content="Ajude a montar a cesta básica do EJAC. Escolha um item e diga quanto você vai trazer, acompanhando o progresso ao vivo.">
+<link rel="canonical" href="https://grupoejac.com.br/cesta.html">
+
+<!-- Prévia ao compartilhar o link (WhatsApp, Instagram, etc.) -->
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="EJAC">
+<meta property="og:locale" content="pt_BR">
+<meta property="og:title" content="EJAC - Cesta básica colaborativa">
+<meta property="og:description" content="Escolha um item da cesta básica e diga quanto você vai trazer. Acompanhe o progresso ao vivo.">
+<meta property="og:url" content="https://grupoejac.com.br/cesta.html">
+<meta property="og:image" content="https://grupoejac.com.br/assets/camisa-frente.png">
+<meta property="og:image:alt" content="EJAC">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="EJAC - Cesta básica colaborativa">
+<meta name="twitter:description" content="Escolha um item da cesta básica e diga quanto você vai trazer. Acompanhe o progresso ao vivo.">
+<meta name="twitter:image" content="https://grupoejac.com.br/assets/camisa-frente.png">
+
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Permanent+Marker&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Unbounded:wght@400;600;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <a href="#cesta" class="pular-para">Pular para o formulário de colaboração</a>
+
+  <div class="scroll-progress" id="scroll-progress" aria-hidden="true"></div>
+
+  <div class="spark-bg" aria-hidden="true"></div>
+  <canvas id="bg-embers" aria-hidden="true"></canvas>
+
+  <header class="nav">
+    <a href="index.html" class="logo sombra-dura">EJAC</a>
+    <div class="nav-links">
+      <a href="index.html#pedido" class="nav-cta nav-cta-secundario">Pedir camiseta</a>
+    </div>
+  </header>
+
+  <main id="topo">
+    <section class="cesta cesta-pagina" id="cesta">
+      <h1 class="sombra-dura-laranja">Cesta <span class="rabisco">básica</span> colaborativa</h1>
+      <p class="cesta-sub">Vamos juntar os itens de uma cesta básica em grupo. Escolha um item abaixo e diga quanto você vai trazer — pode ser a quantidade toda ou só uma parte, o que sobrar os outros completam.</p>
+
+      <noscript>
+        <p class="form-msg erro">
+          Esta página precisa de JavaScript para mostrar o progresso e enviar sua colaboração. Ative o JavaScript ou fale direto com um dos coordenadores pelo WhatsApp.
+        </p>
+      </noscript>
+
+      <ul class="cesta-progresso" id="cesta-progresso" aria-live="polite">
+        <li class="cesta-carregando">Carregando itens...</li>
+      </ul>
+
+      <form id="form-cesta" novalidate>
+        <div class="hp-field" aria-hidden="true">
+          <label>Não preencha este campo
+            <input type="text" name="website" tabindex="-1" autocomplete="off">
+          </label>
+        </div>
+
+        <label>
+          Item que você vai trazer
+          <select name="item" id="cesta-item" required>
+            <option value="" disabled selected>Escolha um item</option>
+            <option value="arroz">Arroz parboilizado (precisa de 12kg)</option>
+            <option value="feijao">Feijão preto (precisa de 2kg)</option>
+            <option value="bolacha">Bolacha sortida (precisa de 1kg)</option>
+            <option value="acucar">Açúcar (precisa de 1kg)</option>
+            <option value="tempero">Tempero pronto (precisa de 1 pote)</option>
+            <option value="cafe">Café (precisa de 2kg)</option>
+            <option value="macarrao">Macarrão espaguete (precisa de 8kg)</option>
+            <option value="oleo">Óleo (precisa de 3L)</option>
+            <option value="cha">Chá em caixa (sachê) (precisa de 1 caixa)</option>
+            <option value="suco">Suco (mesmo sabor, rende 10L cada) (precisa de 4 unidades)</option>
+            <option value="extrato">Extrato de tomate 300g (precisa de 10 unidades)</option>
+            <option value="leite">Leite integral em caixa (precisa de 2L)</option>
+            <option value="farofa">Farofa (precisa de 1kg)</option>
+            <option value="vinagre">Vinagre de álcool (precisa de 1 unidade)</option>
+            <option value="sal">Sal (precisa de 1kg)</option>
+            <option value="vina">Vina/salsicha (precisa de 8kg)</option>
+            <option value="creme_leite">Creme de leite (precisa de 2L)</option>
+            <option value="cebola">Cebola (precisa de 3kg)</option>
+            <option value="alho">Alho (precisa de 300g)</option>
+          </select>
+        </label>
+
+        <label>
+          Quantidade que você vai trazer
+          <input type="number" name="quantidade" id="cesta-quantidade" placeholder="Ex: 2" required min="0.1" step="0.1" inputmode="decimal">
+        </label>
+        <p class="cesta-hint" id="cesta-hint" role="status" aria-live="polite">Escolha um item pra ver quanto ainda falta.</p>
+
+        <label>
+          Nome completo
+          <input type="text" name="nomeCompleto" placeholder="Seu nome completo" required maxlength="80" autocomplete="name">
+        </label>
+
+        <label>
+          WhatsApp
+          <input type="tel" name="whatsapp" placeholder="(41) 9XXXX-XXXX" required maxlength="20" inputmode="tel" autocomplete="tel">
+        </label>
+
+        <button type="submit" id="btn-cesta-enviar">Quero colaborar</button>
+
+        <p class="form-aviso-dados">
+          Ao enviar, seu <strong>nome, o item escolhido e a quantidade ficam
+          visíveis nesta página</strong>, pra todo mundo ver quem já
+          colaborou com o quê. WhatsApp, data e informações técnicas do
+          acesso são registrados só para controle interno.
+        </p>
+
+        <div class="form-msg" id="cesta-msg" role="status" aria-live="polite"></div>
+      </form>
+    </section>
+  </main>
+
+  <footer>
+    <svg class="footer-sneaker" viewBox="0 0 100 50" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="#E4568F" stroke-width="2.5">
+      <path d="M5 40 Q5 30 15 28 L35 22 Q45 18 55 22 L75 30 Q90 32 92 40 Q92 44 85 44 L10 44 Q5 44 5 40 Z"/>
+      <path d="M15 28 L15 38 M35 22 L38 36 M55 22 L58 36" />
+      <path d="M75 30 Q80 24 88 26" />
+    </svg>
+    <p class="footer-copyright">© 2026 EJAC (Esperança Jovem Aliada a Cristo). Todos os direitos reservados.</p>
+    <a href="admin.html" class="footer-admin">Painel</a>
+  </footer>
+
+<script src="app.js" defer></script>
+<script type="module" src="cesta-firebase.js"></script>
+
+</body>
+</html>
