@@ -86,14 +86,14 @@ service cloud.firestore {
       allow update, delete: if isAdmin();
     }
 
-    // Dados privados: WhatsApp e IP (antifraude/contato) — só o painel
-    // admin lê, nunca a página pública da cesta.
+    // Dados privados: IP (antifraude) — só o painel admin lê, nunca a
+    // página pública da cesta. Sem WhatsApp de propósito: a cesta não
+    // pede esse dado, diferente do pedido de camiseta.
     match /cestaContatos/{id} {
       allow read: if isAdmin();
-      allow create: if request.resource.data.keys().hasOnly(['grupoId', 'nome', 'whatsapp', 'item', 'quantidade', 'ip', 'criadoEm'])
+      allow create: if request.resource.data.keys().hasOnly(['grupoId', 'nome', 'item', 'quantidade', 'ip', 'criadoEm'])
         && grupoIdValido(request.resource.data.grupoId)
         && nomeValido(request.resource.data.nome)
-        && whatsappValido(request.resource.data.whatsapp)
         && quantidadeValida(request.resource.data.item, request.resource.data.quantidade)
         && request.resource.data.ip is string && request.resource.data.ip.size() <= 45
         && request.resource.data.criadoEm == request.time;

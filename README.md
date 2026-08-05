@@ -13,7 +13,7 @@ Site pros membros do EJAC (Esperança Jovem Aliada a Cristo) pedirem a camiseta 
 | `app.js` | Efeitos visuais e utilitários de UI compartilhados entre as páginas (prévia da camisa, copiar Pix, som, animação de campo inválido) |
 | `camiseta-firebase.js` | Grava o pedido de camiseta no Firestore |
 | `cesta-firebase.js` | Lê e grava as contribuições da cesta básica no Firestore, em tempo real |
-| `admin-firebase.js` | Login Google, leitura dos dados (inclusive WhatsApp/IP) e exclusão de registros — só funciona pra e-mails autorizados |
+| `admin-firebase.js` | Login Google, leitura dos dados (inclusive WhatsApp dos pedidos de camiseta e IP das duas coisas) e exclusão de registros — só funciona pra e-mails autorizados |
 | `firebase-config.js` | A configuração do projeto Firebase (um só lugar, compartilhado pelos três módulos acima) |
 | `catalogos.js` | Listas de referência compartilhadas: itens da cesta básica (com meta de cada um) e tamanhos de camiseta válidos |
 | `firestore.rules` | Regras de segurança do Firestore — cole no Firebase Console (veja o Passo B) |
@@ -36,8 +36,8 @@ Site pros membros do EJAC (Esperança Jovem Aliada a Cristo) pedirem a camiseta 
 ## Como o site funciona (visão geral)
 
 - **Camiseta** (`/`): formulário público, sem visibilidade nenhuma — só o painel admin lê os pedidos.
-- **Cesta básica** (`/cesta/`): formulário público onde os membros escolhem um item de uma lista fixa e dizem quanto vão trazer (a quantidade toda ou só uma parte). **Nome, item e quantidade ficam visíveis na própria página** (foi um pedido do grupo, pra dar controle de quem já trouxe o quê), atualizando em tempo real pra quem estiver com a página aberta. WhatsApp e IP **nunca aparecem no site** — ficam numa coleção separada, só legível pelo painel admin.
-- **Painel admin** (`/admin/`): login com conta Google. Só e-mails na lista `emailsAdmin()` do `firestore.rules` conseguem entrar — qualquer outra conta Google cai numa tela de "acesso não autorizado". De lá dá pra ver todos os pedidos de camiseta (com resumo por tamanho e exportar CSV), ver a cesta básica com WhatsApp/IP incluídos, e **excluir qualquer registro errado ou falso** direto pela interface, sem precisar abrir o Firebase Console.
+- **Cesta básica** (`/cesta/`): formulário público onde os membros escolhem um item de uma lista fixa e dizem quanto vão trazer (a quantidade toda ou só uma parte) — só pede nome, sem WhatsApp. **Nome, item e quantidade ficam visíveis na própria página** (foi um pedido do grupo, pra dar controle de quem já trouxe o quê), atualizando em tempo real pra quem estiver com a página aberta. O IP **nunca aparece no site** — fica numa coleção separada, só legível pelo painel admin.
+- **Painel admin** (`/admin/`): login com conta Google. Só e-mails na lista `emailsAdmin()` do `firestore.rules` conseguem entrar — qualquer outra conta Google cai numa tela de "acesso não autorizado". De lá dá pra ver todos os pedidos de camiseta (com resumo por tamanho e exportar CSV), ver a cesta básica com IP incluído, e **excluir qualquer registro errado ou falso** direto pela interface, sem precisar abrir o Firebase Console.
 - Não existe cota fixa por pessoa na cesta: qualquer um pode contribuir com qualquer item, em qualquer quantidade (até um teto de 3× a meta, só pra barrar erro de digitação). Se um item já estiver completo, a página avisa mas ainda deixa contribuir a mais.
 
 ## Passo A — Criar o projeto Firebase e o banco Firestore
@@ -85,7 +85,7 @@ O plano gratuito do Firestore (Spark) libera 50 mil leituras e 20 mil escritas p
 O site é estático (sem servidor nosso), então a superfície de ataque é pequena. Mesmo assim, tem várias camadas de proteção:
 
 - **As regras do Firestore são a validação que vale de verdade** (`firestore.rules`): tamanho de campo, formato de WhatsApp, item/tamanho dentro da lista oficial, quantidade dentro do razoável. A validação no navegador (`camiseta-firebase.js`/`cesta-firebase.js`) é só "de cortesia", pra dar feedback rápido — um usuário malicioso pode pular ela inteira e mesmo assim esbarra nas regras do servidor.
-- **Ninguém lê dado sensível sem estar autorizado:** os pedidos de camiseta (nome + WhatsApp) e o WhatsApp/IP da cesta só são legíveis por quem faz login Google **e** está na lista `emailsAdmin()` das regras. Ninguém mais consegue ler essas coleções, nem o próprio código do site — as regras barram no servidor, não é só uma questão de "a página não mostra".
+- **Ninguém lê dado sensível sem estar autorizado:** os pedidos de camiseta (nome + WhatsApp) e o IP da cesta só são legíveis por quem faz login Google **e** está na lista `emailsAdmin()` das regras. Ninguém mais consegue ler essas coleções, nem o próprio código do site — as regras barram no servidor, não é só uma questão de "a página não mostra".
 - **Ninguém edita ou apaga nada, exceto o admin:** criar um pedido/contribuição é público (é o formulário), mas alterar ou excluir só é permitido pra quem está autenticado como admin. Isso é forçado pelas regras, não pela interface.
 - **Honeypot anti-bot:** um campo invisível (`website`) que humanos não veem; se vier preenchido, o envio é descartado (bots costumam preencher tudo).
 - **Content-Security-Policy sem `unsafe-inline`:** a CSP nega tudo por padrão e libera só o essencial (o próprio domínio, as fontes do Google, o SDK do Firebase via `gstatic.com`, e os endpoints do Firestore/Auth). Como nenhum CSS ou JS fica embutido no HTML, o navegador **bloqueia qualquer script ou estilo injetado** na página — a defesa mais forte contra XSS. Também bloqueia envio de formulário pra fora (`form-action 'none'`) e o site ser colocado dentro de um iframe (`frame-ancestors 'none'`, evita clickjacking).

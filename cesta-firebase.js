@@ -9,7 +9,7 @@
 // Duas coleções por contribuição, escritas juntas (mesmo grupoId):
 //   - cestaContribuicoes: nome + item + quantidade — PÚBLICA (é o que
 //     aparece na página, de propósito, pra dar controle ao grupo)
-//   - cestaContatos: os mesmos dados + WhatsApp + IP — só leitura pelo
+//   - cestaContatos: os mesmos dados + IP (antifraude) — só leitura pelo
 //     dono do projeto no Firebase Console, nunca pelo site
 //
 // Excluir uma contribuição errada = apagar o documento no Firebase
@@ -37,6 +37,7 @@ let contribuicoesCesta = {}; // itemId -> [{ nome, quantidade }]
 const cestaProgressoEl = document.getElementById('cesta-progresso');
 const selectCestaItem = document.getElementById('cesta-item');
 const inputCestaQtd = document.getElementById('cesta-quantidade');
+const cestaQtdUnidadeEl = document.getElementById('cesta-qtd-unidade');
 const cestaHintEl = document.getElementById('cesta-hint');
 const formCesta = document.getElementById('form-cesta');
 const btnCesta = document.getElementById('btn-cesta-enviar');
@@ -114,6 +115,9 @@ function atualizarHintCesta() {
   if (!cestaHintEl || !selectCestaItem) return;
   const item = ITENS_CESTA_POR_ID[selectCestaItem.value];
   cestaHintEl.textContent = '';
+  // O selo de unidade fica colado no campo de quantidade pra nunca ficar
+  // ambíguo se "1" significa 1kg, 1L ou 1 unidade (ex: extrato de tomate).
+  if (cestaQtdUnidadeEl) cestaQtdUnidadeEl.textContent = item ? item.unidade : '';
   if (!item) {
     cestaHintEl.textContent = 'Escolha um item pra ver quanto ainda falta.';
     return;
@@ -224,28 +228,21 @@ if (formCesta) {
     const quantidadeStr = formCesta.quantidade.value.trim();
     const quantidade = parseFloat(quantidadeStr.replace(',', '.'));
     const nomeCompleto = formCesta.nomeCompleto.value.trim();
-    const whatsapp = formCesta.whatsapp.value.replace(/\D/g, '');
 
     if (!item) {
       mostrarErroCesta('Escolha um item da lista.');
       marcarInvalido(formCesta.item);
       return;
     }
-    if (!nomeCompleto || !whatsapp || !quantidadeStr) {
+    if (!nomeCompleto || !quantidadeStr) {
       mostrarErroCesta('Preencha todos os campos antes de enviar.');
       if (!nomeCompleto) marcarInvalido(formCesta.nomeCompleto);
-      if (!whatsapp) marcarInvalido(formCesta.whatsapp);
       if (!quantidadeStr) marcarInvalido(formCesta.quantidade);
       return;
     }
     if (nomeCompleto.length > NOME_MAX) {
       mostrarErroCesta('O nome está longo demais. Revise e tente de novo.');
       marcarInvalido(formCesta.nomeCompleto);
-      return;
-    }
-    if (!/^[0-9]{10,11}$/.test(whatsapp)) {
-      mostrarErroCesta('Digite um WhatsApp válido, com DDD (ex: 41999998888).');
-      marcarInvalido(formCesta.whatsapp);
       return;
     }
     if (!isFinite(quantidade) || quantidade <= 0 || quantidade > item.meta * 3) {
@@ -279,7 +276,7 @@ if (formCesta) {
         grupoId, nome: nomeCompleto, item: itemId, quantidade, criadoEm: serverTimestamp(),
       });
       lote.set(doc(colContatos), {
-        grupoId, nome: nomeCompleto, whatsapp, item: itemId, quantidade, ip, criadoEm: serverTimestamp(),
+        grupoId, nome: nomeCompleto, item: itemId, quantidade, ip, criadoEm: serverTimestamp(),
       });
       await lote.commit();
 

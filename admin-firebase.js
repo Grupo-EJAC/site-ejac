@@ -225,7 +225,7 @@ if (firebaseConfig.apiKey.includes('COLE_AQUI')) {
     if (contatos.length === 0) {
       const tr = document.createElement('tr');
       const td = document.createElement('td');
-      td.colSpan = 7;
+      td.colSpan = 6;
       td.textContent = 'Nenhuma contribuição ainda.';
       tr.appendChild(td);
       tbody.appendChild(tr);
@@ -234,7 +234,7 @@ if (firebaseConfig.apiKey.includes('COLE_AQUI')) {
 
     contatos.forEach((c) => {
       const tr = document.createElement('tr');
-      [formatarData(c.criadoEm), c.nome, c.item, c.quantidade, c.whatsapp, c.ip || '—'].forEach((valor) => {
+      [formatarData(c.criadoEm), c.nome, c.item, c.quantidade, c.ip || '—'].forEach((valor) => {
         const td = document.createElement('td');
         td.textContent = valor;
         tr.appendChild(td);

@@ -1123,6 +1123,31 @@
 
   .cesta-hint strong { color: var(--rosa); }
 
+  /* Selo de unidade colado no campo de quantidade — sem isso "2" fica
+     ambíguo (2kg? 2 unidades? 2L?), principalmente em itens como o
+     extrato de tomate, que é vendido por unidade, não por peso. */
+  .cesta-qtd-wrap {
+    position: relative;
+    display: flex;
+  }
+
+  .cesta-qtd-wrap input {
+    flex: 1;
+    padding-right: 76px;
+  }
+
+  .cesta-qtd-unidade {
+    position: absolute;
+    top: 50%;
+    right: 16px;
+    transform: translateY(-50%);
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: .8rem;
+    color: var(--rosa);
+    pointer-events: none;
+  }
+
   /* ============================================================
      PAINEL ADMINISTRATIVO
      ============================================================ */

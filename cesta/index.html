@@ -102,18 +102,16 @@
 
         <label>
           Quantidade que você vai trazer
-          <input type="number" name="quantidade" id="cesta-quantidade" placeholder="Ex: 2" required min="0.1" step="0.1" inputmode="decimal">
+          <div class="cesta-qtd-wrap">
+            <input type="number" name="quantidade" id="cesta-quantidade" placeholder="Ex: 2" required min="0.1" step="0.1" inputmode="decimal">
+            <span class="cesta-qtd-unidade" id="cesta-qtd-unidade" aria-hidden="true"></span>
+          </div>
         </label>
         <p class="cesta-hint" id="cesta-hint" role="status" aria-live="polite">Escolha um item pra ver quanto ainda falta.</p>
 
         <label>
-          Nome completo
-          <input type="text" name="nomeCompleto" placeholder="Seu nome completo" required maxlength="80" autocomplete="name">
-        </label>
-
-        <label>
-          WhatsApp
-          <input type="tel" name="whatsapp" placeholder="(41) 9XXXX-XXXX" required maxlength="20" inputmode="tel" autocomplete="tel">
+          Nome
+          <input type="text" name="nomeCompleto" placeholder="Seu nome" required maxlength="80" autocomplete="name">
         </label>
 
         <button type="submit" id="btn-cesta-enviar">Quero colaborar</button>
@@ -121,8 +119,8 @@
         <p class="form-aviso-dados">
           Ao enviar, seu <strong>nome, o item escolhido e a quantidade ficam
           visíveis nesta página</strong>, pra todo mundo ver quem já
-          colaborou com o quê. WhatsApp, data e informações técnicas do
-          acesso são registrados só para controle interno.
+          colaborou com o quê. Data e informações técnicas do acesso são
+          registradas só para controle interno.
         </p>
 
         <div class="form-msg" id="cesta-msg" role="status" aria-live="polite"></div>
