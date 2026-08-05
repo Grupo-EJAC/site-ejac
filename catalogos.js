@@ -20,7 +20,7 @@ export const ITENS_CESTA = [
   { id: 'farofa', nome: 'Farofa', unidade: 'kg', meta: 1 },
   { id: 'vinagre', nome: 'Vinagre de álcool', unidade: 'unidade', meta: 1 },
   { id: 'sal', nome: 'Sal', unidade: 'kg', meta: 1 },
-  { id: 'vina', nome: 'Vina/salsicha', unidade: 'kg', meta: 8 },
+  { id: 'vina', nome: 'Vina', unidade: 'kg', meta: 8 },
   { id: 'creme_leite', nome: 'Creme de leite', unidade: 'L', meta: 2 },
   { id: 'cebola', nome: 'Cebola', unidade: 'kg', meta: 3 },
   { id: 'alho', nome: 'Alho', unidade: 'kg', meta: 0.3 },
