@@ -7,7 +7,12 @@
 <!-- Content-Security-Policy: nega tudo por padrão e libera só o necessário.
      Sem 'unsafe-inline' em nenhum lugar — todo CSS e JS vive em arquivo
      próprio, então script e estilo injetados são bloqueados pelo navegador. -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'none'; script-src 'self' https://www.gstatic.com; style-src 'self' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src https://firestore.googleapis.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com; form-action 'none'; frame-ancestors 'none'; upgrade-insecure-requests">
+<!-- O login com Google (signInWithPopup) do Firebase Auth precisa, além
+     do SDK em si: carregar um script auxiliar de apis.google.com
+     (script-src) e abrir um iframe de handshake no authDomain do
+     projeto (frame-src) — sem isso o navegador bloqueia o popup de
+     login com auth/internal-error. -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'none'; script-src 'self' https://www.gstatic.com https://apis.google.com; style-src 'self' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src https://firestore.googleapis.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://apis.google.com; frame-src https://site-ejac.firebaseapp.com; form-action 'none'; frame-ancestors 'none'; upgrade-insecure-requests">
 <meta name="referrer" content="no-referrer">
 <meta name="robots" content="noindex, nofollow">
 <meta name="theme-color" content="#000001">
