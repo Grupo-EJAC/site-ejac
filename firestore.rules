@@ -8,12 +8,12 @@
 // Ninguém (nem o próprio site) pode ler os pedidos de camiseta, ler o
 // WhatsApp/IP da cesta, ou apagar/editar qualquer coisa, a não ser que
 // esteja logado com um e-mail da lista ADMIN abaixo (login Google, feito
-// no admin.html). É assim que o painel admin funciona sem senha própria
+// em /admin/). É assim que o painel admin funciona sem senha própria
 // nem backend nosso: quem autentica é o Firebase, quem autoriza é a
 // lista de e-mails aqui embaixo.
 //
 // Se a lista de itens da cesta mudar, atualize a função metas() aqui
-// TAMBÉM, além do cesta-firebase.js e do <select> no cesta.html.
+// TAMBÉM, além do cesta-firebase.js e do <select> em /cesta/.
 
 rules_version = '2';
 
@@ -22,14 +22,15 @@ service cloud.firestore {
 
     // ---------- Quem é admin ----------
 
-    // Coordenadores com acesso ao admin.html (ver pedidos, ver WhatsApp/IP
+    // Coordenadores com acesso a /admin/ (ver pedidos, ver WhatsApp/IP
     // da cesta, excluir itens). Sempre em minúsculas — a comparação em
     // isAdmin() também baixa a caixa do e-mail logado, então não importa
     // como a pessoa digitou o Gmail dela originalmente.
     function emailsAdmin() {
       return [
         'diegoavanco04@gmail.com',
-        'leeeandroalmeida881@gmail.com'
+        'leeeandroalmeida881@gmail.com',
+        'j4queline.s4nts@gmail.com'
       ];
     }
 
@@ -73,7 +74,7 @@ service cloud.firestore {
       return grupoId is string && grupoId.size() > 0 && grupoId.size() <= 100;
     }
 
-    // Dados públicos: nome, item e quantidade — aparecem na cesta.html de
+    // Dados públicos: nome, item e quantidade — aparecem em /cesta/ de
     // propósito, é o "quem já trouxe o quê" que o grupo pediu pra ver.
     match /cestaContribuicoes/{id} {
       allow read: if true;

@@ -197,7 +197,7 @@ if (firebaseConfig.apiKey.includes('COLE_AQUI')) {
 
   // Cada contribuição vira DOIS documentos (cestaContatos + cestaContribuicoes,
   // ligados pelo mesmo grupoId — veja o cesta-firebase.js). Excluir precisa
-  // apagar os dois, senão o total público na cesta.html fica errado.
+  // apagar os dois, senão o total público em /cesta/ fica errado.
   async function excluirContribuicaoCesta(contatoId, grupoId) {
     if (!confirm('Excluir esta contribuição da cesta? Essa ação não pode ser desfeita.')) return;
     try {

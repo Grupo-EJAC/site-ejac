@@ -6,9 +6,9 @@ Site pros membros do EJAC (Esperança Jovem Aliada a Cristo) pedirem a camiseta 
 
 | Arquivo | O que é |
 |---|---|
-| `index.html` | A página principal: pedido de camiseta |
-| `cesta.html` | Página separada da cesta básica colaborativa, acessível pelo botão "Cesta básica" no menu |
-| `admin.html` | Painel administrativo (login Google) — relatório dos pedidos de camiseta e da cesta básica, com opção de excluir |
+| `index.html` | A página principal: pedido de camiseta (`/`) |
+| `cesta/index.html` | Página separada da cesta básica colaborativa (`/cesta/`), acessível pelo botão "Cesta básica" no menu |
+| `admin/index.html` | Painel administrativo (`/admin/`, login Google) — relatório dos pedidos de camiseta e da cesta básica, com opção de excluir |
 | `styles.css` | Todo o visual. **As cores ficam no `:root`, no topo** — mexa só ali pra mudar a identidade |
 | `app.js` | Efeitos visuais e utilitários de UI compartilhados entre as páginas (prévia da camisa, copiar Pix, som, animação de campo inválido) |
 | `camiseta-firebase.js` | Grava o pedido de camiseta no Firestore |
@@ -25,11 +25,19 @@ Site pros membros do EJAC (Esperança Jovem Aliada a Cristo) pedirem a camiseta 
 > na página. Se voltar a escrever `<style>` ou `<script>` direto no HTML, o
 > navegador vai bloquear — é proposital.
 
+> **Por que `cesta` e `admin` são pastas com `index.html` dentro, em vez de
+> `cesta.html`/`admin.html`:** assim a URL fica `/cesta/` e `/admin/`, sem o
+> `.html` aparecendo — GitHub Pages (como qualquer servidor estático) serve
+> automaticamente o `index.html` de dentro de uma pasta quando alguém visita
+> ela. Os links entre páginas usam caminho relativo (`../`, `../cesta/`
+> etc.), então se mover algum arquivo de lugar, precisa ajustar esses
+> caminhos nos três HTMLs.
+
 ## Como o site funciona (visão geral)
 
-- **Camiseta** (`index.html`): formulário público, sem visibilidade nenhuma — só o painel admin lê os pedidos.
-- **Cesta básica** (`cesta.html`): formulário público onde os membros escolhem um item de uma lista fixa e dizem quanto vão trazer (a quantidade toda ou só uma parte). **Nome, item e quantidade ficam visíveis na própria página** (foi um pedido do grupo, pra dar controle de quem já trouxe o quê), atualizando em tempo real pra quem estiver com a página aberta. WhatsApp e IP **nunca aparecem no site** — ficam numa coleção separada, só legível pelo painel admin.
-- **Painel admin** (`admin.html`): login com conta Google. Só e-mails na lista `emailsAdmin()` do `firestore.rules` conseguem entrar — qualquer outra conta Google cai numa tela de "acesso não autorizado". De lá dá pra ver todos os pedidos de camiseta (com resumo por tamanho e exportar CSV), ver a cesta básica com WhatsApp/IP incluídos, e **excluir qualquer registro errado ou falso** direto pela interface, sem precisar abrir o Firebase Console.
+- **Camiseta** (`/`): formulário público, sem visibilidade nenhuma — só o painel admin lê os pedidos.
+- **Cesta básica** (`/cesta/`): formulário público onde os membros escolhem um item de uma lista fixa e dizem quanto vão trazer (a quantidade toda ou só uma parte). **Nome, item e quantidade ficam visíveis na própria página** (foi um pedido do grupo, pra dar controle de quem já trouxe o quê), atualizando em tempo real pra quem estiver com a página aberta. WhatsApp e IP **nunca aparecem no site** — ficam numa coleção separada, só legível pelo painel admin.
+- **Painel admin** (`/admin/`): login com conta Google. Só e-mails na lista `emailsAdmin()` do `firestore.rules` conseguem entrar — qualquer outra conta Google cai numa tela de "acesso não autorizado". De lá dá pra ver todos os pedidos de camiseta (com resumo por tamanho e exportar CSV), ver a cesta básica com WhatsApp/IP incluídos, e **excluir qualquer registro errado ou falso** direto pela interface, sem precisar abrir o Firebase Console.
 - Não existe cota fixa por pessoa na cesta: qualquer um pode contribuir com qualquer item, em qualquer quantidade (até um teto de 3× a meta, só pra barrar erro de digitação). Se um item já estiver completo, a página avisa mas ainda deixa contribuir a mais.
 
 ## Passo A — Criar o projeto Firebase e o banco Firestore
@@ -46,7 +54,7 @@ Site pros membros do EJAC (Esperança Jovem Aliada a Cristo) pedirem a camiseta 
 3. Abra o arquivo `firestore.rules` deste projeto e troque os e-mails de exemplo dentro da função `emailsAdmin()` pelos e-mails Gmail reais de quem vai coordenar (Diego, Jaque, Leandro, Lucas, etc. — um por linha, entre aspas)
 4. Ainda no Firebase Console, vá em **Firestore Database → Regras**, apague o conteúdo padrão e cole todo o conteúdo (já com os e-mails trocados) do `firestore.rules` → **Publicar**
 
-> Só quem estiver nessa lista consegue entrar no `admin.html`. Pra adicionar ou remover um coordenador depois, é só editar a lista e publicar as regras de novo — não precisa mexer em mais nada.
+> Só quem estiver nessa lista consegue entrar em `/admin/`. Pra adicionar ou remover um coordenador depois, é só editar a lista e publicar as regras de novo — não precisa mexer em mais nada.
 
 ## Passo C — Conectar o site ao Firebase
 
@@ -62,11 +70,11 @@ Site pros membros do EJAC (Esperança Jovem Aliada a Cristo) pedirem a camiseta 
 ## Passo D — Testar o painel admin
 
 1. Publique o site (Passo E) ou abra localmente
-2. Vá em `/admin.html` (tem um link discreto "Painel" no rodapé de todas as páginas) e clique em **Entrar com Google**
+2. Vá em `/admin/` (tem um link discreto "Painel" no rodapé de todas as páginas) e clique em **Entrar com Google**
 3. Entre com um e-mail que você colocou em `emailsAdmin()` — deve cair direto no painel
 4. Teste com outra conta Google (uma pessoal, por exemplo) pra confirmar que aparece a tela de "acesso não autorizado"
 
-Se a lista de itens da cesta ou de tamanhos mudar, atualize em **três lugares**: `catalogos.js` (usado pelos formulários e pelo painel), a função `metas()`/`tamanhosValidos()` no `firestore.rules` (regras do Firestore não conseguem importar arquivo externo), e as opções do `<select>` no `cesta.html`.
+Se a lista de itens da cesta ou de tamanhos mudar, atualize em **três lugares**: `catalogos.js` (usado pelos formulários e pelo painel), a função `metas()`/`tamanhosValidos()` no `firestore.rules` (regras do Firestore não conseguem importar arquivo externo), e as opções do `<select>` em `cesta/index.html`.
 
 ### Custo
 
@@ -84,7 +92,7 @@ O site é estático (sem servidor nosso), então a superfície de ataque é pequ
 - **`referrer: no-referrer`:** ao clicar num link externo (WhatsApp), o destino não recebe de onde a pessoa veio.
 - **Links externos com `noopener noreferrer`:** a página aberta não ganha acesso à nossa via `window.opener`.
 - **Registro de IP:** junto com cada pedido/contribuição é gravado o IP de quem enviou, pra dar rastreabilidade em caso de pedido falso. O IP é obtido pelo navegador via `api.ipify.org` — ou seja, dá pra forjar num envio direto ao Firestore, então serve como indício, não como prova. Se a busca falhar, o envio segue normalmente sem IP. Há um aviso discreto nos formulários informando o registro, como manda o princípio de transparência da LGPD.
-- **`admin.html` tem `noindex, nofollow`:** não aparece em buscadores. Isso não é a proteção real (quem protege são as regras + login), é só pra não aparecer por acidente numa busca.
+- **`/admin/` tem `noindex, nofollow`:** não aparece em buscadores. Isso não é a proteção real (quem protege são as regras + login), é só pra não aparecer por acidente numa busca.
 - **Sem segredos no repositório:** a config do Firebase, a chave Pix e os telefones são públicos por natureza (precisam ser). Arte original e PDFs de marca ficam no `.gitignore`.
 
 **Limite honesto:** por ser um formulário público e gratuito (sem captcha, pra não criar atrito), não dá pra impedir 100% um atacante determinado de enviar vários pedidos falsos manualmente. O honeypot + validação barram os bots comuns, que são a esmagadora maioria — e agora, diferente da planilha, dá pra **excluir qualquer pedido falso em segundos pelo painel admin**.
@@ -104,7 +112,7 @@ O site foi feito pra funcionar pra todo mundo, inclusive quem navega só pelo te
 1. Crie uma conta no [github.com](https://github.com) se ainda não tiver
 2. Clique em **New repository**, dê um nome (ex: `site-ejac`) e crie
 3. Na página do repositório, clique em **Add file → Upload files**
-4. Arraste `index.html`, `cesta.html`, `admin.html`, `styles.css`, `app.js`, `camiseta-firebase.js`, `cesta-firebase.js`, `admin-firebase.js`, `firebase-config.js`, `catalogos.js`, `favicon.svg` e a pasta `assets/` para lá e clique em **Commit changes** (o `firestore.rules` não precisa subir pro GitHub Pages — ele só é usado dentro do Firebase Console, no Passo B)
+4. Arraste `index.html`, `styles.css`, `app.js`, `camiseta-firebase.js`, `cesta-firebase.js`, `admin-firebase.js`, `firebase-config.js`, `catalogos.js`, `favicon.svg` e as pastas `assets/`, `cesta/` e `admin/` (arrastando a pasta inteira, não só o `index.html` de dentro dela, pra manter `cesta/index.html` e `admin/index.html` no lugar certo) e clique em **Commit changes** (o `firestore.rules` não precisa subir pro GitHub Pages — ele só é usado dentro do Firebase Console, no Passo B)
 5. Vá em **Settings → Pages**
 6. Em "Branch", selecione `main` e a pasta `/root`, depois clique em **Save**
 7. Espere 1–2 minutos e atualize a página — vai aparecer o link do site (algo como `https://seu-usuario.github.io/site-ejac/`)

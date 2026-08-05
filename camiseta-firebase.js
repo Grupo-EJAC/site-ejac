@@ -5,7 +5,7 @@
 // aqui é só "de cortesia", pra dar feedback rápido sem round-trip.
 //
 // Os pedidos (nome, WhatsApp, nome/número na camisa, tamanho) NÃO são
-// públicos — só o painel admin (admin.html) consegue ler, editar ou
+// públicos — só o painel admin (/admin/) consegue ler, editar ou
 // excluir, depois de login com um e-mail autorizado (ver firestore.rules).
 
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.17.1/firebase-app.js';
