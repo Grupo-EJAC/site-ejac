@@ -253,7 +253,16 @@ if (firebaseConfig.apiKey.includes('COLE_AQUI')) {
       try {
         await signInWithPopup(auth, new GoogleAuthProvider());
       } catch (err) {
-        alert('Não foi possível entrar. Tente de novo.');
+        if (err && err.code === 'auth/unauthorized-domain') {
+          alert(
+            'Este domínio (' + location.hostname + ') ainda não está autorizado no Firebase.\n\n' +
+            'No Firebase Console: Authentication → Settings → Domínios autorizados → Adicionar domínio.'
+          );
+        } else if (err && err.code === 'auth/popup-blocked') {
+          alert('O navegador bloqueou a janela de login. Permita pop-ups pra este site e tente de novo.');
+        } else if (err && err.code !== 'auth/popup-closed-by-user' && err.code !== 'auth/cancelled-popup-request') {
+          alert('Não foi possível entrar (' + (err.code || err.message || 'erro desconhecido') + '). Tente de novo.');
+        }
       }
     });
   }
