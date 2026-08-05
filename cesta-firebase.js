@@ -125,7 +125,7 @@ function atualizarHintCesta() {
     strong.textContent = 'já foi completado';
     cestaHintEl.appendChild(document.createTextNode('Esse item '));
     cestaHintEl.appendChild(strong);
-    cestaHintEl.appendChild(document.createTextNode(' — mas toda quantidade extra ajuda!'));
+    cestaHintEl.appendChild(document.createTextNode(', mas toda quantidade extra ajuda!'));
   } else {
     cestaHintEl.appendChild(document.createTextNode('Faltam '));
     const strong = document.createElement('strong');
