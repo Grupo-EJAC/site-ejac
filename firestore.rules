@@ -1,4 +1,4 @@
-// EJAC — Regras de segurança do Firestore (camiseta + cesta básica + mural + painel admin).
+// EJAC — Regras de segurança do Firestore (camiseta + cesta básica + painel admin).
 //
 // Cole isso no Firebase Console: Firestore Database → Regras → colar
 // tudo → Publicar. Isso é o que de fato valida cada envio e protege os
@@ -122,39 +122,11 @@ service cloud.firestore {
         && request.resource.data.criadoEm == request.time;
     }
 
-    // ---------- Mural de neon ----------
-
-    // Traços finalizados do quadro colaborativo. Qualquer sessão com
-    // login anônimo pode criar um traço (é a feature — desenhar sem
-    // barreira nenhuma), mas só o dono do traço nunca pode alterar
-    // depois de criado, e só o admin consegue apagar (moderação, se
-    // alguém desenhar algo impróprio — o painel tem um botão "Limpar
-    // mural" que apaga tudo de uma vez).
-    function pontosValidos(pontos) {
-      return pontos is list && pontos.size() >= 2 && pontos.size() <= 500;
-    }
-
-    // Cor é livre (qualquer uma, escolhida pela pessoa) — só precisa
-    // ser um hex de verdade, tipo '#e4568f', pra não deixar gravar
-    // lixo no lugar de uma cor.
-    function corValida(cor) {
-      return cor is string && cor.matches('^#[0-9a-fA-F]{6}$');
-    }
-
-    match /muralTracos/{id} {
-      allow read: if true;
-      allow create: if request.auth != null
-        && request.resource.data.keys().hasOnly(['uid', 'nome', 'cor', 'pontos', 'criadoEm'])
-        && request.resource.data.uid == request.auth.uid
-        && nomeValido(request.resource.data.nome)
-        && corValida(request.resource.data.cor)
-        && pontosValidos(request.resource.data.pontos)
-        && request.resource.data.criadoEm == request.time;
-      allow update: if false;
-      allow delete: if isAdmin();
-    }
-
-    // Tudo mais fica bloqueado por padrão.
+    // Tudo mais fica bloqueado por padrão. Isso inclui muralTracos: a
+    // feature do mural de neon foi removida do site (2026-08-06), mas
+    // os traços que já tinham sido desenhados continuam guardados aqui
+    // (não foram apagados, só ficaram inacessíveis) — se a feature
+    // voltar um dia, é só reabrir as regras dessa coleção de novo.
     match /{document=**} {
       allow read, write: if false;
     }
