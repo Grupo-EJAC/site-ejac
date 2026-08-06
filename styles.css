@@ -1469,6 +1469,13 @@
     padding: 24px;
   }
 
+  /* display:flex acima tem a mesma especificidade do [hidden] do
+     navegador — sem isso aqui, o atributo `hidden` fica "true" no DOM
+     mas o modal nunca some da tela de verdade. */
+  .mural-modal-fundo[hidden] {
+    display: none;
+  }
+
   .mural-modal {
     width: 100%;
     max-width: 400px;
