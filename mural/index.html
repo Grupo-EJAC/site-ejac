@@ -7,17 +7,20 @@
 <!-- Content-Security-Policy: nega tudo por padrão e libera só o necessário.
      O mural precisa, além do Firestore de sempre: falar com o Realtime
      Database (presença, wss:// é o WebSocket que o SDK usa) e com o
-     Auth anônimo (identitytoolkit/securetoken) — sem popup, sem iframe,
-     então não precisa de apis.google.com como o /admin/ precisa. O RTDB
-     usa *.firebaseio.com (não só o domínio nomeado do banco) porque o
-     SDK é redirecionado pra um host de shard dinâmico (ex.:
+     Auth anônimo (identitytoolkit/securetoken). O login anônimo também
+     carrega apis.google.com/js/api.js por baixo dos panos (verificação
+     de reCAPTCHA que o Identity Toolkit faz mesmo em auth anônimo, não
+     só em login com senha/telefone) — sem isso aqui, o SDK ainda
+     consegue autenticar, mas fica gerando erro de CSP no console à toa.
+     O RTDB usa *.firebaseio.com (não só o domínio nomeado do banco)
+     porque o SDK é redirecionado pra um host de shard dinâmico (ex.:
      s-gke-usc1-nssi3-66.firebaseio.com) pra balancear carga, e quando o
      WebSocket não fecha (rede que bloqueia, proxy etc.) ele cai pro
      transporte de long-polling, que injeta uma <script> e abre um
      iframe escondido apontando pra esse host — sem liberar o domínio
      coringa em script-src/connect-src/frame-src, a presença quebra
      silenciosamente nessas redes. -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'none'; script-src 'self' https://www.gstatic.com https://*.firebaseio.com; style-src 'self' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src https://firestore.googleapis.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://*.firebaseio.com wss://*.firebaseio.com; frame-src https://*.firebaseio.com; form-action 'none'; frame-ancestors 'none'; upgrade-insecure-requests">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'none'; script-src 'self' https://www.gstatic.com https://*.firebaseio.com https://apis.google.com; style-src 'self' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src https://firestore.googleapis.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://*.firebaseio.com wss://*.firebaseio.com https://apis.google.com; frame-src https://*.firebaseio.com; form-action 'none'; frame-ancestors 'none'; upgrade-insecure-requests">
 <meta name="referrer" content="no-referrer">
 <meta name="robots" content="index, follow">
 <meta name="theme-color" content="#000001">
