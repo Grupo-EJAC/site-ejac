@@ -1507,6 +1507,27 @@
     gap: 16px;
   }
 
+  .mural-label-cor {
+    flex-direction: row !important;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  /* input[type=color] não aceita o padding/border-radius genérico de
+     input,select do resto do site sem ficar torto — estiliza a caixa
+     por fora e o miolo (o quadradinho colorido) por dentro, separado
+     por navegador porque cada um expõe isso com um pseudo-elemento
+     diferente. */
+  #mural-input-cor {
+    width: 52px;
+    height: 44px;
+    padding: 4px;
+    flex-shrink: 0;
+  }
+  #mural-input-cor::-webkit-color-swatch-wrapper { padding: 0; }
+  #mural-input-cor::-webkit-color-swatch { border: none; border-radius: 6px; }
+  #mural-input-cor::-moz-color-swatch { border: none; border-radius: 6px; }
+
   /* ============================================================
      RODAPÉ
      ============================================================ */

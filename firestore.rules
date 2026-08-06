@@ -134,8 +134,11 @@ service cloud.firestore {
       return pontos is list && pontos.size() >= 2 && pontos.size() <= 500;
     }
 
+    // Cor é livre (qualquer uma, escolhida pela pessoa) — só precisa
+    // ser um hex de verdade, tipo '#e4568f', pra não deixar gravar
+    // lixo no lugar de uma cor.
     function corValida(cor) {
-      return cor == 'rosa' || cor == 'laranja';
+      return cor is string && cor.matches('^#[0-9a-fA-F]{6}$');
     }
 
     match /muralTracos/{id} {

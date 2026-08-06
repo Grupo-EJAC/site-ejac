@@ -19,7 +19,7 @@
           ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 1"
         },
         "cor": {
-          ".validate": "newData.val() === 'rosa' || newData.val() === 'laranja'"
+          ".validate": "newData.isString() && newData.val().matches(/^#[0-9a-fA-F]{6}$/)"
         },
         "atualizadoEm": {
           ".validate": "newData.isNumber()"

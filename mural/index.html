@@ -83,7 +83,7 @@
       <div class="mural-barra">
         <span class="mural-cor-bolinha" id="mural-cor-indicador" aria-hidden="true"></span>
         <span class="mural-instrucao">Desenhando como <strong id="mural-meu-nome">alguém</strong></span>
-        <button type="button" id="btn-mural-trocar-nome" class="mural-btn-link">Trocar nome</button>
+        <button type="button" id="btn-mural-trocar-nome" class="mural-btn-link">Trocar nome/cor</button>
       </div>
 
       <p class="form-aviso-dados">
@@ -106,11 +106,15 @@
   <div class="mural-modal-fundo" id="mural-modal-fundo" hidden>
     <div class="mural-modal" role="dialog" aria-modal="true" aria-labelledby="mural-modal-titulo">
       <h2 id="mural-modal-titulo" class="sombra-dura-laranja">Antes de desenhar</h2>
-      <p>Escolha um nome pra aparecer flutuando junto do seu traço, pros outros verem quem está desenhando.</p>
+      <p>Escolha um nome e uma cor pra aparecer flutuando junto do seu traço, pros outros verem quem está desenhando.</p>
       <form id="form-mural-nome">
         <label>
           Seu nome
           <input type="text" name="nome" id="mural-input-nome" placeholder="Ex: Jaque" required maxlength="20" autocomplete="given-name">
+        </label>
+        <label class="mural-label-cor">
+          Sua cor
+          <input type="color" name="cor" id="mural-input-cor" value="#E4568F">
         </label>
         <button type="submit">Começar a desenhar</button>
       </form>

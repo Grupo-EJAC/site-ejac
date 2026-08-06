@@ -34,8 +34,9 @@ import {
 import { firebaseConfig } from './firebase-config.js';
 
 const NOME_MAX = 20;
-const CORES = ['rosa', 'laranja'];
-const COR_HEX = { rosa: '#E4568F', laranja: '#C14D13' };
+const COR_PADRAO = '#E4568F';
+const CORES_LEGADO = { rosa: '#E4568F', laranja: '#C14D13' }; // versão antiga só tinha essas duas
+const HEX_REGEX = /^#[0-9a-f]{6}$/i;
 const THROTTLE_MS = 120; // intervalo mínimo entre gravações de presença
 const MAX_TRACOS = 400; // teto de traços mantidos vivos no quadro
 const DIST_MIN_PONTO = 0.004; // decimação: só grava ponto novo se andou isso (normalizado, 0–1)
@@ -50,34 +51,39 @@ const carregandoEl = document.getElementById('mural-carregando');
 const modalFundoEl = document.getElementById('mural-modal-fundo');
 const formNomeEl = document.getElementById('form-mural-nome');
 const inputNomeEl = document.getElementById('mural-input-nome');
+const inputCorEl = document.getElementById('mural-input-cor');
 const meuNomeEl = document.getElementById('mural-meu-nome');
 const corIndicadorEl = document.getElementById('mural-cor-indicador');
 const btnTrocarNomeEl = document.getElementById('btn-mural-trocar-nome');
 
 // ------------------------------------------------------------
-// Identidade local: nome (perguntado uma vez, guardado no localStorage)
-// + cor (sorteada uma vez só, fica igual nas próximas visitas)
+// Identidade local: nome e cor, perguntados uma vez e guardados no
+// localStorage. A cor é livre (qualquer uma, não só um kit fixo) — o
+// brilho neon vem do shadowBlur do canvas, não da cor em si, então
+// funciona igual pra qualquer tom escolhido.
 // ------------------------------------------------------------
 function carregarIdentidade() {
   const nome = localStorage.getItem('ejac-mural-nome') || '';
   let cor = localStorage.getItem('ejac-mural-cor');
-  if (!CORES.includes(cor)) {
-    cor = CORES[Math.floor(Math.random() * CORES.length)];
-    localStorage.setItem('ejac-mural-cor', cor);
-  }
+  cor = CORES_LEGADO[cor] || cor; // migra quem tinha 'rosa'/'laranja' da versão antiga
+  if (!HEX_REGEX.test(cor)) cor = COR_PADRAO;
+  localStorage.setItem('ejac-mural-cor', cor);
   return { nome, cor };
 }
 
 const identidade = carregarIdentidade();
 
-function salvarNome(nome) {
+function salvarIdentidade(nome, cor) {
   identidade.nome = nome;
+  identidade.cor = cor;
   localStorage.setItem('ejac-mural-nome', nome);
+  localStorage.setItem('ejac-mural-cor', cor);
   if (meuNomeEl) meuNomeEl.textContent = nome;
+  if (corIndicadorEl) corIndicadorEl.style.background = cor;
 }
 
 if (meuNomeEl && identidade.nome) meuNomeEl.textContent = identidade.nome;
-if (corIndicadorEl) corIndicadorEl.style.background = COR_HEX[identidade.cor];
+if (corIndicadorEl) corIndicadorEl.style.background = identidade.cor;
 
 function abrirModalNome() {
   if (!modalFundoEl) return;
@@ -86,6 +92,7 @@ function abrirModalNome() {
     inputNomeEl.value = identidade.nome || '';
     inputNomeEl.focus();
   }
+  if (inputCorEl) inputCorEl.value = identidade.cor;
 }
 function fecharModalNome() {
   if (modalFundoEl) modalFundoEl.hidden = true;
@@ -98,7 +105,8 @@ if (formNomeEl) {
     e.preventDefault();
     const nome = inputNomeEl.value.trim().slice(0, NOME_MAX);
     if (!nome) return;
-    salvarNome(nome);
+    const cor = HEX_REGEX.test(inputCorEl?.value) ? inputCorEl.value : COR_PADRAO;
+    salvarIdentidade(nome, cor);
     fecharModalNome();
   });
 }
@@ -131,12 +139,13 @@ function medirCanvas() {
 
 function desenharLinha(pontos, cor, dims) {
   if (!pontos || pontos.length < 2) return;
+  const corFinal = HEX_REGEX.test(cor) ? cor : COR_PADRAO;
   ctx.save();
   ctx.lineCap = 'round';
   ctx.lineJoin = 'round';
   ctx.lineWidth = LARGURA_TRACO * dims.dpr;
-  ctx.strokeStyle = COR_HEX[cor] || COR_HEX.rosa;
-  ctx.shadowColor = COR_HEX[cor] || COR_HEX.rosa;
+  ctx.strokeStyle = corFinal;
+  ctx.shadowColor = corFinal;
   ctx.shadowBlur = BLUR_NEON * dims.dpr;
   ctx.beginPath();
   ctx.moveTo(pontos[0].x * canvas.width, pontos[0].y * canvas.height);
@@ -287,7 +296,7 @@ if (rtdb) {
     if (!val) return;
     const el = document.createElement('span');
     el.className = 'mural-cursor-nome';
-    el.style.setProperty('--cor-cursor', COR_HEX[val.cor] || COR_HEX.rosa);
+    el.style.setProperty('--cor-cursor', HEX_REGEX.test(val.cor) ? val.cor : COR_PADRAO);
     el.textContent = val.nome || 'Anônimo';
     cursoresEl.appendChild(el);
     tagsCursores.set(snap.key, el);
@@ -300,7 +309,7 @@ if (rtdb) {
     const el = tagsCursores.get(snap.key);
     if (!el || !val) return;
     el.textContent = val.nome || 'Anônimo';
-    el.style.setProperty('--cor-cursor', COR_HEX[val.cor] || COR_HEX.rosa);
+    el.style.setProperty('--cor-cursor', HEX_REGEX.test(val.cor) ? val.cor : COR_PADRAO);
     posicionarTag(el, val.x, val.y);
   });
 
@@ -341,8 +350,8 @@ function desenharSegmentoLocal(p1, p2, dims) {
   ctx.lineCap = 'round';
   ctx.lineJoin = 'round';
   ctx.lineWidth = LARGURA_TRACO * dims.dpr;
-  ctx.strokeStyle = COR_HEX[identidade.cor];
-  ctx.shadowColor = COR_HEX[identidade.cor];
+  ctx.strokeStyle = identidade.cor;
+  ctx.shadowColor = identidade.cor;
   ctx.shadowBlur = BLUR_NEON * dims.dpr;
   ctx.beginPath();
   ctx.moveTo(p1.x * canvas.width, p1.y * canvas.height);
