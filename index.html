@@ -12,22 +12,22 @@
 <meta name="robots" content="index, follow">
 <meta name="theme-color" content="#000001">
 
-<title>EJAC - Peça sua camiseta oficial</title>
-<meta name="description" content="Peça a camiseta oficial do EJAC (Esperança Jovem Aliada a Cristo). Escolha nome, número e tamanho, veja a prévia na hora e garanta a sua.">
+<title>EJAC - Camiseta oficial</title>
+<meta name="description" content="Pedidos de camiseta oficial do EJAC (Esperança Jovem Aliada a Cristo) encerrados. Quem já pediu, confira as informações de pagamento.">
 <link rel="canonical" href="https://grupoejac.com.br/">
 
 <!-- Prévia ao compartilhar o link (WhatsApp, Instagram, etc.) -->
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="EJAC">
 <meta property="og:locale" content="pt_BR">
-<meta property="og:title" content="EJAC - Peça sua camiseta oficial">
-<meta property="og:description" content="Escolha nome, número e tamanho, veja a prévia na hora e garanta a sua camiseta oficial do EJAC.">
+<meta property="og:title" content="EJAC - Camiseta oficial">
+<meta property="og:description" content="Pedidos encerrados. Quem já pediu a camiseta oficial do EJAC, confira as informações de pagamento.">
 <meta property="og:url" content="https://grupoejac.com.br/">
 <meta property="og:image" content="https://grupoejac.com.br/assets/camisa-frente.png">
 <meta property="og:image:alt" content="Camiseta oficial do EJAC, preta com arte em rosa">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="EJAC - Peça sua camiseta oficial">
-<meta name="twitter:description" content="Escolha nome, número e tamanho, veja a prévia na hora e garanta a sua camiseta oficial do EJAC.">
+<meta name="twitter:title" content="EJAC - Camiseta oficial">
+<meta name="twitter:description" content="Pedidos encerrados. Quem já pediu a camiseta oficial do EJAC, confira as informações de pagamento.">
 <meta name="twitter:image" content="https://grupoejac.com.br/assets/camisa-frente.png">
 
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
@@ -38,7 +38,7 @@
 </head>
 <body>
 
-  <a href="#pedido" class="pular-para">Pular para o formulário de pedido</a>
+  <a href="#pagamento" class="pular-para">Pular para o pagamento</a>
 
   <div class="scroll-progress" id="scroll-progress" aria-hidden="true"></div>
 
@@ -48,7 +48,7 @@
   <header class="nav">
     <a href="#topo" class="logo sombra-dura">EJAC</a>
     <div class="nav-links">
-      <a href="#pedido" class="nav-cta">Pedir camiseta</a>
+      <a href="#pedido" class="nav-cta">Camiseta</a>
       <a href="cesta/" class="nav-cta nav-cta-secundario">Cesta básica</a>
     </div>
   </header>
@@ -59,8 +59,8 @@
       <div>
         <span class="hero-eyebrow">✦ edição oficial ✦</span>
         <h1>A camiseta<br>do <span>EJAC</span><br>é sua.</h1>
-        <p>Esperança Jovem Aliada a Cristo. Garanta já a sua camiseta oficial, é só preencher o formulário com seus dados abaixo.</p>
-        <a href="#pedido" class="hero-cta">Faça o seu pedido →</a>
+        <p>Esperança Jovem Aliada a Cristo. Os pedidos de camiseta oficial já encerraram. Quem já garantiu a sua, confira o pagamento abaixo.</p>
+        <a href="#pagamento" class="hero-cta">Ver pagamento →</a>
       </div>
 
       <div class="hero-shirt">
@@ -88,104 +88,11 @@
     </section>
 
     <section class="order" id="pedido">
-      <h2 class="sombra-dura-laranja">Faça o seu <span class="rabisco">pedido</span></h2>
-      <p class="order-sub">Preencha certinho, é assim que vai sair na camisa.</p>
-
-      <noscript>
-        <p class="form-msg erro">
-          Este formulário precisa de JavaScript para enviar o pedido. Ative o
-          JavaScript ou fale direto com um dos coordenadores pelo WhatsApp,
-          na seção de pagamento abaixo.
-        </p>
-      </noscript>
-
-      <form id="form-pedido" novalidate>
-        <div class="hp-field" aria-hidden="true">
-          <label>Não preencha este campo
-            <input type="text" name="website" tabindex="-1" autocomplete="off">
-          </label>
-        </div>
-
-        <label>
-          Nome completo
-          <input type="text" name="nomeCompleto" placeholder="Seu nome completo" required maxlength="80" autocomplete="name">
-        </label>
-
-        <label>
-          WhatsApp
-          <input type="tel" name="whatsapp" placeholder="(41) 9XXXX-XXXX" required maxlength="20" inputmode="tel" autocomplete="tel">
-        </label>
-
-        <label>
-          Nome na camisa
-          <input type="text" name="nomeCamisa" placeholder="Como quer que apareça na camisa" required maxlength="20">
-        </label>
-
-        <label>
-          Número na camisa
-          <input type="text" name="numeroCamisa" placeholder="Ex: 7" required maxlength="3" inputmode="numeric" pattern="[0-9]{1,3}">
-        </label>
-
-        <div class="preview-wrap">
-          <p class="preview-titulo">✦ Prévia de como vai ficar</p>
-          <div class="preview-camisa">
-            <img src="assets/camisa-verso-limpa.png" alt="" loading="lazy" width="520" height="675">
-            <div class="preview-nome"><span id="preview-nome">EJAC</span></div>
-            <div class="preview-numero"><span id="preview-numero">94</span></div>
-          </div>
-          <p class="preview-legenda" role="status" aria-live="polite" id="preview-legenda">
-            Prévia: nome <strong>EJAC</strong>, número <strong>94</strong>
-          </p>
-        </div>
-
-        <label>
-          Tamanho
-          <select name="tamanho" required>
-            <option value="" disabled selected>Escolha o tamanho</option>
-            <option value="PP">PP (69×48 cm)</option>
-            <option value="P">P (72×50 cm)</option>
-            <option value="M">M (74×52 cm)</option>
-            <option value="G">G (76×54 cm)</option>
-            <option value="GG">GG (77×56 cm)</option>
-            <option value="XG">XG (79×58 cm)</option>
-            <option value="G2">G2 (77×60 cm)</option>
-            <option value="G3">G3 (79×62 cm)</option>
-            <option value="G4">G4 (83×66 cm)</option>
-            <option value="G5">G5 (88×69 cm)</option>
-          </select>
-        </label>
-
-        <details class="tabela-medidas">
-          <summary>📏 Ver tabela de medidas completa</summary>
-          <table>
-            <caption class="sr-only">Medidas de cada tamanho, em centímetros</caption>
-            <thead>
-              <tr><th scope="col">Tamanho</th><th scope="col">Altura</th><th scope="col">Largura</th></tr>
-            </thead>
-            <tbody>
-              <tr><td>PP</td><td>69 cm</td><td>48 cm</td></tr>
-              <tr><td>P</td><td>72 cm</td><td>50 cm</td></tr>
-              <tr><td>M</td><td>74 cm</td><td>52 cm</td></tr>
-              <tr><td>G</td><td>76 cm</td><td>54 cm</td></tr>
-              <tr><td>GG</td><td>77 cm</td><td>56 cm</td></tr>
-              <tr><td>XG</td><td>79 cm</td><td>58 cm</td></tr>
-              <tr><td>G2</td><td>77 cm</td><td>60 cm</td></tr>
-              <tr><td>G3</td><td>79 cm</td><td>62 cm</td></tr>
-              <tr><td>G4</td><td>83 cm</td><td>66 cm</td></tr>
-              <tr><td>G5</td><td>88 cm</td><td>69 cm</td></tr>
-            </tbody>
-          </table>
-        </details>
-
-        <button type="submit" id="btn-enviar">Enviar pedido</button>
-
-        <p class="form-aviso-dados">
-          Ao enviar, registramos os dados do formulário, a data e informações
-          técnicas do acesso, para controle interno dos pedidos.
-        </p>
-
-        <div class="form-msg" id="form-msg" role="status" aria-live="polite"></div>
-      </form>
+      <h2 class="sombra-dura-laranja">Pedidos <span class="rabisco">encerrados</span></h2>
+      <p class="order-sub">
+        Não estamos mais recebendo pedidos de camiseta. Quem já pediu e ainda
+        não pagou, confira a chave Pix na seção de pagamento abaixo.
+      </p>
     </section>
 
     <section class="pagamento" id="pagamento" aria-labelledby="titulo-pagamento">
