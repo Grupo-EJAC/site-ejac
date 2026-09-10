@@ -6,7 +6,7 @@ Site pros membros do EJAC (Esperança Jovem Aliada a Cristo) pedirem a camiseta 
 
 | Arquivo | O que é |
 |---|---|
-| `index.html` | A página principal: pedido de camiseta (`/`) |
+| `index.html` | A página principal (`/`): destaque da campanha ativa (hoje a cesta) + seção da camiseta com pagamento |
 | `cesta/index.html` | Página separada da cesta básica colaborativa (`/cesta/`), acessível pelo botão "Cesta básica" no menu |
 | `admin/index.html` | Painel administrativo (`/admin/`, login Google) — relatório dos pedidos de camiseta e da cesta básica, com opção de excluir |
 | `styles.css` | Todo o visual. **As cores ficam no `:root`, no topo** — mexa só ali pra mudar a identidade |
@@ -36,7 +36,8 @@ Site pros membros do EJAC (Esperança Jovem Aliada a Cristo) pedirem a camiseta 
 
 ## Como o site funciona (visão geral)
 
-- **Camiseta** (`/`): formulário público, sem visibilidade nenhuma — só o painel admin lê os pedidos. Grava no Firestore (é o que o site/painel realmente usa) e manda uma cópia pra planilha do Google via `Code.gs`, como backup — se a planilha falhar por algum motivo, o pedido continua seguro no Firestore.
+- **Home** (`/`): destaca a campanha que estiver rolando no momento. Hoje o destaque é a cesta básica (o hero leva direto pra `/cesta/`), e a camiseta aparece abaixo como seção secundária: fotos, aviso de "pedidos encerrados" e as instruções de pagamento pra quem já pediu.
+- **Camiseta** (`/`, seção `#pedido`): o formulário de pedido ficou aberto até 15/08/2026 e foi removido quando os pedidos encerraram (está no histórico do git, em `f713940`, se precisar reabrir numa próxima campanha). Enquanto esteve aberto, gravava no Firestore (fonte usada pelo site/painel) e mandava uma cópia pra planilha do Google via `Code.gs`, como backup. Os pedidos antigos continuam no Firestore e visíveis no painel admin.
 - **Cesta básica** (`/cesta/`): formulário público onde os membros escolhem um item de uma lista fixa e dizem quanto vão trazer (a quantidade toda ou só uma parte) — só pede nome, sem WhatsApp. **Nome, item e quantidade ficam visíveis na própria página** (foi um pedido do grupo, pra dar controle de quem já trouxe o quê), atualizando em tempo real pra quem estiver com a página aberta. O IP **nunca aparece no site** — fica numa coleção separada, só legível pelo painel admin.
 - **Painel admin** (`/admin/`): login com conta Google. Só e-mails na lista `emailsAdmin()` do `firestore.rules` conseguem entrar — qualquer outra conta Google cai numa tela de "acesso não autorizado". De lá dá pra ver todos os pedidos de camiseta (com resumo por tamanho e exportar CSV), ver a cesta básica com IP incluído, e **excluir qualquer registro errado ou falso** direto pela interface, sem precisar abrir o Firebase Console.
 - Não existe cota fixa por pessoa na cesta: qualquer um pode contribuir com qualquer item, em qualquer quantidade (até um teto de 3× a meta, só pra barrar erro de digitação). Se um item já estiver completo, a página avisa mas ainda deixa contribuir a mais.

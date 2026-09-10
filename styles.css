@@ -248,6 +248,20 @@
     align-items: center;
   }
 
+  /* Hero sem imagem ao lado: usado quando a home destaca a cesta básica,
+     que não tem foto própria. Vira uma coluna só, centralizada. */
+  .hero-simples {
+    grid-template-columns: 1fr;
+    justify-items: center;
+    text-align: center;
+    padding-top: 60px;
+  }
+
+  .hero-simples p {
+    margin-left: auto;
+    margin-right: auto;
+  }
+
   #hero-canvas {
     position: absolute;
     inset: 0;
@@ -326,7 +340,11 @@
     box-shadow: 8px 8px 0 var(--rosa);
   }
 
-  /* Camisa flutuante no hero, com spotlight atrás */
+  /* Camisa flutuante no hero, com spotlight atrás.
+     Sem uso no momento: a home passou a destacar a cesta básica e o hero
+     virou só texto (.hero-simples). Mantido porque a campanha de camiseta
+     é sazonal — pra voltar, é só recolocar a <div class="hero-shirt"> no
+     index.html e tirar o .hero-simples do <section class="hero">. */
   .hero-shirt {
     position: relative;
     display: flex;

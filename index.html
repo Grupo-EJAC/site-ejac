@@ -12,23 +12,23 @@
 <meta name="robots" content="index, follow">
 <meta name="theme-color" content="#000001">
 
-<title>EJAC - Camiseta oficial</title>
-<meta name="description" content="Pedidos de camiseta oficial do EJAC (Esperança Jovem Aliada a Cristo) encerrados. Quem já pediu, confira as informações de pagamento.">
+<title>EJAC - Cesta básica colaborativa</title>
+<meta name="description" content="Ajude a montar a cesta básica do EJAC (Esperança Jovem Aliada a Cristo). Escolha um item, diga quanto vai trazer e acompanhe em tempo real o que ainda falta.">
 <link rel="canonical" href="https://grupoejac.com.br/">
 
 <!-- Prévia ao compartilhar o link (WhatsApp, Instagram, etc.) -->
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="EJAC">
 <meta property="og:locale" content="pt_BR">
-<meta property="og:title" content="EJAC - Camiseta oficial">
-<meta property="og:description" content="Pedidos encerrados. Quem já pediu a camiseta oficial do EJAC, confira as informações de pagamento.">
+<meta property="og:title" content="EJAC - Cesta básica colaborativa">
+<meta property="og:description" content="Escolha um item, diga quanto vai trazer e acompanhe em tempo real o que ainda falta pra fechar a cesta.">
 <meta property="og:url" content="https://grupoejac.com.br/">
-<meta property="og:image" content="https://grupoejac.com.br/assets/camisa-frente.png">
-<meta property="og:image:alt" content="Camiseta oficial do EJAC, preta com arte em rosa">
-<meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="EJAC - Camiseta oficial">
-<meta name="twitter:description" content="Pedidos encerrados. Quem já pediu a camiseta oficial do EJAC, confira as informações de pagamento.">
-<meta name="twitter:image" content="https://grupoejac.com.br/assets/camisa-frente.png">
+<meta property="og:image" content="https://grupoejac.com.br/assets/og-logo.png">
+<meta property="og:image:alt" content="Logo do EJAC">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="EJAC - Cesta básica colaborativa">
+<meta name="twitter:description" content="Escolha um item, diga quanto vai trazer e acompanhe em tempo real o que ainda falta pra fechar a cesta.">
+<meta name="twitter:image" content="https://grupoejac.com.br/assets/og-logo.png">
 
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -38,7 +38,7 @@
 </head>
 <body>
 
-  <a href="#pagamento" class="pular-para">Pular para o pagamento</a>
+  <a href="#topo" class="pular-para">Pular para o conteúdo</a>
 
   <div class="scroll-progress" id="scroll-progress" aria-hidden="true"></div>
 
@@ -48,24 +48,19 @@
   <header class="nav">
     <a href="#topo" class="logo sombra-dura">EJAC</a>
     <div class="nav-links">
-      <a href="#pedido" class="nav-cta">Camiseta</a>
-      <a href="cesta/" class="nav-cta nav-cta-secundario">Cesta básica</a>
+      <a href="cesta/" class="nav-cta">Cesta básica</a>
+      <a href="#camiseta" class="nav-cta nav-cta-secundario">Camiseta</a>
     </div>
   </header>
 
   <main id="topo">
-    <section class="hero">
+    <section class="hero hero-simples">
       <canvas id="hero-canvas" aria-hidden="true"></canvas>
       <div>
-        <span class="hero-eyebrow">✦ edição oficial ✦</span>
-        <h1>A camiseta<br>do <span>EJAC</span><br>é sua.</h1>
-        <p>Esperança Jovem Aliada a Cristo. Os pedidos de camiseta oficial já encerraram. Quem já garantiu a sua, confira o pagamento abaixo.</p>
-        <a href="#pagamento" class="hero-cta">Ver pagamento →</a>
-      </div>
-
-      <div class="hero-shirt">
-        <img src="assets/camisa-frente.png" alt="Frente da camiseta oficial do EJAC"
-             class="hero-shirt-img" width="800" height="974" fetchpriority="high">
+        <span class="hero-eyebrow">✦ tá rolando agora ✦</span>
+        <h1>Vamos montar<br>a <span>cesta</span><br>juntos.</h1>
+        <p>Esperança Jovem Aliada a Cristo. Cada um traz um item, ou só uma parte dele, e o resto o pessoal completa. Dá pra ver na hora o que já foi separado e o que ainda falta.</p>
+        <a href="cesta/" class="hero-cta">Quero colaborar →</a>
       </div>
     </section>
 
@@ -119,23 +114,18 @@
             <button type="button" id="btn-copiar-pix">Copiar</button>
           </div>
           <p class="pagamento-nota">Coloque <strong>"Camiseta EJAC"</strong> na descrição do Pix.</p>
-          <p class="pagamento-prazo">⏰ Pagamento mínimo de <strong>R$ 45,00 até dia 15 de agosto</strong> pra confirmar o pedido.</p>
-        </div>
-
-        <div class="pagamento-opcao">
-          <h3>Cartão (débito ou crédito)</h3>
-          <p class="pagamento-nota">A paróquia só libera pagamento no cartão no dia <strong>16/08, na missa das 19h30</strong>.</p>
+          <p class="pagamento-prazo">⏰ As camisas já estão em produção. <strong>Quem não pagar não retira a sua.</strong></p>
         </div>
       </div>
 
       <div class="aviso-comprovante">
-        <p class="aviso-titulo">⚠️ Como confirmar o seu pedido</p>
+        <p class="aviso-titulo">⚠️ Como garantir a sua camisa</p>
         <ol class="aviso-passos">
-          <li><span><strong>Pague pelo menos R$ 45,00 até dia 15 de agosto</strong> via Pix (cartão só no dia 16/08, na missa das 19h30; o valor cheio é R$ 90,00)</span></li>
+          <li><span><strong>Pague os R$ 90,00</strong> via Pix (dá pra dividir em duas parcelas de R$ 45,00)</span></li>
           <li><span><strong>Tire um print ou foto</strong> do comprovante do pagamento</span></li>
           <li><span><strong>Envie o comprovante</strong> pelo WhatsApp pra um dos coordenadores abaixo</span></li>
         </ol>
-        <p class="aviso-texto aviso-destaque">Sem enviar o comprovante, o pedido <strong>não é confirmado</strong>.</p>
+        <p class="aviso-texto aviso-destaque">Sem enviar o comprovante, a camisa <strong>não é liberada</strong> na retirada.</p>
         <div class="coordenadores">
           <a href="https://wa.me/5541999477616" target="_blank" rel="noopener noreferrer">
             <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12c0 1.85.5 3.58 1.36 5.07L2 22l5.08-1.33A9.94 9.94 0 0 0 12 22c5.52 0 10-4.48 10-10S17.52 2 12 2zm0 18c-1.62 0-3.14-.44-4.44-1.2l-.32-.19-3.02.79.8-2.94-.2-.31A7.94 7.94 0 0 1 4 12c0-4.41 3.59-8 8-8s8 3.59 8 8-3.59 8-8 8zm4.38-5.98c-.24-.12-1.43-.7-1.65-.79-.22-.08-.38-.12-.55.12-.16.24-.63.79-.77.95-.14.16-.28.18-.52.06-.24-.12-1.01-.37-1.92-1.18-.71-.63-1.19-1.42-1.33-1.66-.14-.24-.02-.37.11-.49.11-.11.24-.28.36-.42.12-.14.16-.24.24-.4.08-.16.04-.3-.02-.42-.06-.12-.55-1.32-.75-1.81-.2-.48-.4-.41-.55-.42-.14-.01-.3-.01-.46-.01-.16 0-.42.06-.64.3-.22.24-.84.82-.84 2s.86 2.32.98 2.48c.12.16 1.7 2.6 4.12 3.64.58.25 1.03.4 1.38.51.58.18 1.11.16 1.53.1.47-.07 1.43-.58 1.63-1.15.2-.56.2-1.04.14-1.15-.06-.1-.22-.16-.46-.28z"/></svg>
