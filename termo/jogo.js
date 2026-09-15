@@ -440,7 +440,10 @@ function aoPressionar(tecla) {
 
 function enviar() {
   if (digitacao.length < TAMANHO) {
-    avisar(`Faltam letras — ${TAMANHO === 1 ? 'a palavra tem 1 letra' : 'as palavras de hoje têm ' + TAMANHO + ' letras'}.`);
+    // Concorda com o modo: uma palavra no termo, duas no dueto.
+    avisar(EH_DUETO
+      ? `Faltam letras — as palavras de hoje têm ${TAMANHO} letras.`
+      : `Faltam letras — a palavra de hoje tem ${TAMANHO} letras.`);
     sacudirLinha();
     return;
   }
