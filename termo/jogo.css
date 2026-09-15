@@ -1,0 +1,369 @@
+/* EJAC — Estilos do "Termo EJAC".
+   Carregado DEPOIS do ../styles.css, então herda as variáveis de cor,
+   as fontes, o cabeçalho e o rodapé do site. Aqui só entra o que é do
+   jogo em si.
+
+   Sobre as cores das peças: verde/amarelo não são cores da marca, mas
+   são o código universal desse tipo de jogo (e batem com os emojis
+   🟩🟨⬛ do compartilhamento). Trocar por rosa/laranja ficaria mais
+   bonito e mais confuso — quem já jogou term.ooo leria errado. O resto
+   da página segue a identidade do EJAC. */
+
+.jogo {
+  padding: 40px 20px 60px;
+  max-width: 560px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.jogo h1 {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: clamp(1.7rem, 5vw, 2.3rem);
+  margin: 0 0 8px;
+}
+
+.jogo-sub {
+  color: var(--cinza-texto);
+  font-size: .9rem;
+  margin: 0 0 6px;
+  line-height: 1.5;
+}
+
+.jogo-tamanho {
+  font-family: var(--font-scribble);
+  color: var(--rosa);
+  font-size: 1.05rem;
+  display: inline-block;
+  transform: rotate(-2deg);
+  margin-bottom: 22px;
+}
+
+/* ============================================================
+   GRADE
+   ============================================================ */
+
+/* Barra de modos (Termo / Dueto) */
+.modos {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.modo {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: .78rem;
+  text-decoration: none;
+  color: var(--cinza-texto);
+  border: 2px solid var(--cinza);
+  border-radius: 999px;
+  padding: 7px 18px;
+  transition: color .15s ease, border-color .15s ease, background .15s ease;
+}
+
+.modo:hover { color: var(--branco); border-color: var(--cinza-texto); }
+
+.modo.modo-ativo {
+  background: var(--rosa);
+  border-color: var(--rosa);
+  color: var(--preto);
+}
+
+/* ============================================================
+   TABULEIROS
+   ============================================================ */
+
+.tabuleiros {
+  display: flex;
+  justify-content: center;
+  gap: 22px;
+  margin: 0 auto 22px;
+}
+
+/* Sem um respiro maior entre os dois tabuleiros, o dueto parece uma
+   grade só, com o dobro de colunas. */
+@media (max-width: 420px) {
+  .tabuleiros { gap: 14px; }
+}
+
+.grade {
+  --largura-grade: min(92vw, 420px);
+  width: var(--largura-grade);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+/* No dueto os dois tabuleiros dividem a largura disponível (descontando
+   o respiro entre eles) */
+.tabuleiros.dueto .grade {
+  --largura-grade: min(42vw, 190px);
+}
+
+.tabuleiros.dueto .grade .linha { gap: 4px; }
+.tabuleiros.dueto .grade { gap: 4px; }
+
+/* Tabuleiro já resolvido desbota, pra ficar claro que ele parou */
+.grade.resolvido { opacity: .55; }
+
+.linha {
+  display: grid;
+  grid-template-columns: repeat(var(--colunas), 1fr);
+  gap: 6px;
+}
+
+.cel {
+  aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid var(--cinza);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--branco);
+  font-family: var(--font-display);
+  font-weight: 700;
+  text-transform: uppercase;
+  /* o tamanho da letra acompanha o tamanho da peça, que por sua vez
+     depende de quantas colunas o dia pediu */
+  font-size: calc(var(--largura-grade) / var(--colunas) * 0.46);
+  line-height: 1;
+  user-select: none;
+}
+
+.cel.preenchida {
+  border-color: var(--cinza-texto);
+}
+
+.cel.certo    { background: #2f8f4e; border-color: #2f8f4e; color: #fff; }
+.cel.presente { background: #b8902a; border-color: #b8902a; color: #fff; }
+.cel.ausente  { background: #2a2a2a; border-color: #2a2a2a; color: var(--cinza-texto); }
+
+/* Peça virando ao enviar a palavra */
+@keyframes virar {
+  0%   { transform: rotateX(0deg); }
+  50%  { transform: rotateX(90deg); }
+  100% { transform: rotateX(0deg); }
+}
+
+.cel.virando {
+  animation: virar .34s ease forwards;
+}
+
+/* Linha sacudindo quando faltam letras */
+@keyframes sacudir {
+  0%, 100% { transform: translateX(0); }
+  20%      { transform: translateX(-6px); }
+  40%      { transform: translateX(6px); }
+  60%      { transform: translateX(-4px); }
+  80%      { transform: translateX(4px); }
+}
+
+.linha.sacudir {
+  animation: sacudir .4s ease;
+}
+
+/* ============================================================
+   AVISO FLUTUANTE
+   ============================================================ */
+
+.aviso {
+  min-height: 34px;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.aviso-texto {
+  background: var(--rosa);
+  color: var(--preto);
+  font-weight: 700;
+  font-size: .85rem;
+  padding: 8px 16px;
+  border-radius: 999px;
+  opacity: 0;
+  transform: translateY(-6px);
+  transition: opacity .2s ease, transform .2s ease;
+  pointer-events: none;
+}
+
+.aviso-texto.visivel {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* ============================================================
+   TECLADO
+   ============================================================ */
+
+.teclado {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-width: 500px;
+  margin: 0 auto;
+}
+
+.teclado-linha {
+  display: flex;
+  gap: 5px;
+  justify-content: center;
+}
+
+.tecla {
+  flex: 1 1 0;
+  min-width: 0;
+  padding: 14px 0;
+  border: none;
+  border-radius: 7px;
+  background: #3f3f3f;
+  color: var(--branco);
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: clamp(.75rem, 3.4vw, .95rem);
+  cursor: pointer;
+  transition: background .15s ease, transform .08s ease;
+}
+
+.tecla:hover { background: #4d4d4d; }
+.tecla:active { transform: scale(.94); }
+
+.tecla-larga {
+  flex: 1.5 1 0;
+  font-size: clamp(.65rem, 2.8vw, .8rem);
+}
+
+.tecla.certo    { background: #2f8f4e; }
+.tecla.presente { background: #b8902a; }
+.tecla.ausente  { background: #222; color: #6e6e6e; }
+
+/* No dueto, quando os dois tabuleiros discordam sobre uma letra, a tecla
+   é dividida ao meio: esquerda = tabuleiro 1, direita = tabuleiro 2.
+   As cores vêm do JS, em --cor-a e --cor-b. */
+.tecla.tecla-dupla {
+  background: linear-gradient(90deg, var(--cor-a) 50%, var(--cor-b) 50%);
+}
+
+/* ============================================================
+   FIM DE JOGO
+   ============================================================ */
+
+.fim {
+  margin-top: 28px;
+  border: 2px solid var(--rosa);
+  border-radius: 14px;
+  padding: 22px 20px;
+  background: rgba(228, 86, 143, .08);
+}
+
+.fim-titulo {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 1.2rem;
+  margin: 0 0 14px;
+  color: var(--branco);
+}
+
+.fim-bloco { margin-bottom: 18px; }
+
+.fim-palavra {
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: clamp(1.4rem, 5.5vw, 2rem);
+  color: var(--rosa);
+  letter-spacing: .04em;
+  margin: 0 0 8px;
+}
+
+.fim-significado {
+  color: var(--branco);
+  font-size: .92rem;
+  line-height: 1.6;
+  margin: 0 auto;
+  max-width: 400px;
+}
+
+#fim-palavras { margin-bottom: 14px; }
+
+#btn-compartilhar {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: .9rem;
+  background: var(--rosa);
+  color: var(--preto);
+  border: none;
+  border-radius: 999px;
+  padding: 14px 30px;
+  cursor: pointer;
+  box-shadow: 4px 4px 0 var(--laranja);
+  transition: transform .12s ease, box-shadow .12s ease;
+}
+
+#btn-compartilhar:hover {
+  transform: translate(-2px, -2px);
+  box-shadow: 6px 6px 0 var(--laranja);
+}
+
+#btn-compartilhar:active {
+  transform: translate(2px, 2px);
+  box-shadow: 2px 2px 0 var(--laranja);
+}
+
+.fim-volta {
+  display: block;
+  margin-top: 18px;
+  color: var(--cinza-texto);
+  font-size: .8rem;
+}
+
+/* ============================================================
+   ESTATÍSTICAS
+   ============================================================ */
+
+.stats {
+  display: flex;
+  justify-content: center;
+  gap: 22px;
+  margin-top: 30px;
+  flex-wrap: wrap;
+}
+
+.stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.stat-num {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 1.4rem;
+  color: var(--branco);
+}
+
+.stat-rotulo {
+  font-size: .68rem;
+  color: var(--cinza-texto);
+  text-transform: uppercase;
+  letter-spacing: .06em;
+}
+
+/* ============================================================
+   MOVIMENTO REDUZIDO
+   ============================================================ */
+
+@media (prefers-reduced-motion: reduce) {
+  .cel.virando,
+  .linha.sacudir {
+    animation: none;
+  }
+  .tecla:active,
+  #btn-compartilhar:hover,
+  #btn-compartilhar:active {
+    transform: none;
+  }
+}

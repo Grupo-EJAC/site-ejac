@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<!-- Content-Security-Policy: a mais restrita do site. O jogo roda inteiro no
+     navegador; a única requisição que ele faz é buscar o dicionário de
+     português na própria pasta, por isso connect-src fica em 'self' —
+     nenhum servidor externo, nenhum dado sai desta página. -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'none'; script-src 'self'; style-src 'self' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self'; form-action 'none'; frame-ancestors 'none'; upgrade-insecure-requests">
+<meta name="referrer" content="no-referrer">
+<meta name="robots" content="index, follow">
+<meta name="theme-color" content="#000001">
+
+<title>EJAC - Termo: a palavra católica do dia</title>
+<meta name="description" content="Adivinhe a palavra do dia em 6 tentativas. É sempre uma palavra da nossa fé. Jogo do grupo EJAC.">
+<link rel="canonical" href="https://grupoejac.com.br/termo/">
+
+<!-- Prévia ao compartilhar o link (WhatsApp, Instagram, etc.) -->
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="EJAC">
+<meta property="og:locale" content="pt_BR">
+<meta property="og:title" content="EJAC - Termo: a palavra católica do dia">
+<meta property="og:description" content="Adivinhe a palavra do dia em 6 tentativas. É sempre uma palavra da nossa fé.">
+<meta property="og:url" content="https://grupoejac.com.br/termo/">
+<meta property="og:image" content="https://grupoejac.com.br/assets/og-logo.png">
+<meta property="og:image:alt" content="Logo do EJAC">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="EJAC - Termo: a palavra católica do dia">
+<meta name="twitter:description" content="Adivinhe a palavra do dia em 6 tentativas. É sempre uma palavra da nossa fé.">
+<meta name="twitter:image" content="https://grupoejac.com.br/assets/og-logo.png">
+
+<link rel="icon" href="../favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Permanent+Marker&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Unbounded:wght@400;600;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../styles.css">
+<link rel="stylesheet" href="jogo.css">
+</head>
+<body>
+
+  <a href="#grade" class="pular-para">Pular para o jogo</a>
+
+  <div class="scroll-progress" id="scroll-progress" aria-hidden="true"></div>
+
+  <div class="spark-bg" aria-hidden="true"></div>
+  <canvas id="bg-embers" aria-hidden="true"></canvas>
+
+  <header class="nav">
+    <a href="../" class="logo sombra-dura">EJAC</a>
+    <div class="nav-links">
+      <a href="../" class="nav-cta nav-cta-secundario">Início</a>
+    </div>
+  </header>
+
+  <main id="topo">
+    <section class="jogo">
+      <h1 class="sombra-dura-laranja"><span id="titulo-modo">Termo</span> <span class="rabisco">EJAC</span></h1>
+      <p class="jogo-sub" id="jogo-sub">Adivinhe a palavra do dia em 6 tentativas. É sempre uma palavra da nossa fé.</p>
+
+      <nav class="modos" aria-label="Modos de jogo">
+        <a href="./" class="modo" data-modo="termo">Termo</a>
+        <a href="?modo=dueto" class="modo" data-modo="dueto">Dueto</a>
+      </nav>
+
+      <p class="jogo-tamanho">✦ hoje: <span id="tamanho-dica">…</span> ✦</p>
+
+      <noscript>
+        <p class="form-msg erro">
+          Este jogo precisa de JavaScript para funcionar. Ative o JavaScript no seu navegador para jogar.
+        </p>
+      </noscript>
+
+      <div class="aviso">
+        <span class="aviso-texto" id="aviso" role="status" aria-live="polite"></span>
+      </div>
+
+      <div class="tabuleiros" id="tabuleiros" role="group" aria-label="Tabuleiros do jogo"></div>
+
+      <div class="teclado" id="teclado" role="group" aria-label="Teclado"></div>
+
+      <section class="fim" id="fim" hidden aria-live="polite">
+        <p class="fim-titulo" id="fim-titulo"></p>
+        <div id="fim-palavras"></div>
+        <button type="button" id="btn-compartilhar">Compartilhar resultado</button>
+        <span class="fim-volta">Tem palavra nova todo dia. Volte amanhã!</span>
+      </section>
+
+      <div class="stats" id="stats"></div>
+    </section>
+  </main>
+
+  <footer>
+    <svg class="footer-sneaker" viewBox="0 0 100 50" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="#E4568F" stroke-width="2.5">
+      <path d="M5 40 Q5 30 15 28 L35 22 Q45 18 55 22 L75 30 Q90 32 92 40 Q92 44 85 44 L10 44 Q5 44 5 40 Z"/>
+      <path d="M15 28 L15 38 M35 22 L38 36 M55 22 L58 36" />
+      <path d="M75 30 Q80 24 88 26" />
+    </svg>
+    <p class="footer-copyright">© 2026 EJAC (Esperança Jovem Aliada a Cristo). Todos os direitos reservados.</p>
+    <a href="../admin/" class="footer-admin">Painel</a>
+  </footer>
+
+<script src="../app.js" defer></script>
+<script src="palavras.js" defer></script>
+<script src="jogo.js" defer></script>
+
+</body>
+</html>
