@@ -1,6 +1,6 @@
 /* EJAC — GBJ: estilos específicos do treinamento (painel + modalidades).
-   O resto (telas de login, tabela de histórico, abas) já vem do styles.css
-   compartilhado com o /admin/ — aqui só o que é só do GBJ. */
+   O resto (telas de login, abas) já vem do styles.css compartilhado com
+   o /admin/ — aqui só o que é só do GBJ. */
 
 .gbj-modalidades {
   margin-bottom: 40px;
@@ -58,4 +58,50 @@
 
 .gbj-historico h2 {
   margin-bottom: 16px;
+}
+
+.gbj-historico-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 16px;
+}
+
+/* Mesmo visual do cartão de modalidade — é a mesma "família" de
+   informação (uma sessão de treino), só que sem link nem hover. */
+.gbj-historico-card {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  background: #0d0d0d;
+  border: 2px solid var(--cinza);
+  border-radius: 16px;
+  padding: 22px;
+}
+
+.gbj-historico-modalidade {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 1rem;
+}
+
+.gbj-historico-quando {
+  color: var(--cinza-texto);
+  font-size: .8rem;
+}
+
+.gbj-historico-stats {
+  color: #ccc;
+  font-size: .85rem;
+  margin-top: 4px;
+}
+
+.gbj-historico-resultado {
+  margin-top: auto;
+  padding-top: 8px;
+  font-weight: 700;
+  color: #6fcf8f;
+}
+
+.gbj-historico-resultado-eliminado {
+  color: #ff9d6a;
 }

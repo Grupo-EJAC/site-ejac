@@ -35,6 +35,7 @@ function formatarTempoLimite(seg) {
 }
 
 const MOTIVO_TEXTO = { eliminado: 'Zerou as vidas', parou: 'Parou por conta' };
+const MODALIDADE_TEXTO = { 'sequencia-livros': 'Sequência dos Livros' };
 
 const form = document.getElementById('form-gbj-login');
 const inputUsuario = document.getElementById('gbj-input-usuario');
@@ -50,9 +51,9 @@ const db = getFirestore(app);
 let pararHistorico = null;
 
 function renderHistorico(snapshot) {
-  const tbody = document.getElementById('gbj-historico-tbody');
-  if (!tbody) return;
-  tbody.textContent = '';
+  const grid = document.getElementById('gbj-historico-grid');
+  if (!grid) return;
+  grid.textContent = '';
 
   const sessoes = [];
   snapshot.forEach((docSnap) => sessoes.push(docSnap.data()));
@@ -62,30 +63,35 @@ function renderHistorico(snapshot) {
   sessoes.sort((a, b) => (b.criadoEm ? b.criadoEm.toMillis() : 0) - (a.criadoEm ? a.criadoEm.toMillis() : 0));
 
   if (sessoes.length === 0) {
-    const tr = document.createElement('tr');
-    const td = document.createElement('td');
-    td.colSpan = 6;
-    td.textContent = 'Você ainda não treinou nada. Escolha uma modalidade acima pra começar.';
-    tr.appendChild(td);
-    tbody.appendChild(tr);
+    const p = document.createElement('p');
+    p.className = 'admin-sub';
+    p.textContent = 'Você ainda não treinou nada. Escolha uma modalidade acima pra começar.';
+    grid.appendChild(p);
     return;
   }
 
   sessoes.forEach((s) => {
-    const tr = document.createElement('tr');
-    [
-      formatarData(s.criadoEm),
-      s.modalidade,
-      formatarTempoLimite(s.tempoLimiteSeg),
-      String(s.rodadas),
-      `${s.acertos}/${s.rodadas}`,
-      MOTIVO_TEXTO[s.motivo] || s.motivo,
-    ].forEach((valor) => {
-      const td = document.createElement('td');
-      td.textContent = valor;
-      tr.appendChild(td);
-    });
-    tbody.appendChild(tr);
+    const card = document.createElement('article');
+    card.className = 'gbj-historico-card';
+
+    const modalidade = document.createElement('span');
+    modalidade.className = 'gbj-historico-modalidade';
+    modalidade.textContent = MODALIDADE_TEXTO[s.modalidade] || s.modalidade;
+
+    const quando = document.createElement('span');
+    quando.className = 'gbj-historico-quando';
+    quando.textContent = formatarData(s.criadoEm);
+
+    const stats = document.createElement('span');
+    stats.className = 'gbj-historico-stats';
+    stats.textContent = `${formatarTempoLimite(s.tempoLimiteSeg)} · ${s.rodadas} rodada${s.rodadas === 1 ? '' : 's'} · ${s.acertos}/${s.rodadas} acertos`;
+
+    const resultado = document.createElement('span');
+    resultado.className = 'gbj-historico-resultado' + (s.motivo === 'eliminado' ? ' gbj-historico-resultado-eliminado' : '');
+    resultado.textContent = MOTIVO_TEXTO[s.motivo] || s.motivo;
+
+    card.append(modalidade, quando, stats, resultado);
+    grid.appendChild(card);
   });
 }
 
@@ -171,8 +177,8 @@ onAuthStateChanged(auth, async (user) => {
     query(collection(db, 'gbjHistoricoSequenciaLivros'), where('uid', '==', user.uid)),
     renderHistorico,
     () => {
-      const tbody = document.getElementById('gbj-historico-tbody');
-      if (tbody) tbody.innerHTML = '<tr><td colspan="6">Não foi possível carregar o histórico agora.</td></tr>';
+      const grid = document.getElementById('gbj-historico-grid');
+      if (grid) grid.innerHTML = '<p class="admin-sub">Não foi possível carregar o histórico agora.</p>';
     }
   );
 });
