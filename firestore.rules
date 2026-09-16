@@ -129,13 +129,15 @@ service cloud.firestore {
     }
 
     function sessaoGbjValida(d) {
-      return d.keys().hasOnly(['uid', 'modalidade', 'tempoLimiteSeg', 'rodadas', 'acertos', 'motivo', 'criadoEm'])
+      return d.keys().hasOnly(['uid', 'modalidade', 'tempoLimiteSeg', 'rodadas', 'acertos', 'mediaTempoAcertosMs', 'motivo', 'criadoEm'])
         && d.uid == request.auth.uid
         && d.modalidade is string && d.modalidade.size() <= 40
         // 0 = "sem limite" (a pessoa treinando escolhe, não é competição)
         && d.tempoLimiteSeg is int && d.tempoLimiteSeg >= 0 && d.tempoLimiteSeg <= 120
         && d.rodadas is int && d.rodadas >= 0 && d.rodadas <= 500
         && d.acertos is int && d.acertos >= 0 && d.acertos <= d.rodadas
+        // null quando não teve nenhum acerto pra tirar média
+        && (d.mediaTempoAcertosMs == null || (d.mediaTempoAcertosMs is int && d.mediaTempoAcertosMs >= 0 && d.mediaTempoAcertosMs <= 3600000))
         && d.motivo in ['eliminado', 'parou']
         && d.criadoEm == request.time;
     }

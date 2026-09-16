@@ -1137,6 +1137,13 @@
     flex: 0 0 auto;
   }
 
+  .admin-subtitulo {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 1rem;
+    margin: 32px 0 14px;
+  }
+
   .admin-resumo {
     display: flex;
     flex-wrap: wrap;

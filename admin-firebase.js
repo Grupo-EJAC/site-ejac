@@ -96,12 +96,14 @@ if (firebaseConfig.apiKey.includes('COLE_AQUI')) {
   let pararCamiseta = null;
   let pararRanking = null;
   let pararMembrosGbj = null;
+  let pararHistoricoGbj = null;
   let pedidosCamisetaAtuais = [];
 
   function pararListeners() {
     if (pararCamiseta) { pararCamiseta(); pararCamiseta = null; }
     if (pararRanking) { pararRanking(); pararRanking = null; }
     if (pararMembrosGbj) { pararMembrosGbj(); pararMembrosGbj = null; }
+    if (pararHistoricoGbj) { pararHistoricoGbj(); pararHistoricoGbj = null; }
   }
 
   // ---------------- Camisetas ----------------
@@ -306,6 +308,12 @@ if (firebaseConfig.apiKey.includes('COLE_AQUI')) {
   // servidor: um app do Firebase SEGUNDO e temporário, só pra criar a
   // conta; o admin continua logado no app principal o tempo todo.
 
+  // uid -> { usuario, nome }, pra mostrar nome de gente no histórico (que
+  // só grava o uid). Atualizado toda vez que a lista de membros muda, e
+  // usado tanto ali quanto pelo histórico.
+  let membrosGbjPorUid = {};
+  let ultimoSnapshotHistoricoGbj = null;
+
   function renderMembrosGbj(snapshot) {
     const tbody = document.getElementById('gbj-membros-tbody');
     const resumoEl = document.getElementById('gbj-membros-resumo');
@@ -314,6 +322,10 @@ if (firebaseConfig.apiKey.includes('COLE_AQUI')) {
     const membros = [];
     snapshot.forEach((docSnap) => membros.push({ id: docSnap.id, ...docSnap.data() }));
     membros.sort((a, b) => (a.usuario || '').localeCompare(b.usuario || ''));
+
+    membrosGbjPorUid = {};
+    membros.forEach((m) => { membrosGbjPorUid[m.id] = m; });
+    if (ultimoSnapshotHistoricoGbj) renderHistoricoGbj(ultimoSnapshotHistoricoGbj);
 
     if (resumoEl) {
       resumoEl.textContent = '';
@@ -409,6 +421,88 @@ if (firebaseConfig.apiKey.includes('COLE_AQUI')) {
     });
   }
 
+  // ---------------- GBJ: histórico de treino ----------------
+  //
+  // Mostra o histórico de TODOS os membros (não só o próprio, como no
+  // painel do GBJ) — as regras já deixam o admin ler a coleção inteira.
+
+  const colHistoricoGbj = collection(db, 'gbjHistoricoSequenciaLivros');
+  const MODALIDADE_TEXTO_ADMIN = { 'sequencia-livros': 'Sequência dos Livros' };
+  const MOTIVO_TEXTO_ADMIN = { eliminado: 'Zerou as vidas', parou: 'Parou por conta' };
+
+  function formatarTempoLimiteGbj(seg) {
+    return seg > 0 ? `${seg}s` : 'sem limite';
+  }
+
+  function formatarMediaGbj(ms) {
+    if (!ms) return '—';
+    const s = ms / 1000;
+    return s < 10 ? `${s.toFixed(1)}s` : `${Math.round(s)}s`;
+  }
+
+  async function excluirHistoricoGbj(id, nomeMembro) {
+    if (!confirm(`Excluir este treino de "${nomeMembro}" do histórico? Essa ação não pode ser desfeita.`)) return;
+    try {
+      await deleteDoc(doc(colHistoricoGbj, id));
+    } catch (err) {
+      alert('Não foi possível excluir. Tente de novo.');
+    }
+  }
+
+  function renderHistoricoGbj(snapshot) {
+    ultimoSnapshotHistoricoGbj = snapshot;
+    const tbody = document.getElementById('gbj-historico-tbody');
+    const resumoEl = document.getElementById('gbj-historico-resumo');
+    if (!tbody) return;
+
+    const sessoes = [];
+    snapshot.forEach((docSnap) => sessoes.push({ id: docSnap.id, ...docSnap.data() }));
+    sessoes.sort((a, b) => (b.criadoEm ? b.criadoEm.toMillis() : 0) - (a.criadoEm ? a.criadoEm.toMillis() : 0));
+
+    if (resumoEl) {
+      resumoEl.textContent = '';
+      const total = document.createElement('span');
+      total.className = 'admin-stat admin-stat-total';
+      total.textContent = `${sessoes.length} treino${sessoes.length === 1 ? '' : 's'}`;
+      resumoEl.appendChild(total);
+    }
+
+    tbody.textContent = '';
+    if (sessoes.length === 0) {
+      const tr = document.createElement('tr');
+      const td = document.createElement('td');
+      td.colSpan = 9;
+      td.textContent = 'Ninguém treinou ainda.';
+      tr.appendChild(td);
+      tbody.appendChild(tr);
+      return;
+    }
+
+    sessoes.forEach((s) => {
+      const membro = membrosGbjPorUid[s.uid];
+      const nomeMembro = membro ? membro.nome : '(membro excluído)';
+      const tr = document.createElement('tr');
+      [
+        nomeMembro,
+        MODALIDADE_TEXTO_ADMIN[s.modalidade] || s.modalidade,
+        formatarData(s.criadoEm),
+        formatarTempoLimiteGbj(s.tempoLimiteSeg),
+        String(s.rodadas),
+        `${s.acertos}/${s.rodadas}`,
+        formatarMediaGbj(s.mediaTempoAcertosMs),
+        MOTIVO_TEXTO_ADMIN[s.motivo] || s.motivo,
+      ].forEach((valor) => {
+        const td = document.createElement('td');
+        td.textContent = valor;
+        tr.appendChild(td);
+      });
+      const tdAcao = document.createElement('td');
+      tdAcao.appendChild(criarBotaoExcluir(() => excluirHistoricoGbj(s.id, nomeMembro)));
+      tr.appendChild(tdAcao);
+      tbody.appendChild(tr);
+    });
+  }
+
   // ---------------- Login / autorização ----------------
 
   if (btnLogin) {
@@ -461,5 +555,6 @@ if (firebaseConfig.apiKey.includes('COLE_AQUI')) {
     pararCamiseta = onSnapshot(query(colCamiseta, orderBy('criadoEm', 'desc')), renderCamiseta);
     assinarRanking();
     pararMembrosGbj = onSnapshot(colMembrosGbj, renderMembrosGbj);
+    pararHistoricoGbj = onSnapshot(colHistoricoGbj, renderHistoricoGbj);
   });
 }

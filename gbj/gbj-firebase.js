@@ -34,6 +34,12 @@ function formatarTempoLimite(seg) {
   return seg > 0 ? `${seg}s por rodada` : 'sem limite';
 }
 
+function formatarMedia(ms) {
+  if (!ms) return null;
+  const s = ms / 1000;
+  return s < 10 ? `${s.toFixed(1)}s` : `${Math.round(s)}s`;
+}
+
 const MOTIVO_TEXTO = { eliminado: 'Zerou as vidas', parou: 'Parou por conta' };
 const MODALIDADE_TEXTO = { 'sequencia-livros': 'Sequência dos Livros' };
 
@@ -86,11 +92,16 @@ function renderHistorico(snapshot) {
     stats.className = 'gbj-historico-stats';
     stats.textContent = `${formatarTempoLimite(s.tempoLimiteSeg)} · ${s.rodadas} rodada${s.rodadas === 1 ? '' : 's'} · ${s.acertos}/${s.rodadas} acertos`;
 
+    const media = document.createElement('span');
+    media.className = 'gbj-historico-stats';
+    const tempoMedio = formatarMedia(s.mediaTempoAcertosMs);
+    media.textContent = tempoMedio ? `Tempo médio dos acertos: ${tempoMedio}` : 'Sem acerto pra tirar média';
+
     const resultado = document.createElement('span');
     resultado.className = 'gbj-historico-resultado' + (s.motivo === 'eliminado' ? ' gbj-historico-resultado-eliminado' : '');
     resultado.textContent = MOTIVO_TEXTO[s.motivo] || s.motivo;
 
-    card.append(modalidade, quando, stats, resultado);
+    card.append(modalidade, quando, stats, media, resultado);
     grid.appendChild(card);
   });
 }

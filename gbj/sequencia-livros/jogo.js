@@ -161,10 +161,16 @@ onAuthStateChanged(auth, async (user) => {
 // ------------------------------------------------------------
 // Estado da sessão de treino
 // ------------------------------------------------------------
-let sessao = null; // { tempoLimiteSeg, vidas, rodada, acertos, usados: Set }
+let sessao = null; // { tempoLimiteSeg, vidas, rodada, acertos, usados: Set, temposAcertos: [] }
 let rodadaAtual = null; // { indiceAnunciado, antes, depois }
+let inicioRodada = null; // Date.now() de quando o livro apareceu na tela
 let timerId = null;
 let prazoId = null;
+
+function formatarTempo(ms) {
+  const s = ms / 1000;
+  return s < 10 ? `${s.toFixed(1)}s` : `${Math.round(s)}s`;
+}
 
 function pararTimer() {
   if (timerId) { clearInterval(timerId); timerId = null; }
@@ -197,6 +203,7 @@ if (btnComecar) {
       rodada: 0,
       acertos: 0,
       usados: new Set(),
+      temposAcertos: [], // ms de cada rodada acertada, pra tirar a média no fim
     };
     mostrarTela(telaJogo);
     proximaRodada();
@@ -239,6 +246,7 @@ function proximaRodada() {
   formResposta.hidden = false;
   inputAntes.focus();
 
+  inicioRodada = Date.now();
   iniciarTimer();
 }
 
@@ -255,6 +263,7 @@ function responder(porTempoEsgotado) {
   sessao.rodada += 1;
   if (acertou) {
     sessao.acertos += 1;
+    sessao.temposAcertos.push(Date.now() - inicioRodada);
     elFeedback.textContent = 'Acertou! ✓';
     elFeedback.className = 'gbj-sl-feedback gbj-sl-feedback-certo';
   } else {
@@ -296,10 +305,16 @@ if (btnParar) {
 
 async function encerrar(motivo) {
   pararTimer();
-  const resumo = { rodadas: sessao.rodada, acertos: sessao.acertos, tempoLimiteSeg: sessao.tempoLimiteSeg };
+  const mediaTempoAcertosMs = sessao.temposAcertos.length
+    ? Math.round(sessao.temposAcertos.reduce((soma, ms) => soma + ms, 0) / sessao.temposAcertos.length)
+    : null;
+  const resumo = {
+    rodadas: sessao.rodada, acertos: sessao.acertos, tempoLimiteSeg: sessao.tempoLimiteSeg, mediaTempoAcertosMs,
+  };
 
   elFimTitulo.textContent = motivo === 'eliminado' ? 'Zerou as vidas' : 'Treino encerrado';
-  elFimResumo.textContent = `${resumo.acertos} acerto${resumo.acertos === 1 ? '' : 's'} em ${resumo.rodadas} rodada${resumo.rodadas === 1 ? '' : 's'}.`;
+  elFimResumo.textContent = `${resumo.acertos} acerto${resumo.acertos === 1 ? '' : 's'} em ${resumo.rodadas} rodada${resumo.rodadas === 1 ? '' : 's'}`
+    + (mediaTempoAcertosMs ? ` — tempo médio dos acertos: ${formatarTempo(mediaTempoAcertosMs)}` : '') + '.';
   mostrarTela(telaFim);
 
   if (resumo.rodadas === 0) return; // não grava sessão vazia (ex: parou sem responder nada)
@@ -311,6 +326,7 @@ async function encerrar(motivo) {
       tempoLimiteSeg: resumo.tempoLimiteSeg,
       rodadas: resumo.rodadas,
       acertos: resumo.acertos,
+      mediaTempoAcertosMs: resumo.mediaTempoAcertosMs,
       motivo,
       criadoEm: serverTimestamp(),
     });
