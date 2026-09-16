@@ -154,6 +154,37 @@ service cloud.firestore {
       allow delete: if isAdmin();
     }
 
+    // Mesma validação (sessaoGbjValida já é genérica por modalidade), coleção
+    // separada — mesmo padrão já usado pro histórico da Sequência dos Livros.
+    match /gbjHistoricoQuiz/{id} {
+      allow read: if request.auth != null && (resource.data.uid == request.auth.uid || isAdmin());
+      allow create: if request.auth != null && sessaoGbjValida(request.resource.data);
+      allow update: if false;
+      allow delete: if isAdmin();
+    }
+
+    // Contestação de pergunta do Quiz: quem treina acha que o gabarito de
+    // uma pergunta está errado (o documento foi digitado à mão, tem erro
+    // mesmo) e avisa o coordenador. Só o admin lê — não é histórico
+    // público de ninguém, é aviso pra quem vai corrigir a pergunta.
+    function contestacaoValida(d) {
+      return d.keys().hasOnly(['uid', 'perguntaId', 'secao', 'pergunta', 'alternativaMarcadaCerta', 'motivo', 'criadoEm'])
+        && d.uid == request.auth.uid
+        && d.perguntaId is string && d.perguntaId.size() <= 40
+        && d.secao is string && d.secao.size() <= 20
+        && d.pergunta is string && d.pergunta.size() <= 500
+        && d.alternativaMarcadaCerta is string && d.alternativaMarcadaCerta.size() <= 200
+        && d.motivo is string && d.motivo.size() <= 300
+        && d.criadoEm == request.time;
+    }
+
+    match /gbjPerguntasContestadas/{id} {
+      allow read: if isAdmin();
+      allow create: if request.auth != null && contestacaoValida(request.resource.data);
+      allow update: if false;
+      allow delete: if isAdmin();
+    }
+
     // Tudo mais fica bloqueado por padrão. Isso inclui as coleções de
     // features que já saíram do site: muralTracos (mural de neon,
     // removido em 2026-08-06) e cestaContribuicoes/cestaContatos (cesta

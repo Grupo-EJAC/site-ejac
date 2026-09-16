@@ -1144,6 +1144,47 @@
     margin: 32px 0 14px;
   }
 
+  .gbj-contestacoes-lista {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .gbj-contestacao-card {
+    background: #0d0d0d;
+    border: 2px solid var(--laranja);
+    border-radius: 14px;
+    padding: 18px 20px;
+  }
+
+  .gbj-contestacao-cabecalho {
+    font-size: .72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+    color: var(--laranja);
+    margin: 0 0 8px;
+  }
+
+  .gbj-contestacao-pergunta {
+    font-weight: 600;
+    margin: 0 0 6px;
+    line-height: 1.4;
+  }
+
+  .gbj-contestacao-gabarito {
+    font-size: .85rem;
+    color: #ccc;
+    margin: 0 0 6px;
+  }
+
+  .gbj-contestacao-motivo {
+    font-size: .85rem;
+    color: var(--rosa);
+    font-style: italic;
+    margin: 0 0 12px;
+  }
+
   .admin-resumo {
     display: flex;
     flex-wrap: wrap;

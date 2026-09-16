@@ -54,11 +54,11 @@ function formatarData(timestamp) {
   return timestamp.toDate().toLocaleString('pt-BR');
 }
 
-function criarBotaoExcluir(aoClicar) {
+function criarBotaoExcluir(aoClicar, texto) {
   const btn = document.createElement('button');
   btn.type = 'button';
   btn.className = 'admin-btn-excluir';
-  btn.textContent = 'Excluir';
+  btn.textContent = texto || 'Excluir';
   btn.addEventListener('click', aoClicar);
   return btn;
 }
@@ -101,14 +101,17 @@ if (firebaseConfig.apiKey.includes('COLE_AQUI')) {
   let pararCamiseta = null;
   let pararRanking = null;
   let pararMembrosGbj = null;
-  let pararHistoricoGbj = null;
+  let pararHistoricoGbjFns = [];
+  let pararContestadasGbj = null;
   let pedidosCamisetaAtuais = [];
 
   function pararListeners() {
     if (pararCamiseta) { pararCamiseta(); pararCamiseta = null; }
     if (pararRanking) { pararRanking(); pararRanking = null; }
     if (pararMembrosGbj) { pararMembrosGbj(); pararMembrosGbj = null; }
-    if (pararHistoricoGbj) { pararHistoricoGbj(); pararHistoricoGbj = null; }
+    pararHistoricoGbjFns.forEach((parar) => parar());
+    pararHistoricoGbjFns = [];
+    if (pararContestadasGbj) { pararContestadasGbj(); pararContestadasGbj = null; }
   }
 
   // ---------------- Camisetas ----------------
@@ -317,7 +320,6 @@ if (firebaseConfig.apiKey.includes('COLE_AQUI')) {
   // só grava o uid). Atualizado toda vez que a lista de membros muda, e
   // usado tanto ali quanto pelo histórico.
   let membrosGbjPorUid = {};
-  let ultimoSnapshotHistoricoGbj = null;
 
   function renderMembrosGbj(snapshot) {
     const tbody = document.getElementById('gbj-membros-tbody');
@@ -330,7 +332,7 @@ if (firebaseConfig.apiKey.includes('COLE_AQUI')) {
 
     membrosGbjPorUid = {};
     membros.forEach((m) => { membrosGbjPorUid[m.id] = m; });
-    if (ultimoSnapshotHistoricoGbj) renderHistoricoGbj(ultimoSnapshotHistoricoGbj);
+    renderHistoricoGbj();
 
     if (resumoEl) {
       resumoEl.textContent = '';
@@ -430,10 +432,13 @@ if (firebaseConfig.apiKey.includes('COLE_AQUI')) {
   //
   // Mostra o histórico de TODOS os membros (não só o próprio, como no
   // painel do GBJ) — as regras já deixam o admin ler a coleção inteira.
+  // Cada modalidade grava numa coleção própria (mesmo padrão desde a
+  // primeira, Sequência dos Livros); aqui elas se juntam numa tabela só.
 
-  const colHistoricoGbj = collection(db, 'gbjHistoricoSequenciaLivros');
-  const MODALIDADE_TEXTO_ADMIN = { 'sequencia-livros': 'Sequência dos Livros' };
+  const NOMES_COLECOES_HISTORICO_GBJ = ['gbjHistoricoSequenciaLivros', 'gbjHistoricoQuiz'];
+  const MODALIDADE_TEXTO_ADMIN = { 'sequencia-livros': 'Sequência dos Livros', quiz: 'Quiz' };
   const MOTIVO_TEXTO_ADMIN = { eliminado: 'Zerou as vidas', parou: 'Parou por conta' };
+  const sessoesGbjPorColecao = {};
 
   function formatarTempoLimiteGbj(seg) {
     return seg > 0 ? `${seg}s` : 'sem limite';
@@ -445,23 +450,21 @@ if (firebaseConfig.apiKey.includes('COLE_AQUI')) {
     return s < 10 ? `${s.toFixed(1)}s` : `${Math.round(s)}s`;
   }
 
-  async function excluirHistoricoGbj(id, nomeMembro) {
+  async function excluirHistoricoGbj(nomeColecao, id, nomeMembro) {
     if (!confirm(`Excluir este treino de "${nomeMembro}" do histórico? Essa ação não pode ser desfeita.`)) return;
     try {
-      await deleteDoc(doc(colHistoricoGbj, id));
+      await deleteDoc(doc(collection(db, nomeColecao), id));
     } catch (err) {
       alert('Não foi possível excluir. Tente de novo.');
     }
   }
 
-  function renderHistoricoGbj(snapshot) {
-    ultimoSnapshotHistoricoGbj = snapshot;
+  function renderHistoricoGbj() {
     const tbody = document.getElementById('gbj-historico-tbody');
     const resumoEl = document.getElementById('gbj-historico-resumo');
     if (!tbody) return;
 
-    const sessoes = [];
-    snapshot.forEach((docSnap) => sessoes.push({ id: docSnap.id, ...docSnap.data() }));
+    const sessoes = [].concat(...Object.values(sessoesGbjPorColecao));
     sessoes.sort((a, b) => (b.criadoEm ? b.criadoEm.toMillis() : 0) - (a.criadoEm ? a.criadoEm.toMillis() : 0));
 
     if (resumoEl) {
@@ -502,9 +505,88 @@ if (firebaseConfig.apiKey.includes('COLE_AQUI')) {
         tr.appendChild(td);
       });
       const tdAcao = document.createElement('td');
-      tdAcao.appendChild(criarBotaoExcluir(() => excluirHistoricoGbj(s.id, nomeMembro)));
+      tdAcao.appendChild(criarBotaoExcluir(() => excluirHistoricoGbj(s._colecao, s.id, nomeMembro)));
       tr.appendChild(tdAcao);
       tbody.appendChild(tr);
+    });
+  }
+
+  // ---------------- GBJ: perguntas contestadas do Quiz ----------------
+  //
+  // As perguntas foram digitadas à mão (ver gbj/quiz/perguntas.js) e o
+  // gabarito pode ter erro de transcrição. Quem treina contesta uma
+  // pergunta pelo botão do Quiz; aqui o coordenador vê o aviso, confere no
+  // arquivo e "resolve" (exclui) depois de corrigir — ou de decidir que
+  // estava certa mesmo.
+
+  const colContestadasGbj = collection(db, 'gbjPerguntasContestadas');
+  const SECAO_QUIZ_TEXTO_ADMIN = { joao: 'Evangelho de João', tobias: 'Tobias', efesios: 'Efésios', gerais: 'Perguntas gerais' };
+
+  async function resolverContestacaoGbj(id) {
+    if (!confirm('Marcar esta contestação como resolvida? Ela some da lista (não apaga a pergunta em si, só o aviso).')) return;
+    try {
+      await deleteDoc(doc(colContestadasGbj, id));
+    } catch (err) {
+      alert('Não foi possível marcar como resolvida. Tente de novo.');
+    }
+  }
+
+  function renderContestadasGbj(snapshot) {
+    const lista = document.getElementById('gbj-contestadas-lista');
+    const resumoEl = document.getElementById('gbj-contestadas-resumo');
+    if (!lista) return;
+
+    const contestacoes = [];
+    snapshot.forEach((docSnap) => contestacoes.push({ id: docSnap.id, ...docSnap.data() }));
+    contestacoes.sort((a, b) => (b.criadoEm ? b.criadoEm.toMillis() : 0) - (a.criadoEm ? a.criadoEm.toMillis() : 0));
+
+    if (resumoEl) {
+      resumoEl.textContent = '';
+      const total = document.createElement('span');
+      total.className = 'admin-stat' + (contestacoes.length ? ' admin-stat-total' : '');
+      total.textContent = `${contestacoes.length} pendente${contestacoes.length === 1 ? '' : 's'}`;
+      resumoEl.appendChild(total);
+    }
+
+    lista.textContent = '';
+    if (contestacoes.length === 0) {
+      const p = document.createElement('p');
+      p.className = 'admin-sub';
+      p.textContent = 'Nenhuma contestação pendente.';
+      lista.appendChild(p);
+      return;
+    }
+
+    contestacoes.forEach((c) => {
+      const membro = membrosGbjPorUid[c.uid];
+      const nomeMembro = membro ? membro.nome : '(membro excluído)';
+      const card = document.createElement('div');
+      card.className = 'gbj-contestacao-card';
+
+      const cabecalho = document.createElement('p');
+      cabecalho.className = 'gbj-contestacao-cabecalho';
+      cabecalho.textContent = `${SECAO_QUIZ_TEXTO_ADMIN[c.secao] || c.secao} · id ${c.perguntaId} · ${nomeMembro} · ${formatarData(c.criadoEm)}`;
+      card.appendChild(cabecalho);
+
+      const pergunta = document.createElement('p');
+      pergunta.className = 'gbj-contestacao-pergunta';
+      pergunta.textContent = c.pergunta;
+      card.appendChild(pergunta);
+
+      const gabarito = document.createElement('p');
+      gabarito.className = 'gbj-contestacao-gabarito';
+      gabarito.textContent = `Gabarito atual (marcada como certa): ${c.alternativaMarcadaCerta}`;
+      card.appendChild(gabarito);
+
+      if (c.motivo) {
+        const motivo = document.createElement('p');
+        motivo.className = 'gbj-contestacao-motivo';
+        motivo.textContent = `"${c.motivo}"`;
+        card.appendChild(motivo);
+      }
+
+      card.appendChild(criarBotaoExcluir(() => resolverContestacaoGbj(c.id), 'Marcar como resolvida'));
+      lista.appendChild(card);
     });
   }
 
@@ -560,6 +642,14 @@ if (firebaseConfig.apiKey.includes('COLE_AQUI')) {
     pararCamiseta = onSnapshot(query(colCamiseta, orderBy('criadoEm', 'desc')), renderCamiseta);
     assinarRanking();
     pararMembrosGbj = onSnapshot(colMembrosGbj, renderMembrosGbj);
-    pararHistoricoGbj = onSnapshot(colHistoricoGbj, renderHistoricoGbj);
+    pararHistoricoGbjFns = NOMES_COLECOES_HISTORICO_GBJ.map((nomeColecao) => onSnapshot(
+      collection(db, nomeColecao),
+      (snapshot) => {
+        sessoesGbjPorColecao[nomeColecao] = [];
+        snapshot.forEach((docSnap) => sessoesGbjPorColecao[nomeColecao].push({ id: docSnap.id, _colecao: nomeColecao, ...docSnap.data() }));
+        renderHistoricoGbj();
+      }
+    ));
+    pararContestadasGbj = onSnapshot(colContestadasGbj, renderContestadasGbj);
   });
 }

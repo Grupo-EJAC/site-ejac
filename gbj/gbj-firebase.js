@@ -41,7 +41,14 @@ function formatarMedia(ms) {
 }
 
 const MOTIVO_TEXTO = { eliminado: 'Zerou as vidas', parou: 'Parou por conta' };
-const MODALIDADE_TEXTO = { 'sequencia-livros': 'Sequência dos Livros' };
+const MODALIDADE_TEXTO = { 'sequencia-livros': 'Sequência dos Livros', quiz: 'Quiz' };
+
+// Cada modalidade grava numa coleção própria (mesmo padrão desde a
+// primeira, Sequência dos Livros) — aqui elas se juntam numa lista só,
+// ordenada por data, pra quem treina ver tudo junto sem precisar saber
+// que são coleções separadas por trás.
+const COLECOES_HISTORICO = ['gbjHistoricoSequenciaLivros', 'gbjHistoricoQuiz'];
+const sessoesPorColecao = {};
 
 const form = document.getElementById('form-gbj-login');
 const inputUsuario = document.getElementById('gbj-input-usuario');
@@ -59,15 +66,14 @@ const app = initializeApp(firebaseConfig, 'gbj');
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-let pararHistorico = null;
+let pararHistoricoFns = [];
 
-function renderHistorico(snapshot) {
+function renderHistorico() {
   const grid = document.getElementById('gbj-historico-grid');
   if (!grid) return;
   grid.textContent = '';
 
-  const sessoes = [];
-  snapshot.forEach((docSnap) => sessoes.push(docSnap.data()));
+  const sessoes = [].concat(...Object.values(sessoesPorColecao));
 
   // Ordena no cliente (mais recente primeiro) pra não depender de índice
   // composto no Firestore — a query só filtra por uid.
@@ -146,7 +152,8 @@ if (btnLogout) {
 }
 
 onAuthStateChanged(auth, async (user) => {
-  if (pararHistorico) { pararHistorico(); pararHistorico = null; }
+  pararHistoricoFns.forEach((parar) => parar());
+  pararHistoricoFns = [];
 
   // O login anônimo do Termo e o login Google do /admin/ usam o MESMO
   // projeto Firebase (e o mesmo app "padrão", já que ninguém aqui dá nome
@@ -189,12 +196,16 @@ onAuthStateChanged(auth, async (user) => {
 
   mostrarTela('painel');
 
-  pararHistorico = onSnapshot(
-    query(collection(db, 'gbjHistoricoSequenciaLivros'), where('uid', '==', user.uid)),
-    renderHistorico,
+  pararHistoricoFns = COLECOES_HISTORICO.map((nomeColecao) => onSnapshot(
+    query(collection(db, nomeColecao), where('uid', '==', user.uid)),
+    (snapshot) => {
+      sessoesPorColecao[nomeColecao] = [];
+      snapshot.forEach((docSnap) => sessoesPorColecao[nomeColecao].push(docSnap.data()));
+      renderHistorico();
+    },
     () => {
       const grid = document.getElementById('gbj-historico-grid');
       if (grid) grid.innerHTML = '<p class="admin-sub">Não foi possível carregar o histórico agora.</p>';
     }
-  );
+  ));
 });
