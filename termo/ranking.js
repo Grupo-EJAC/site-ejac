@@ -44,7 +44,12 @@ if (elSecao && elLista && !firebaseConfig.apiKey.includes('COLE_AQUI')) {
 function iniciar() {
   const MODO = new URLSearchParams(location.search).get('modo') === 'dueto' ? 'dueto' : 'termo';
 
-  const app = initializeApp(firebaseConfig);
+  // Nome próprio pro app, não o padrão: sem isso, o login anônimo daqui
+  // compartilharia sessão com o Google do admin e o e-mail/senha do GBJ
+  // (as três coisas usam o mesmo projeto Firebase) — quem visitasse por
+  // último "roubava" a sessão dos outros dois, e o login do admin, por
+  // exemplo, nunca ficava salvo de verdade.
+  const app = initializeApp(firebaseConfig, 'termo-ranking');
   const db = getFirestore(app);
   const auth = getAuth(app);
   const colMarcas = collection(db, 'termoRanking');

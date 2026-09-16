@@ -50,7 +50,12 @@ const msgLogin = document.getElementById('gbj-login-msg');
 const btnLogout = document.getElementById('btn-gbj-logout');
 const spanNome = document.getElementById('gbj-usuario-nome');
 
-const app = initializeApp(firebaseConfig);
+// Nome próprio pro app, não o padrão: sem isso, o login do GBJ
+// compartilharia sessão com o anônimo do Termo e o Google do admin (as
+// três coisas usam o mesmo projeto Firebase) — quem visitasse por último
+// "roubava" a sessão dos outros dois. Mesmo nome em sequencia-livros/
+// jogo.js de propósito: as páginas do GBJ compartilham sessão ENTRE SI.
+const app = initializeApp(firebaseConfig, 'gbj');
 const auth = getAuth(app);
 const db = getFirestore(app);
 

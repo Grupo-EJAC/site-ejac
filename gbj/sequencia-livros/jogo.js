@@ -116,7 +116,12 @@ function lerTempoPreferido() {
 // ------------------------------------------------------------
 // Firebase: só entra quem já está logado no /gbj/
 // ------------------------------------------------------------
-const app = initializeApp(firebaseConfig);
+// Mesmo nome de app usado em gbj-firebase.js, de propósito: é o que faz
+// esta página enxergar a sessão de quem acabou de logar em /gbj/. Um nome
+// diferente do padrão evita que o Termo (anônimo) ou o admin (Google)
+// substituam essa sessão sem querer — as três coisas usam o mesmo
+// projeto Firebase.
+const app = initializeApp(firebaseConfig, 'gbj');
 const auth = getAuth(app);
 const db = getFirestore(app);
 

@@ -85,7 +85,12 @@ if (firebaseConfig.apiKey.includes('COLE_AQUI')) {
   if (btnLogin) btnLogin.disabled = true;
   if (notaConfig) notaConfig.hidden = false;
 } else {
-  const app = initializeApp(firebaseConfig);
+  // Nome próprio pro app, não o padrão: sem isso, o login Google daqui
+  // compartilharia sessão com o anônimo do Termo e o e-mail/senha do GBJ
+  // (as três coisas usam o mesmo projeto Firebase) — quem visitasse por
+  // último "roubava" a sessão dos outros dois, e o login do admin nunca
+  // ficava salvo de verdade.
+  const app = initializeApp(firebaseConfig, 'admin');
   const auth = getAuth(app);
   const db = getFirestore(app);
 
