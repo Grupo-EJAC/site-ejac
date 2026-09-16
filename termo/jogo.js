@@ -517,7 +517,7 @@ function enviar() {
     travado = true;
     registrarEstatisticas();
     const espera = PREFERE_MENOS_MOVIMENTO ? 200 : TAMANHO * 180 + 500;
-    setTimeout(mostrarFim, espera);
+    setTimeout(() => mostrarFim(false), espera);
   }
 }
 
@@ -594,7 +594,10 @@ function formatarTempo(ms) {
   return s < 60 ? `${s}s` : `${Math.floor(s / 60)}min${String(s % 60).padStart(2, '0')}`;
 }
 
-function mostrarFim() {
+// restaurado = a partida já estava terminada quando a página abriu (recarregou
+// ou voltou depois). Muda o comportamento do ranking: quem só voltou pra ver o
+// resultado não leva um modal na cara pedindo nome.
+function mostrarFim(restaurado) {
   const ganhou = jogo.estado === 'ganhou';
   elFimTitulo.textContent = ganhou
     ? (ELOGIOS[jogo.tentativas.length - 1] || 'Conseguiu!')
@@ -632,16 +635,25 @@ function mostrarFim() {
   // O ranking vive em ranking.js (módulo separado, porque usa Firebase e
   // este arquivo é script clássico). Ele escuta este evento — se não
   // carregar, ou se o Firebase cair, o jogo em si não sente nada.
-  document.dispatchEvent(new CustomEvent('ejac:fim', {
-    detail: {
-      dia: DIA_HOJE,
-      modo: EH_DUETO ? 'dueto' : 'termo',
-      venceu: ganhou,
-      tentativas: jogo.tentativas.length,
-      maxTentativas: MAX_TENTATIVAS,
-      duracaoMs: jogo.duracaoMs,
-    },
-  }));
+  const detalhe = {
+    dia: DIA_HOJE,
+    modo: EH_DUETO ? 'dueto' : 'termo',
+    venceu: ganhou,
+    tentativas: jogo.tentativas.length,
+    maxTentativas: MAX_TENTATIVAS,
+    // partida salva antes do cronômetro existir não tem duração nenhuma:
+    // vira null de propósito, e não undefined, que o Firestore recusa
+    duracaoMs: jogo.duracaoMs || null,
+    restaurado: !!restaurado,
+  };
+
+  // O evento sozinho não basta: este arquivo é script clássico com defer e o
+  // ranking.js é módulo, então na hora que a página abre com uma partida já
+  // terminada este dispatch acontece ANTES do ranking existir pra escutar.
+  // Por isso o resultado também fica pendurado aqui, e o ranking lê quando
+  // subir. Assim funciona nas duas ordens, sem depender de quem carrega antes.
+  document.__ejacFim = detalhe;
+  document.dispatchEvent(new CustomEvent('ejac:fim', { detail: detalhe }));
 }
 
 // ------------------------------------------------------------
@@ -770,6 +782,6 @@ pintarTeclado();
 mostrarEstatisticas();
 
 // Quem recarrega a página depois de já ter terminado vê o resultado de novo
-if (travado) mostrarFim();
+if (travado) mostrarFim(true);
 
 })();

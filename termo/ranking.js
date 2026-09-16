@@ -50,7 +50,8 @@ function iniciar() {
   const colMarcas = collection(db, 'termoRanking');
 
   let uid = null;
-  let pendente = null; // resultado esperando login/nome pra ser enviado
+  let pendente = null; // resultado esperando o login anônimo terminar
+  let optIn = null;    // resultado esperando a pessoa QUERER entrar no placar
 
   // ----------------------------------------------------------
   // Nome de quem joga
@@ -81,7 +82,8 @@ function iniciar() {
       if (!nome) return;
       gravarNome(nome);
       fecharModal();
-      if (pendente) enviar(pendente);
+      const esperando = pendente || optIn;
+      if (esperando) { optIn = null; enviar(esperando); }
       else renomearMarca(nome);
     });
   }
@@ -120,6 +122,8 @@ function iniciar() {
     if (!nome) { pendente = resultado; abrirModal(); return; }
 
     pendente = null;
+    if (elAviso) elAviso.textContent = '';
+    if (elBtnNome) elBtnNome.textContent = 'Trocar meu nome';
     const marca = {
       dia: resultado.dia,
       modo: resultado.modo,
@@ -138,7 +142,7 @@ function iniciar() {
         modo: marca.modo,
         venceu: marca.venceu,
         tentativas: marca.tentativas,
-        duracaoMs: marca.duracaoMs === null ? 0 : marca.duracaoMs,
+        duracaoMs: Number(marca.duracaoMs) || 0,
         criadoEm: serverTimestamp(),
       });
     } catch (err) {
@@ -148,10 +152,35 @@ function iniciar() {
     }
   }
 
-  document.addEventListener('ejac:fim', (e) => {
+  // Chamado uma vez por carregamento de página, venha o resultado pelo evento
+  // (partida terminando agora) ou pendurado no document (partida que já estava
+  // terminada quando a página abriu — aí o jogo.js dispara antes deste módulo
+  // sequer existir). A trava evita mandar a mesma marca duas vezes.
+  let jaTratado = false;
+  function aoFim(detalhe) {
+    if (jaTratado || !detalhe) return;
+    jaTratado = true;
     elSecao.hidden = false;
-    enviar(e.detail);
-  });
+
+    // Já mandou a marca de hoje: só mostra o placar. Reenviar daria erro, porque
+    // as regras não deixam reescrever a marca do dia.
+    const marca = lerMarcaLocal();
+    if (marca && marca.dia === detalhe.dia) return;
+
+    // Quem só recarregou a página pra rever o resultado não leva modal na cara:
+    // vê o placar e entra nele se quiser, clicando.
+    if (detalhe.restaurado && !lerNome()) {
+      optIn = detalhe;
+      if (elAviso) elAviso.textContent = 'Você já jogou hoje. Quer aparecer no placar?';
+      if (elBtnNome) elBtnNome.textContent = 'Entrar no placar';
+      return;
+    }
+
+    enviar(detalhe);
+  }
+
+  document.addEventListener('ejac:fim', (e) => aoFim(e.detail));
+  aoFim(document.__ejacFim);
 
   // ----------------------------------------------------------
   // Placar do dia, ao vivo
