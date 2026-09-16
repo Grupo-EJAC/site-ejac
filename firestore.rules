@@ -114,6 +114,44 @@ service cloud.firestore {
       allow delete: if isAdmin();
     }
 
+    // ---------- GBJ (treinamento dos membros) ----------
+
+    // O GBJ pede "usuário e senha", mas por baixo é e-mail+senha do
+    // próprio Firebase Auth: o e-mail de verdade é <usuário>@gbj.ejac.local,
+    // calculado sempre do mesmo jeito (ver gbj-firebase.js), nunca digitado
+    // por ninguém. Só o admin cria conta — pela aba GBJ do painel, não tem
+    // cadastro público — e é por isso que write aqui é só isAdmin(): o
+    // próprio membro não escolhe usuário nem senha por este documento, só
+    // lê o próprio nome pra ser cumprimentado.
+    match /gbjMembros/{uid} {
+      allow read: if (request.auth != null && request.auth.uid == uid) || isAdmin();
+      allow write: if isAdmin();
+    }
+
+    function sessaoGbjValida(d) {
+      return d.keys().hasOnly(['uid', 'modalidade', 'tempoLimiteSeg', 'rodadas', 'acertos', 'motivo', 'criadoEm'])
+        && d.uid == request.auth.uid
+        && d.modalidade is string && d.modalidade.size() <= 40
+        // 0 = "sem limite" (a pessoa treinando escolhe, não é competição)
+        && d.tempoLimiteSeg is int && d.tempoLimiteSeg >= 0 && d.tempoLimiteSeg <= 120
+        && d.rodadas is int && d.rodadas >= 0 && d.rodadas <= 500
+        && d.acertos is int && d.acertos >= 0 && d.acertos <= d.rodadas
+        && d.motivo in ['eliminado', 'parou']
+        && d.criadoEm == request.time;
+    }
+
+    // Histórico de treino: cada um só vê e grava o próprio (list com
+    // where('uid','==', o próprio uid) — a regra abaixo garante isso
+    // mesmo se alguém tentar burlar o filtro no cliente). Ninguém edita
+    // depois de gravado, é histórico; admin pode apagar em caso de teste
+    // ou engano.
+    match /gbjHistoricoSequenciaLivros/{id} {
+      allow read: if request.auth != null && (resource.data.uid == request.auth.uid || isAdmin());
+      allow create: if request.auth != null && sessaoGbjValida(request.resource.data);
+      allow update: if false;
+      allow delete: if isAdmin();
+    }
+
     // Tudo mais fica bloqueado por padrão. Isso inclui as coleções de
     // features que já saíram do site: muralTracos (mural de neon,
     // removido em 2026-08-06) e cestaContribuicoes/cestaContatos (cesta

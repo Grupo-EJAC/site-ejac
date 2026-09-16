@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<!-- Content-Security-Policy: esta página só abre pra quem já está logado
+     no /gbj/ (mesma sessão do Firebase Auth, que vale pro site inteiro),
+     e grava o resultado do treino no Firestore no final. -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'none'; script-src 'self' https://www.gstatic.com https://apis.google.com; style-src 'self' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self' https://firestore.googleapis.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://apis.google.com; form-action 'none'; frame-ancestors 'none'; upgrade-insecure-requests">
+<meta name="referrer" content="no-referrer">
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#000001">
+
+<title>EJAC - GBJ: Sequência dos Livros</title>
+
+<link rel="icon" href="../../favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Permanent+Marker&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Unbounded:wght@400;600;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../../styles.css">
+<link rel="stylesheet" href="../gbj.css">
+<link rel="stylesheet" href="jogo.css">
+</head>
+<body>
+
+  <div class="scroll-progress" id="scroll-progress" aria-hidden="true"></div>
+  <div class="spark-bg" aria-hidden="true"></div>
+  <canvas id="bg-embers" aria-hidden="true"></canvas>
+
+  <header class="nav">
+    <a href="../../" class="logo sombra-dura">EJAC</a>
+    <div class="nav-links">
+      <a href="../" class="nav-cta nav-cta-secundario">Painel GBJ</a>
+    </div>
+  </header>
+
+  <main id="topo">
+    <section class="gbj-sl">
+      <h1 class="sombra-dura-laranja">Sequência <span class="rabisco">dos Livros</span></h1>
+      <p class="gbj-sl-sub">Diga o livro anterior e o posterior ao livro anunciado, na ordem da Bíblia Pastoral.</p>
+
+      <section class="admin-tela" id="gbj-sl-carregando">
+        <p class="admin-carregando-texto">Carregando...</p>
+      </section>
+
+      <section class="gbj-sl-config" id="gbj-sl-config" hidden>
+        <label>
+          Tempo por rodada
+          <select id="gbj-sl-tempo">
+            <option value="5">5 segundos</option>
+            <option value="10">10 segundos</option>
+            <option value="15" selected>15 segundos (igual à prova, 1ª fase)</option>
+            <option value="20">20 segundos</option>
+            <option value="30">30 segundos</option>
+            <option value="0">Sem limite</option>
+          </select>
+        </label>
+        <p class="admin-sub">Você começa com 3 vidas. Errar uma pergunta (ou o tempo acabar) tira uma vida; zerar encerra o treino.</p>
+        <button type="button" id="gbj-sl-comecar" class="hero-cta">Começar treino</button>
+      </section>
+
+      <section class="gbj-sl-jogo" id="gbj-sl-jogo" hidden>
+        <div class="gbj-sl-hud">
+          <span class="gbj-sl-hud-item" id="gbj-sl-vidas" aria-label="Vidas restantes"></span>
+          <span class="gbj-sl-hud-item">Rodada <span id="gbj-sl-rodada">1</span></span>
+          <span class="gbj-sl-hud-item">Acertos: <span id="gbj-sl-acertos">0</span></span>
+          <span class="gbj-sl-hud-item gbj-sl-tempo" id="gbj-sl-tempo-restante"></span>
+        </div>
+
+        <p class="gbj-sl-anuncio">✦ livro anunciado ✦</p>
+        <p class="gbj-sl-livro" id="gbj-sl-livro-anunciado"></p>
+
+        <form id="gbj-sl-form-resposta" class="gbj-sl-form">
+          <label>
+            Livro anterior (antecessor)
+            <input type="text" id="gbj-sl-antes" autocomplete="off" autocapitalize="words" required>
+          </label>
+          <label>
+            Livro seguinte (sucessor)
+            <input type="text" id="gbj-sl-depois" autocomplete="off" autocapitalize="words" required>
+          </label>
+          <button type="submit" id="gbj-sl-responder" class="hero-cta">Responder</button>
+        </form>
+
+        <p class="gbj-sl-feedback" id="gbj-sl-feedback" role="status" aria-live="polite"></p>
+
+        <div class="gbj-sl-acoes">
+          <button type="button" id="gbj-sl-proxima" class="hero-cta" hidden>Próxima rodada →</button>
+          <button type="button" id="gbj-sl-parar" class="nav-cta nav-cta-secundario">Parar treino</button>
+        </div>
+      </section>
+
+      <section class="admin-tela" id="gbj-sl-fim" hidden>
+        <h2 class="sombra-dura-laranja" id="gbj-sl-fim-titulo"></h2>
+        <p class="admin-sub" id="gbj-sl-fim-resumo"></p>
+        <div class="gbj-sl-fim-acoes">
+          <button type="button" id="gbj-sl-treinar-de-novo" class="hero-cta">Treinar de novo</button>
+          <a href="../" class="nav-cta nav-cta-secundario">Voltar ao painel GBJ</a>
+        </div>
+      </section>
+    </section>
+  </main>
+
+  <footer>
+    <svg class="footer-sneaker" viewBox="0 0 100 50" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="#E4568F" stroke-width="2.5">
+      <path d="M5 40 Q5 30 15 28 L35 22 Q45 18 55 22 L75 30 Q90 32 92 40 Q92 44 85 44 L10 44 Q5 44 5 40 Z"/>
+      <path d="M15 28 L15 38 M35 22 L38 36 M55 22 L58 36" />
+      <path d="M75 30 Q80 24 88 26" />
+    </svg>
+    <p class="footer-copyright">© 2026 EJAC (Esperança Jovem Aliada a Cristo). Uso interno dos membros.</p>
+  </footer>
+
+<script src="../../app.js" defer></script>
+<script type="module" src="jogo.js"></script>
+
+</body>
+</html>

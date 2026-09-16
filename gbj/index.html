@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<!-- Content-Security-Policy: nega tudo por padrão e libera só o necessário.
+     O login usa e-mail/senha do Firebase Auth (por baixo do "usuário"
+     desta página — ver gbj-comum.js), que na prática do projeto puxa o
+     mesmo script auxiliar de verificação que o Termo já usa pro login
+     anônimo: sem apis.google.com aqui o navegador bloqueia com erro de
+     CSP, não com erro de senha, o que confunde muito mais. -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'none'; script-src 'self' https://www.gstatic.com https://apis.google.com; style-src 'self' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self' https://firestore.googleapis.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://apis.google.com; form-action 'none'; frame-ancestors 'none'; upgrade-insecure-requests">
+<meta name="referrer" content="no-referrer">
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#000001">
+
+<title>EJAC - GBJ</title>
+
+<link rel="icon" href="../favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Permanent+Marker&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Unbounded:wght@400;600;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../styles.css">
+<link rel="stylesheet" href="gbj.css">
+</head>
+<body>
+
+  <div class="scroll-progress" id="scroll-progress" aria-hidden="true"></div>
+  <div class="spark-bg" aria-hidden="true"></div>
+  <canvas id="bg-embers" aria-hidden="true"></canvas>
+
+  <header class="nav">
+    <a href="../" class="logo sombra-dura">EJAC</a>
+    <div class="nav-links">
+      <a href="../" class="nav-cta nav-cta-secundario">Voltar ao site</a>
+    </div>
+  </header>
+
+  <main id="topo">
+    <section class="admin-tela" id="gbj-carregando">
+      <p class="admin-carregando-texto">Carregando...</p>
+    </section>
+
+    <section class="admin-tela" id="gbj-login" hidden>
+      <h1 class="sombra-dura-laranja">GBJ — <span class="rabisco">treinamento</span></h1>
+      <p class="admin-sub">Área de treinamento pros membros do EJAC. Se ainda não tem usuário, peça pra um coordenador criar o seu no painel.</p>
+      <noscript>
+        <p class="form-msg erro">Esta página precisa de JavaScript pra funcionar.</p>
+      </noscript>
+      <form id="form-gbj-login">
+        <label>
+          Usuário
+          <input type="text" id="gbj-input-usuario" autocomplete="username" autocapitalize="none" spellcheck="false" required>
+        </label>
+        <label>
+          Senha
+          <input type="password" id="gbj-input-senha" autocomplete="current-password" required>
+        </label>
+        <p class="form-msg" id="gbj-login-msg"></p>
+        <button type="submit" class="hero-cta">Entrar</button>
+      </form>
+    </section>
+
+    <section class="admin-painel" id="gbj-painel" hidden>
+      <div class="admin-topo">
+        <p>Olá, <strong id="gbj-usuario-nome"></strong> ✦</p>
+        <button type="button" id="btn-gbj-logout" class="nav-cta nav-cta-secundario">Sair</button>
+      </div>
+
+      <section class="gbj-modalidades">
+        <h2 class="sombra-dura-laranja">Modalidades</h2>
+        <div class="gbj-modalidades-grid">
+          <a href="sequencia-livros/" class="gbj-modalidade-card">
+            <span class="gbj-modalidade-titulo">Sequência dos Livros</span>
+            <span class="gbj-modalidade-desc">Diga o livro anterior e o posterior ao livro anunciado. Treino individual, com vidas e tempo por rodada que você escolhe.</span>
+            <span class="gbj-modalidade-cta">Treinar →</span>
+          </a>
+        </div>
+        <p class="admin-sub gbj-em-breve">Mais modalidades chegam em breve.</p>
+      </section>
+
+      <section class="gbj-historico">
+        <h2 class="sombra-dura-laranja">Seu histórico</h2>
+        <div class="admin-tabela-wrap">
+          <table class="admin-tabela">
+            <thead>
+              <tr>
+                <th scope="col">Quando</th>
+                <th scope="col">Modalidade</th>
+                <th scope="col">Tempo por rodada</th>
+                <th scope="col">Rodadas</th>
+                <th scope="col">Acertos</th>
+                <th scope="col">Resultado</th>
+              </tr>
+            </thead>
+            <tbody id="gbj-historico-tbody">
+              <tr><td colspan="6">Carregando...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </section>
+  </main>
+
+  <footer>
+    <svg class="footer-sneaker" viewBox="0 0 100 50" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="#E4568F" stroke-width="2.5">
+      <path d="M5 40 Q5 30 15 28 L35 22 Q45 18 55 22 L75 30 Q90 32 92 40 Q92 44 85 44 L10 44 Q5 44 5 40 Z"/>
+      <path d="M15 28 L15 38 M35 22 L38 36 M55 22 L58 36" />
+      <path d="M75 30 Q80 24 88 26" />
+    </svg>
+    <p class="footer-copyright">© 2026 EJAC (Esperança Jovem Aliada a Cristo). Uso interno dos membros.</p>
+  </footer>
+
+<script src="../app.js" defer></script>
+<script type="module" src="gbj-firebase.js"></script>
+
+</body>
+</html>

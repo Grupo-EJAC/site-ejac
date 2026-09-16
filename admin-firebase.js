@@ -5,15 +5,17 @@
 // decide autorização, só tenta ler os dados e reage se o servidor
 // recusar.
 
-import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.17.1/firebase-app.js';
+import { initializeApp, deleteApp } from 'https://www.gstatic.com/firebasejs/12.17.1/firebase-app.js';
 import {
   getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged,
+  createUserWithEmailAndPassword,
 } from 'https://www.gstatic.com/firebasejs/12.17.1/firebase-auth.js';
 import {
   getFirestore, collection, doc, query, where, orderBy, limit,
-  onSnapshot, getDocs, deleteDoc,
+  onSnapshot, getDocs, deleteDoc, setDoc, serverTimestamp,
 } from 'https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js';
 import { firebaseConfig } from './firebase-config.js';
+import { emailDoUsuario, normalizarUsuario } from './gbj-comum.js';
 
 const telas = {
   carregando: document.getElementById('admin-carregando'),
@@ -89,14 +91,17 @@ if (firebaseConfig.apiKey.includes('COLE_AQUI')) {
 
   const colCamiseta = collection(db, 'camisetaPedidos');
   const colRanking = collection(db, 'termoRanking');
+  const colMembrosGbj = collection(db, 'gbjMembros');
 
   let pararCamiseta = null;
   let pararRanking = null;
+  let pararMembrosGbj = null;
   let pedidosCamisetaAtuais = [];
 
   function pararListeners() {
     if (pararCamiseta) { pararCamiseta(); pararCamiseta = null; }
     if (pararRanking) { pararRanking(); pararRanking = null; }
+    if (pararMembrosGbj) { pararMembrosGbj(); pararMembrosGbj = null; }
   }
 
   // ---------------- Camisetas ----------------
@@ -292,6 +297,118 @@ if (firebaseConfig.apiKey.includes('COLE_AQUI')) {
   }
   if (selectModoRanking) selectModoRanking.addEventListener('change', assinarRanking);
 
+  // ---------------- GBJ: membros ----------------
+  //
+  // O GBJ pede "usuário e senha", mas por baixo é e-mail+senha do próprio
+  // Firebase Auth — só que criar uma conta pelo SDK do cliente
+  // (createUserWithEmailAndPassword) AUTOMATICAMENTE faz login como essa
+  // conta nova, o que expulsaria o admin da própria sessão. A saída sem
+  // servidor: um app do Firebase SEGUNDO e temporário, só pra criar a
+  // conta; o admin continua logado no app principal o tempo todo.
+
+  function renderMembrosGbj(snapshot) {
+    const tbody = document.getElementById('gbj-membros-tbody');
+    const resumoEl = document.getElementById('gbj-membros-resumo');
+    if (!tbody) return;
+
+    const membros = [];
+    snapshot.forEach((docSnap) => membros.push({ id: docSnap.id, ...docSnap.data() }));
+    membros.sort((a, b) => (a.usuario || '').localeCompare(b.usuario || ''));
+
+    if (resumoEl) {
+      resumoEl.textContent = '';
+      const total = document.createElement('span');
+      total.className = 'admin-stat admin-stat-total';
+      total.textContent = `${membros.length} membro${membros.length === 1 ? '' : 's'}`;
+      resumoEl.appendChild(total);
+    }
+
+    tbody.textContent = '';
+    if (membros.length === 0) {
+      const tr = document.createElement('tr');
+      const td = document.createElement('td');
+      td.colSpan = 4;
+      td.textContent = 'Nenhum membro criado ainda.';
+      tr.appendChild(td);
+      tbody.appendChild(tr);
+      return;
+    }
+
+    membros.forEach((m) => {
+      const tr = document.createElement('tr');
+      [m.usuario, m.nome, formatarData(m.criadoEm)].forEach((valor) => {
+        const td = document.createElement('td');
+        td.textContent = valor;
+        tr.appendChild(td);
+      });
+      const tdAcao = document.createElement('td');
+      tdAcao.appendChild(criarBotaoExcluir(() => excluirMembroGbj(m.id, m.nome)));
+      tr.appendChild(tdAcao);
+      tbody.appendChild(tr);
+    });
+  }
+
+  async function excluirMembroGbj(uid, nome) {
+    if (!confirm(`Excluir o acesso de "${nome}" ao GBJ? A pessoa não consegue mais entrar, mas não dá pra apagar a conta em si sem servidor próprio.`)) return;
+    try {
+      await deleteDoc(doc(colMembrosGbj, uid));
+    } catch (err) {
+      alert('Não foi possível excluir. Tente de novo.');
+    }
+  }
+
+  const formCriarMembro = document.getElementById('form-gbj-criar-membro');
+  const msgCriarMembro = document.getElementById('gbj-criar-msg');
+
+  if (formCriarMembro) {
+    formCriarMembro.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      msgCriarMembro.className = 'form-msg';
+
+      const usuarioBruto = document.getElementById('gbj-novo-usuario').value;
+      const nome = document.getElementById('gbj-novo-nome').value.trim();
+      const senha = document.getElementById('gbj-nova-senha').value;
+      const usuario = normalizarUsuario(usuarioBruto);
+
+      if (!usuario) {
+        msgCriarMembro.textContent = 'Usuário precisa ter pelo menos uma letra ou número.';
+        msgCriarMembro.className = 'form-msg erro';
+        return;
+      }
+      if (senha.length < 6) {
+        msgCriarMembro.textContent = 'A senha precisa ter pelo menos 6 caracteres.';
+        msgCriarMembro.className = 'form-msg erro';
+        return;
+      }
+
+      const btn = formCriarMembro.querySelector('button[type="submit"]');
+      btn.disabled = true;
+
+      // App secundário só pra este cadastro — evita derrubar a sessão do
+      // admin, que continua no app principal (initializeApp de cima).
+      const appTemp = initializeApp(firebaseConfig, 'gbj-criar-membro-' + Date.now());
+      try {
+        const authTemp = getAuth(appTemp);
+        const cred = await createUserWithEmailAndPassword(authTemp, emailDoUsuario(usuario), senha);
+        await setDoc(doc(colMembrosGbj, cred.user.uid), {
+          usuario, nome, criadoEm: serverTimestamp(),
+        });
+        formCriarMembro.reset();
+        msgCriarMembro.textContent = `Membro "${nome}" criado. Usuário: ${usuario}`;
+        msgCriarMembro.className = 'form-msg sucesso';
+      } catch (err) {
+        let texto = 'Não foi possível criar o membro. Tente de novo.';
+        if (err && err.code === 'auth/email-already-in-use') texto = 'Esse usuário já existe.';
+        else if (err && err.code === 'auth/weak-password') texto = 'Senha fraca demais — use pelo menos 6 caracteres.';
+        msgCriarMembro.textContent = texto;
+        msgCriarMembro.className = 'form-msg erro';
+      } finally {
+        btn.disabled = false;
+        await deleteApp(appTemp).catch(() => {});
+      }
+    });
+  }
+
   // ---------------- Login / autorização ----------------
 
   if (btnLogin) {
@@ -343,5 +460,6 @@ if (firebaseConfig.apiKey.includes('COLE_AQUI')) {
 
     pararCamiseta = onSnapshot(query(colCamiseta, orderBy('criadoEm', 'desc')), renderCamiseta);
     assinarRanking();
+    pararMembrosGbj = onSnapshot(colMembrosGbj, renderMembrosGbj);
   });
 }

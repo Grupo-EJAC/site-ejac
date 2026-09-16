@@ -1,6 +1,6 @@
-# Site EJAC — Termo e Camiseta
+# Site EJAC — Termo, GBJ e Camiseta
 
-Site dos membros do EJAC (Esperança Jovem Aliada a Cristo). Hoje tem o **Termo EJAC** (jogo diário de adivinhar a palavra da nossa fé, roda 100% no navegador) e a seção da **camiseta oficial**, com as fotos e as informações de pagamento de quem já pediu. 100% gratuito, hospedado no GitHub Pages, sem servidor próprio — o que precisa de banco (pedidos de camiseta e painel administrativo) grava direto num **Firestore (Firebase)**. Os pedidos de camiseta também caíram, em paralelo, numa planilha do Google (cópia/backup — o Firestore é a fonte usada pelo site e pelo painel).
+Site dos membros do EJAC (Esperança Jovem Aliada a Cristo). Hoje tem o **Termo EJAC** (jogo diário de adivinhar a palavra da nossa fé, roda 100% no navegador), o **GBJ** (área de treinamento com login de usuário e senha, primeira modalidade: Sequência dos Livros) e a seção da **camiseta oficial**, com as fotos e as informações de pagamento de quem já pediu. 100% gratuito, hospedado no GitHub Pages, sem servidor próprio — o que precisa de banco (pedidos de camiseta, painel administrativo e o GBJ) grava direto num **Firestore (Firebase)**. Os pedidos de camiseta também caíram, em paralelo, numa planilha do Google (cópia/backup — o Firestore é a fonte usada pelo site e pelo painel).
 
 ## Arquivos
 
@@ -14,12 +14,20 @@ Site dos membros do EJAC (Esperança Jovem Aliada a Cristo). Hoje tem o **Termo 
 | `termo/ranking.js` | O placar do dia: login anônimo, envio da marca e a lista ao vivo (única parte do jogo que usa rede) |
 | `termo/jogo.css` | Visual do jogo (tabuleiro, teclado, animações) |
 | `termo/dicionario/` | Listas de palavras do português por tamanho, pra validar as tentativas — ver o `LEIA-ME.md` de lá |
-| `admin/index.html` | Painel administrativo (`/admin/`, login Google) — pedidos de camiseta e ranking do Termo, ambos com opção de excluir |
+| `admin/index.html` | Painel administrativo (`/admin/`, login Google) — pedidos de camiseta, ranking do Termo e membros do GBJ, todos com opção de excluir |
+| `gbj/index.html` | O GBJ (`/gbj/`): login de usuário/senha e o painel — modalidades de treino e o histórico de quem está logado |
+| `gbj/gbj-firebase.js` | Login (usuário/senha), confere se a conta ainda está ativa e mostra o histórico de treino ao vivo |
+| `gbj/gbj.css` | Visual do painel do GBJ (cartões de modalidade) |
+| `gbj-comum.js` | Único lugar que sabe transformar "usuário" em e-mail fake pro Firebase Auth — usado pelo login, pelas modalidades e pela criação de membro no admin |
+| `gbj/sequencia-livros/index.html` | Primeira modalidade do GBJ: diga o livro anterior e o posterior ao livro anunciado |
+| `gbj/sequencia-livros/jogo.js` | Vidas, cronômetro por rodada (escolhido por quem treina), avaliação da resposta (aceita ordinal por extenso e sem os prefixos "Evangelho de"/"Carta aos") e grava o treino no histórico |
+| `gbj/sequencia-livros/livros.js` | A ordem oficial dos 73 livros da Bíblia Pastoral (editora Paulus) |
+| `gbj/sequencia-livros/jogo.css` | Visual desta modalidade |
 | `styles.css` | Todo o visual. **As cores ficam no `:root`, no topo** — mexa só ali pra mudar a identidade |
 | `app.js` | Efeitos visuais e utilitários de UI compartilhados entre as páginas (prévia da camisa, copiar Pix, som, animação de campo inválido) |
 | `camiseta-firebase.js` | Grava o pedido de camiseta no Firestore (principal) e também na planilha do Google, via `Code.gs` (cópia) |
 | `Code.gs` | Script do Google que recebe a cópia dos pedidos de camiseta e grava na planilha — veja o Passo F |
-| `admin-firebase.js` | Login Google, leitura dos pedidos de camiseta (inclusive WhatsApp e IP) e do ranking do Termo, e exclusão de registros de qualquer um dos dois — só funciona pra e-mails autorizados |
+| `admin-firebase.js` | Login Google, leitura dos pedidos de camiseta (inclusive WhatsApp e IP), do ranking do Termo e dos membros do GBJ, exclusão de qualquer um dos três, e criação de conta de membro do GBJ — só funciona pra e-mails autorizados |
 | `firebase-config.js` | A configuração do projeto Firebase (um só lugar, compartilhado pelos dois módulos acima) |
 | `catalogos.js` | Lista de referência compartilhada: os tamanhos de camiseta válidos |
 | `firestore.rules` | Regras de segurança do Firestore — cole no Firebase Console (veja o Passo B) |
@@ -47,7 +55,9 @@ Site dos membros do EJAC (Esperança Jovem Aliada a Cristo). Hoje tem o **Termo 
 - **Ranking do dia** (dentro do `/termo/`): quando a rodada acaba, aparece "quem jogou hoje" com nome, tentativas e tempo, ao vivo. O cronômetro começa na primeira letra digitada, não ao abrir a página. Cada pessoa manda **uma marca por dia por modo** — o id do documento é `dia_modo_uid` e as regras só deixam mudar o nome depois, nunca o tempo. Usa login anônimo (ninguém cria conta) e é a única parte do jogo que fala com o Firebase.
 
 > **O ranking é honesto, não é à prova de fraude — e isso é uma decisão, não um esquecimento.** O tempo é medido no navegador de quem joga e o banco de palavras está no próprio site (em base64, o que atrapalha a espiada casual mas não impede quem quiser decodificar). Deixar isso à prova de trapaça exigiria um backend guardando a resposta e validando cada tentativa, o que não se paga num jogo de grupo. O que as regras garantem é o que importa na prática: ninguém joga no lugar de outro, e ninguém melhora a própria marca depois de mandada.
-- **Painel admin** (`/admin/`): login com conta Google. Só e-mails na lista `emailsAdmin()` do `firestore.rules` conseguem entrar — qualquer outra conta Google cai numa tela de "acesso não autorizado". Tem duas abas: **Camiseta**, com todos os pedidos (resumo por tamanho, IP incluído, exportar CSV) e opção de excluir; e **Termo — ranking**, pra tirar do placar público uma marca errada ou de brincadeira (filtra por dia e por modo, termo ou dueto) — só some do ranking, o jogo de quem jogou não é afetado. Tudo direto pela interface, sem precisar abrir o Firebase Console.
+- **Painel admin** (`/admin/`): login com conta Google. Só e-mails na lista `emailsAdmin()` do `firestore.rules` conseguem entrar — qualquer outra conta Google cai numa tela de "acesso não autorizado". Tem três abas: **Camiseta**, com todos os pedidos (resumo por tamanho, IP incluído, exportar CSV) e opção de excluir; **Termo — ranking**, pra tirar do placar público uma marca errada ou de brincadeira (filtra por dia e por modo, termo ou dueto) — só some do ranking, o jogo de quem jogou não é afetado; e **GBJ — membros**, pra criar o usuário/senha de quem vai treinar e, se precisar, tirar o acesso de alguém. Tudo direto pela interface, sem precisar abrir o Firebase Console.
+- **GBJ** (`/gbj/`): área de treinamento dos membros, com login de usuário e senha (só quem tem conta criada pelo admin entra — não tem cadastro público). Por baixo é o mesmo Firebase Auth do resto do site: o "usuário" vira um e-mail fake e fixo (ex. `joaozinho` → `joaozinho@gbj.ejac.local`), pra poder usar login de e-mail/senha sem pedir e-mail de verdade de ninguém — ver `gbj-comum.js`. O painel mostra as modalidades disponíveis e o **histórico de treino** de quem está logado, ao vivo.
+- **Sequência dos Livros** (dentro do `/gbj/`, primeira modalidade): um livro da Bíblia Pastoral é anunciado e a pessoa diz o antecessor e o sucessor na ordem oficial (73 livros, ver `livros.js`). Começa com 3 vidas; errar (ou estourar o tempo) tira uma; zerar encerra o treino. Aceita responder sem acento e com ordinal por extenso ("Primeiro Samuel" vale "1º Samuel"), e sem os prefixos "Evangelho de"/"Carta aos" quando não são ditos. **Diferente da prova de verdade**, isto é treino individual: o tempo por rodada é escolhido por quem treina (a prova usa 15s/10s fixos, aqui vai de 5s a "sem limite"), e não tem a regra de perguntas alternadas entre dois participantes — não faz sentido sozinho.
 
 ## Passo A — Criar o projeto Firebase e o banco Firestore
 
@@ -61,8 +71,9 @@ Site dos membros do EJAC (Esperança Jovem Aliada a Cristo). Hoje tem o **Termo 
 1. No menu lateral, vá em **Compilação → Authentication** → **Vamos começar**
 2. Na lista de provedores, clique em **Google** → ative o botão **Ativar** → escolha um e-mail de suporte (o seu mesmo) → **Salvar**
 3. Na mesma lista, ative também o provedor **Anônimo** → **Salvar**. É o que o ranking do Termo usa pra distinguir um jogador do outro sem pedir cadastro nenhum — sem isso o jogo funciona, só o placar não aparece
-4. Abra o arquivo `firestore.rules` deste projeto e troque os e-mails de exemplo dentro da função `emailsAdmin()` pelos e-mails Gmail reais de quem vai coordenar (Diego, Jaque, Leandro, Lucas, etc. — um por linha, entre aspas)
-5. Ainda no Firebase Console, vá em **Firestore Database → Regras**, apague o conteúdo padrão e cole todo o conteúdo (já com os e-mails trocados) do `firestore.rules` → **Publicar**
+4. Ative também o provedor **E-mail/senha** → **Salvar**. É o que o GBJ usa por baixo do "usuário e senha" (ver `gbj-comum.js`) — sem isso ninguém consegue criar membro nem entrar em `/gbj/`
+5. Abra o arquivo `firestore.rules` deste projeto e troque os e-mails de exemplo dentro da função `emailsAdmin()` pelos e-mails Gmail reais de quem vai coordenar (Diego, Jaque, Leandro, Lucas, etc. — um por linha, entre aspas)
+6. Ainda no Firebase Console, vá em **Firestore Database → Regras**, apague o conteúdo padrão e cole todo o conteúdo (já com os e-mails trocados) do `firestore.rules` → **Publicar**
 
 > Só quem estiver nessa lista consegue entrar em `/admin/`. Pra adicionar ou remover um coordenador depois, é só editar a lista e publicar as regras de novo — não precisa mexer em mais nada.
 
@@ -83,6 +94,7 @@ Site dos membros do EJAC (Esperança Jovem Aliada a Cristo). Hoje tem o **Termo 
 2. Vá em `/admin/` (tem um link discreto "Painel" no rodapé de todas as páginas) e clique em **Entrar com Google**
 3. Entre com um e-mail que você colocou em `emailsAdmin()` — deve cair direto no painel
 4. Teste com outra conta Google (uma pessoal, por exemplo) pra confirmar que aparece a tela de "acesso não autorizado"
+5. Na aba **GBJ — membros**, crie um usuário de teste pra você mesmo experimentar o treino em `/gbj/` (usuário, nome, senha — a senha precisa ter 6 caracteres ou mais)
 
 Se a lista de tamanhos de camiseta mudar, atualize em **dois lugares**: `catalogos.js` e a função `tamanhosValidos()` no `firestore.rules` (regras do Firestore não conseguem importar arquivo externo).
 
@@ -97,6 +109,7 @@ O site é estático (sem servidor nosso), então a superfície de ataque é pequ
 - **As regras do Firestore são a validação que vale de verdade** (`firestore.rules`): tamanho de campo, formato de WhatsApp, item/tamanho dentro da lista oficial, quantidade dentro do razoável. A validação no navegador (`camiseta-firebase.js`) é só "de cortesia", pra dar feedback rápido — um usuário malicioso pode pular ela inteira e mesmo assim esbarra nas regras do servidor.
 - **Ninguém lê dado sensível sem estar autorizado:** os pedidos de camiseta (nome + WhatsApp + IP) só são legíveis por quem faz login Google **e** está na lista `emailsAdmin()` das regras. Ninguém mais consegue ler essas coleções, nem o próprio código do site — as regras barram no servidor, não é só uma questão de "a página não mostra".
 - **Ninguém edita ou apaga nada, exceto o admin:** criar um pedido/contribuição é público (é o formulário), mas alterar ou excluir só é permitido pra quem está autenticado como admin. Isso é forçado pelas regras, não pela interface.
+- **GBJ: "usuário e senha" é o Firebase Auth por baixo.** O login pede só usuário e senha, mas isso vira e-mail+senha do Firebase Auth (`<usuário>@gbj.ejac.local`, calculado sempre do mesmo jeito, nunca digitado nem guardado à parte — ver `gbj-comum.js`). Só o admin cria conta (aba GBJ do painel); não tem cadastro público. O perfil em `gbjMembros/{uid}` é o que de fato controla o acesso: **"excluir" um membro apaga esse perfil**, e sem ele a pessoa não passa da tela de login mesmo com a senha certa — mas a conta do Firebase Auth em si continua existindo, porque apagar a conta de *outra* pessoa exige Admin SDK/servidor, que este site não tem. Na prática o acesso é revogado do mesmo jeito; só o registro da conta que sobra, órfão e inofensivo.
 - **O ranking do Termo é honesto, não é blindado:** as regras garantem o que dá pra garantir do lado do servidor — cada pessoa só grava com o próprio `uid`, vale uma marca por dia por modo (o id do documento é `dia_modo_uid`) e, depois de enviada, **só o nome pode mudar**, nunca o tempo nem as tentativas. O que elas não têm como conferir é se o tempo enviado é real, porque ele é medido no navegador de quem joga. Blindar isso exigiria um backend guardando a resposta do dia e validando tentativa por tentativa, o que não se paga num jogo de grupo.
 - **Honeypot anti-bot:** um campo invisível (`website`) que humanos não veem; se vier preenchido, o envio é descartado (bots costumam preencher tudo).
 - **Content-Security-Policy sem `unsafe-inline`:** a CSP nega tudo por padrão e libera só o essencial (o próprio domínio, as fontes do Google, o SDK do Firebase via `gstatic.com`, e os endpoints do Firestore/Auth). Como nenhum CSS ou JS fica embutido no HTML, o navegador **bloqueia qualquer script ou estilo injetado** na página — a defesa mais forte contra XSS. Também bloqueia envio de formulário pra fora (`form-action 'none'`) e o site ser colocado dentro de um iframe (`frame-ancestors 'none'`, evita clickjacking).
@@ -124,7 +137,7 @@ O site foi feito pra funcionar pra todo mundo, inclusive quem navega só pelo te
 1. Crie uma conta no [github.com](https://github.com) se ainda não tiver
 2. Clique em **New repository**, dê um nome (ex: `site-ejac`) e crie
 3. Na página do repositório, clique em **Add file → Upload files**
-4. Arraste `index.html`, `styles.css`, `app.js`, `camiseta-firebase.js`, `admin-firebase.js`, `firebase-config.js`, `catalogos.js`, `favicon.svg` e as pastas `assets/`, `termo/` e `admin/` (arrastando a pasta inteira, não só o `index.html` de dentro dela, pra manter `termo/index.html` e `admin/index.html` no lugar certo) e clique em **Commit changes** (`firestore.rules` e `Code.gs` não precisam subir pro GitHub Pages — o primeiro é usado no Firebase Console (Passo B), o segundo no editor do Apps Script (Passo F))
+4. Arraste `index.html`, `styles.css`, `app.js`, `camiseta-firebase.js`, `admin-firebase.js`, `firebase-config.js`, `gbj-comum.js`, `catalogos.js`, `favicon.svg` e as pastas `assets/`, `termo/`, `admin/` e `gbj/` (arrastando a pasta inteira, não só o `index.html` de dentro dela, pra manter `termo/index.html`, `admin/index.html` e `gbj/index.html` no lugar certo) e clique em **Commit changes** (`firestore.rules` e `Code.gs` não precisam subir pro GitHub Pages — o primeiro é usado no Firebase Console (Passo B), o segundo no editor do Apps Script (Passo F))
 5. Vá em **Settings → Pages**
 6. Em "Branch", selecione `main` e a pasta `/root`, depois clique em **Save**
 7. Espere 1–2 minutos e atualize a página — vai aparecer o link do site (algo como `https://seu-usuario.github.io/site-ejac/`)
