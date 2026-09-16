@@ -367,3 +367,161 @@
     transform: none;
   }
 }
+
+/* ============================================================
+   TEMPO E RANKING DO DIA
+   ============================================================ */
+
+.fim-tempo {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: .9rem;
+  color: var(--laranja);
+  margin: 10px 0 0;
+}
+
+.ranking {
+  margin-top: 32px;
+  padding-top: 24px;
+  border-top: 2px solid #1e1e1e;
+}
+
+.ranking-titulo {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 1.05rem;
+  color: var(--branco);
+  margin: 0 0 6px;
+}
+
+.ranking-sub {
+  font-size: .78rem;
+  color: var(--cinza-texto);
+  margin: 0 0 16px;
+}
+
+.ranking-btn-link {
+  background: none;
+  border: none;
+  color: var(--rosa);
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: .78rem;
+  cursor: pointer;
+  text-decoration: underline;
+  padding: 0;
+}
+
+.ranking-aviso:empty { display: none; }
+
+.ranking-aviso {
+  font-size: .8rem;
+  color: var(--laranja);
+  margin: 0 0 12px;
+}
+
+.ranking-lista {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.ranking-item {
+  display: grid;
+  /* posição | nome | placar | tempo — o nome estica, o resto é do tamanho
+     do conteúdo, senão em tela estreita o tempo some pra fora */
+  grid-template-columns: 2.2rem minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border: 1px solid #242424;
+  border-radius: 10px;
+  font-size: .85rem;
+}
+
+/* a linha de quem está jogando ganha destaque pra achar de relance */
+.ranking-eu {
+  border-color: var(--rosa);
+  background: rgba(228, 86, 143, .08);
+}
+
+.ranking-pos {
+  font-family: var(--font-display);
+  font-weight: 800;
+  color: var(--laranja);
+}
+
+.ranking-nome {
+  color: var(--branco);
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ranking-placar { color: var(--cinza-texto); font-size: .78rem; }
+
+.ranking-tempo {
+  font-family: var(--font-display);
+  font-weight: 700;
+  color: var(--rosa);
+}
+
+.ranking-vazio {
+  color: var(--cinza-texto);
+  font-size: .85rem;
+  padding: 10px 2px;
+}
+
+/* ============================================================
+   MODAL DO NOME
+   ============================================================ */
+
+.ranking-modal-fundo {
+  position: fixed;
+  inset: 0;
+  z-index: 250;
+  background: rgba(0, 0, 1, .82);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+/* display:flex acima empata em especificidade com o [hidden] do navegador,
+   então sem isto o modal ficaria "hidden" no DOM mas visível na tela. */
+.ranking-modal-fundo[hidden] { display: none; }
+
+.ranking-modal {
+  width: 100%;
+  max-width: 400px;
+  background: #0d0d0d;
+  border: 2px solid var(--cinza);
+  border-radius: 20px;
+  padding: 32px;
+  text-align: center;
+}
+
+.ranking-modal h2 {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 1.3rem;
+  margin: 0 0 10px;
+}
+
+.ranking-modal p {
+  color: #ccc;
+  font-size: .88rem;
+  line-height: 1.5;
+  margin: 0 0 20px;
+}
+
+.ranking-modal form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  text-align: left;
+}

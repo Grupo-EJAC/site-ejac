@@ -81,17 +81,36 @@ function restoPositivo(valor, divisor) {
  *
  * No dueto as duas palavras precisam ter o MESMO tamanho (senão os dois
  * tabuleiros ficam tortos), então primeiro se escolhe um tamanho do dia e
- * depois duas palavras daquele grupo.
+ * depois duas palavras daquele grupo. Palavras que são resposta do termo
+ * por estes dias ficam de fora: sem isso a mesma palavra caía no dueto e,
+ * dois dias depois, no termo — o que fica esquisito ainda mais agora que
+ * tem ranking e todo mundo comenta a palavra do dia.
  */
+const JANELA_SEM_REPETIR = 7; // dias pra trás e pra frente
+
+// A regra de não repetir só passa a valer no dia 2 (17/09/2026). Ela muda
+// quais palavras saem no dueto, e aplicar isso pra trás trocaria a palavra
+// de um dia que já estava rolando — quem estivesse jogando veria o
+// tabuleiro mudar debaixo do nariz. Dia que já passou é intocável.
+const DIA_DA_REGRA_SEM_REPETIR = 2;
+
 function escolherPalavras(dias, quantas) {
   if (quantas === 1) {
     return [PALAVRAS_EJAC[restoPositivo(dias, PALAVRAS_EJAC.length)]];
+  }
+
+  const recentesNoTermo = new Set();
+  if (dias >= DIA_DA_REGRA_SEM_REPETIR) {
+    for (let k = -JANELA_SEM_REPETIR; k <= JANELA_SEM_REPETIR; k++) {
+      recentesNoTermo.add(semAcento(PALAVRAS_EJAC[restoPositivo(dias + k, PALAVRAS_EJAC.length)].palavra));
+    }
   }
 
   const grupos = {};
   PALAVRAS_EJAC.forEach(entrada => {
     const n = semAcento(entrada.palavra).length;
     if (n > MAX_LETRAS_DUETO) return;
+    if (recentesNoTermo.has(semAcento(entrada.palavra))) return;
     (grupos[n] = grupos[n] || []).push(entrada);
   });
 
@@ -145,9 +164,21 @@ function gravarJSON(chave, valor) {
   } catch (e) { /* sem espaço ou bloqueado: o jogo continua, só não salva */ }
 }
 
+// O jogo salvo guarda as palavras do dia junto. Se elas mudarem (troca no
+// banco de palavras, ajuste no sorteio), o progresso antigo não vale mais:
+// as cores seriam recalculadas contra outra resposta e o tabuleiro ficaria
+// mentindo. Nesse caso começa de novo, que é o único estado honesto.
 let jogo = lerJSON(CHAVE_JOGO, null);
-if (!jogo || jogo.dia !== DIA_HOJE) {
-  jogo = { dia: DIA_HOJE, tentativas: [], estado: 'jogando' };
+const ALVOS_HOJE = ALVOS.join(',');
+if (!jogo || jogo.dia !== DIA_HOJE || (jogo.alvos || ALVOS_HOJE) !== ALVOS_HOJE) {
+  jogo = {
+    dia: DIA_HOJE,
+    alvos: ALVOS_HOJE,
+    tentativas: [],
+    estado: 'jogando',
+    inicio: null,      // marcado na primeira letra digitada, não ao abrir a página
+    duracaoMs: null,   // preenchido quando a rodada termina
+  };
 }
 
 const ESTATISTICAS_PADRAO = {
@@ -433,6 +464,14 @@ function aoPressionar(tecla) {
     return;
   }
   if (/^[A-Z]$/.test(tecla) && digitacao.length < TAMANHO) {
+    // O cronômetro começa na PRIMEIRA letra, não ao abrir a página: senão
+    // quem deixa a aba aberta e volta depois aparece com um tempo absurdo.
+    // Testa com "!" e não "=== null" porque jogo salvo antes desta versão
+    // não tem o campo — aí vale começar a contar a partir de agora.
+    if (!jogo.inicio) {
+      jogo.inicio = Date.now();
+      gravarJSON(CHAVE_JOGO, jogo);
+    }
     digitacao += tecla;
     pintarTabuleiros(false);
   }
@@ -464,6 +503,10 @@ function enviar() {
     jogo.estado = 'ganhou';
   } else if (jogo.tentativas.length >= MAX_TENTATIVAS) {
     jogo.estado = 'perdeu';
+  }
+
+  if (jogo.estado !== 'jogando' && !jogo.duracaoMs) {
+    jogo.duracaoMs = jogo.inicio ? Date.now() - jogo.inicio : null;
   }
 
   gravarJSON(CHAVE_JOGO, jogo);
@@ -545,6 +588,12 @@ function mostrarEstatisticas() {
 // ------------------------------------------------------------
 const ELOGIOS = ['Na primeira!', 'Muito bem!', 'Boa!', 'Essa foi por pouco...', 'Ufa!', 'No último suspiro!', 'No limite!'];
 
+function formatarTempo(ms) {
+  if (!ms || ms < 0) return null;
+  const s = Math.round(ms / 1000);
+  return s < 60 ? `${s}s` : `${Math.floor(s / 60)}min${String(s % 60).padStart(2, '0')}`;
+}
+
 function mostrarFim() {
   const ganhou = jogo.estado === 'ganhou';
   elFimTitulo.textContent = ganhou
@@ -568,9 +617,31 @@ function mostrarFim() {
     elFimPalavras.appendChild(bloco);
   });
 
+  const tempo = formatarTempo(jogo.duracaoMs);
+  if (tempo) {
+    const p = document.createElement('p');
+    p.className = 'fim-tempo';
+    p.textContent = ganhou ? `Seu tempo: ${tempo}` : `Tempo: ${tempo}`;
+    elFimPalavras.appendChild(p);
+  }
+
   elFim.hidden = false;
   mostrarEstatisticas();
   elFim.scrollIntoView({ behavior: PREFERE_MENOS_MOVIMENTO ? 'auto' : 'smooth', block: 'nearest' });
+
+  // O ranking vive em ranking.js (módulo separado, porque usa Firebase e
+  // este arquivo é script clássico). Ele escuta este evento — se não
+  // carregar, ou se o Firebase cair, o jogo em si não sente nada.
+  document.dispatchEvent(new CustomEvent('ejac:fim', {
+    detail: {
+      dia: DIA_HOJE,
+      modo: EH_DUETO ? 'dueto' : 'termo',
+      venceu: ganhou,
+      tentativas: jogo.tentativas.length,
+      maxTentativas: MAX_TENTATIVAS,
+      duracaoMs: jogo.duracaoMs,
+    },
+  }));
 }
 
 // ------------------------------------------------------------
@@ -596,8 +667,10 @@ function montarTextoCompartilhar() {
     linhas.push(partes.join(' '));
   }
 
+  const tempo = formatarTempo(jogo.duracaoMs);
+
   return [
-    `${nome} ${d}/${m} - ${placar}`,
+    `${nome} ${d}/${m} - ${placar}${tempo ? ' em ' + tempo : ''}`,
     '',
     linhas.join('\n'),
     '',

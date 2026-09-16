@@ -4,11 +4,13 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<!-- Content-Security-Policy: a mais restrita do site. O jogo roda inteiro no
-     navegador; a única requisição que ele faz é buscar o dicionário de
-     português na própria pasta, por isso connect-src fica em 'self' —
-     nenhum servidor externo, nenhum dado sai desta página. -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'none'; script-src 'self'; style-src 'self' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self'; form-action 'none'; frame-ancestors 'none'; upgrade-insecure-requests">
+<!-- Content-Security-Policy: o jogo em si roda todo no navegador e só busca
+     o dicionário na própria pasta (por isso connect-src 'self'). O que sai
+     daqui é o ranking: Firestore pra gravar/ler as marcas do dia e o Auth
+     anônimo pra saber quem é quem. O apis.google.com entra porque o login
+     anônimo carrega um script de verificação por baixo dos panos — sem ele
+     o console enche de erro de CSP à toa. -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'none'; script-src 'self' https://www.gstatic.com https://apis.google.com; style-src 'self' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self' https://firestore.googleapis.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://apis.google.com; form-action 'none'; frame-ancestors 'none'; upgrade-insecure-requests">
 <meta name="referrer" content="no-referrer">
 <meta name="robots" content="index, follow">
 <meta name="theme-color" content="#000001">
@@ -88,8 +90,32 @@
       </section>
 
       <div class="stats" id="stats"></div>
+
+      <section class="ranking" id="ranking" hidden>
+        <h2 class="ranking-titulo">Quem jogou hoje</h2>
+        <p class="ranking-sub">
+          Vale uma marca por pessoa, por dia, em cada modo.
+          <button type="button" id="btn-ranking-nome" class="ranking-btn-link">Trocar meu nome</button>
+        </p>
+        <p class="ranking-aviso" id="ranking-aviso" role="status" aria-live="polite"></p>
+        <ol class="ranking-lista" id="ranking-lista"></ol>
+      </section>
     </section>
   </main>
+
+  <div class="ranking-modal-fundo" id="ranking-modal-fundo" hidden>
+    <div class="ranking-modal" role="dialog" aria-modal="true" aria-labelledby="ranking-modal-titulo">
+      <h2 id="ranking-modal-titulo" class="sombra-dura-laranja">Como você aparece?</h2>
+      <p>Escolha um nome pro pessoal te reconhecer no placar de hoje.</p>
+      <form id="form-ranking-nome">
+        <label>
+          Seu nome
+          <input type="text" name="nome" id="ranking-input-nome" placeholder="Ex: Jaque" required maxlength="20" autocomplete="given-name">
+        </label>
+        <button type="submit">Entrar no placar</button>
+      </form>
+    </div>
+  </div>
 
   <footer>
     <svg class="footer-sneaker" viewBox="0 0 100 50" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="#E4568F" stroke-width="2.5">
@@ -104,6 +130,9 @@
 <script src="../app.js" defer></script>
 <script src="palavras.js" defer></script>
 <script src="jogo.js" defer></script>
+<!-- O ranking é módulo (SDK do Firebase é ESM) e conversa com o jogo só
+     pelo evento 'ejac:fim'. Se falhar, o jogo continua funcionando. -->
+<script type="module" src="ranking.js"></script>
 
 </body>
 </html>

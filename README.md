@@ -9,7 +9,9 @@ Site dos membros do EJAC (Esperança Jovem Aliada a Cristo). Hoje tem o **Termo 
 | `index.html` | A página principal (`/`): destaque do Termo + seção da camiseta com pagamento |
 | `termo/index.html` | O Termo EJAC (`/termo/`): jogo diário de palavras, com modo Dueto em `?modo=dueto` |
 | `termo/jogo.js` | Toda a lógica do jogo: palavra do dia, avaliação das tentativas, teclado, estatísticas e compartilhar |
-| `termo/palavras.js` | As palavras da fé (cada uma com significado) + palavras extras aceitas como tentativa |
+| `termo/palavras.js` | As palavras da fé (cada uma com significado) + palavras extras aceitas como tentativa. **Fica em base64** — mexa pela ferramenta, não na mão |
+| `termo/ferramentas/palavras.js` | Ferramenta de linha de comando pra ver/adicionar palavras e espiar os próximos dias |
+| `termo/ranking.js` | O placar do dia: login anônimo, envio da marca e a lista ao vivo (única parte do jogo que usa rede) |
 | `termo/jogo.css` | Visual do jogo (tabuleiro, teclado, animações) |
 | `termo/dicionario/` | Listas de palavras do português por tamanho, pra validar as tentativas — ver o `LEIA-ME.md` de lá |
 | `admin/index.html` | Painel administrativo (`/admin/`, login Google) — relatório dos pedidos de camiseta, com opção de excluir |
@@ -41,7 +43,10 @@ Site dos membros do EJAC (Esperança Jovem Aliada a Cristo). Hoje tem o **Termo 
 
 - **Home** (`/`): destaca o que estiver rolando no momento. Hoje o destaque é o Termo (o hero leva direto pra `/termo/`), e a camiseta aparece abaixo como seção secundária: fotos, aviso de "pedidos encerrados" e as instruções de pagamento pra quem já pediu.
 - **Camiseta** (`/`, seção `#pedido`): o formulário de pedido ficou aberto até 15/08/2026 e foi removido quando os pedidos encerraram (está no histórico do git, em `f713940`, se precisar reabrir numa próxima campanha). Enquanto esteve aberto, gravava no Firestore (fonte usada pelo site/painel) e mandava uma cópia pra planilha do Google via `Code.gs`, como backup. Os pedidos antigos continuam no Firestore e visíveis no painel admin.
-- **Termo EJAC** (`/termo/`): joguinho diário de adivinhar a palavra, no estilo do termo.ooo, só que as palavras são todas da nossa fé e cada uma vem com o significado no fim da partida. Roda inteiro no navegador: **não usa Firebase nem grava nada em servidor** — o progresso e as estatísticas ficam só no `localStorage` de quem joga. A única requisição que faz é buscar o dicionário de português da própria pasta, pra saber se a tentativa é uma palavra que existe. Tem o modo **Dueto** (duas palavras ao mesmo tempo, 7 tentativas) em `?modo=dueto`.
+- **Termo EJAC** (`/termo/`): joguinho diário de adivinhar a palavra, no estilo do termo.ooo, só que as palavras são todas da nossa fé e cada uma vem com o significado no fim da partida. O jogo em si roda todo no navegador — progresso e estatísticas ficam no `localStorage` de quem joga, e o dicionário de português vem da própria pasta. Tem o modo **Dueto** (duas palavras ao mesmo tempo, 7 tentativas) em `?modo=dueto`.
+- **Ranking do dia** (dentro do `/termo/`): quando a rodada acaba, aparece "quem jogou hoje" com nome, tentativas e tempo, ao vivo. O cronômetro começa na primeira letra digitada, não ao abrir a página. Cada pessoa manda **uma marca por dia por modo** — o id do documento é `dia_modo_uid` e as regras só deixam mudar o nome depois, nunca o tempo. Usa login anônimo (ninguém cria conta) e é a única parte do jogo que fala com o Firebase.
+
+> **O ranking é honesto, não é à prova de fraude — e isso é uma decisão, não um esquecimento.** O tempo é medido no navegador de quem joga e o banco de palavras está no próprio site (em base64, o que atrapalha a espiada casual mas não impede quem quiser decodificar). Deixar isso à prova de trapaça exigiria um backend guardando a resposta e validando cada tentativa, o que não se paga num jogo de grupo. O que as regras garantem é o que importa na prática: ninguém joga no lugar de outro, e ninguém melhora a própria marca depois de mandada.
 - **Painel admin** (`/admin/`): login com conta Google. Só e-mails na lista `emailsAdmin()` do `firestore.rules` conseguem entrar — qualquer outra conta Google cai numa tela de "acesso não autorizado". De lá dá pra ver todos os pedidos de camiseta (com resumo por tamanho, IP incluído e exportar CSV) e **excluir qualquer registro errado ou falso** direto pela interface, sem precisar abrir o Firebase Console.
 
 ## Passo A — Criar o projeto Firebase e o banco Firestore
@@ -55,8 +60,9 @@ Site dos membros do EJAC (Esperança Jovem Aliada a Cristo). Hoje tem o **Termo 
 
 1. No menu lateral, vá em **Compilação → Authentication** → **Vamos começar**
 2. Na lista de provedores, clique em **Google** → ative o botão **Ativar** → escolha um e-mail de suporte (o seu mesmo) → **Salvar**
-3. Abra o arquivo `firestore.rules` deste projeto e troque os e-mails de exemplo dentro da função `emailsAdmin()` pelos e-mails Gmail reais de quem vai coordenar (Diego, Jaque, Leandro, Lucas, etc. — um por linha, entre aspas)
-4. Ainda no Firebase Console, vá em **Firestore Database → Regras**, apague o conteúdo padrão e cole todo o conteúdo (já com os e-mails trocados) do `firestore.rules` → **Publicar**
+3. Na mesma lista, ative também o provedor **Anônimo** → **Salvar**. É o que o ranking do Termo usa pra distinguir um jogador do outro sem pedir cadastro nenhum — sem isso o jogo funciona, só o placar não aparece
+4. Abra o arquivo `firestore.rules` deste projeto e troque os e-mails de exemplo dentro da função `emailsAdmin()` pelos e-mails Gmail reais de quem vai coordenar (Diego, Jaque, Leandro, Lucas, etc. — um por linha, entre aspas)
+5. Ainda no Firebase Console, vá em **Firestore Database → Regras**, apague o conteúdo padrão e cole todo o conteúdo (já com os e-mails trocados) do `firestore.rules` → **Publicar**
 
 > Só quem estiver nessa lista consegue entrar em `/admin/`. Pra adicionar ou remover um coordenador depois, é só editar a lista e publicar as regras de novo — não precisa mexer em mais nada.
 
@@ -91,6 +97,7 @@ O site é estático (sem servidor nosso), então a superfície de ataque é pequ
 - **As regras do Firestore são a validação que vale de verdade** (`firestore.rules`): tamanho de campo, formato de WhatsApp, item/tamanho dentro da lista oficial, quantidade dentro do razoável. A validação no navegador (`camiseta-firebase.js`) é só "de cortesia", pra dar feedback rápido — um usuário malicioso pode pular ela inteira e mesmo assim esbarra nas regras do servidor.
 - **Ninguém lê dado sensível sem estar autorizado:** os pedidos de camiseta (nome + WhatsApp + IP) só são legíveis por quem faz login Google **e** está na lista `emailsAdmin()` das regras. Ninguém mais consegue ler essas coleções, nem o próprio código do site — as regras barram no servidor, não é só uma questão de "a página não mostra".
 - **Ninguém edita ou apaga nada, exceto o admin:** criar um pedido/contribuição é público (é o formulário), mas alterar ou excluir só é permitido pra quem está autenticado como admin. Isso é forçado pelas regras, não pela interface.
+- **O ranking do Termo é honesto, não é blindado:** as regras garantem o que dá pra garantir do lado do servidor — cada pessoa só grava com o próprio `uid`, vale uma marca por dia por modo (o id do documento é `dia_modo_uid`) e, depois de enviada, **só o nome pode mudar**, nunca o tempo nem as tentativas. O que elas não têm como conferir é se o tempo enviado é real, porque ele é medido no navegador de quem joga. Blindar isso exigiria um backend guardando a resposta do dia e validando tentativa por tentativa, o que não se paga num jogo de grupo.
 - **Honeypot anti-bot:** um campo invisível (`website`) que humanos não veem; se vier preenchido, o envio é descartado (bots costumam preencher tudo).
 - **Content-Security-Policy sem `unsafe-inline`:** a CSP nega tudo por padrão e libera só o essencial (o próprio domínio, as fontes do Google, o SDK do Firebase via `gstatic.com`, e os endpoints do Firestore/Auth). Como nenhum CSS ou JS fica embutido no HTML, o navegador **bloqueia qualquer script ou estilo injetado** na página — a defesa mais forte contra XSS. Também bloqueia envio de formulário pra fora (`form-action 'none'`) e o site ser colocado dentro de um iframe (`frame-ancestors 'none'`, evita clickjacking).
 - **`referrer: no-referrer`:** ao clicar num link externo (WhatsApp), o destino não recebe de onde a pessoa veio.

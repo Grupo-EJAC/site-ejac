@@ -71,6 +71,49 @@ service cloud.firestore {
         && request.resource.data.criadoEm == request.time;
     }
 
+    // ---------- Ranking do Termo ----------
+
+    // Uma marca por pessoa, por dia, por modo. Quem garante isso é o ID do
+    // documento (dia_modo_uid, conferido abaixo) junto com o update que só
+    // deixa mexer no nome: sem isso daria pra reenviar o dia inteiro até
+    // sair um tempo bonito.
+    //
+    // Isto NÃO é à prova de trapaça, e é de propósito: o tempo vem do
+    // navegador de quem joga e as palavras estão no próprio site. Blindar
+    // exigiria um backend validando cada tentativa, o que não se paga num
+    // joguinho de grupo. O que as regras garantem é o básico: ninguém
+    // escreve no lugar de outro nem melhora a própria marca depois.
+    function marcaValida(d) {
+      return d.keys().hasOnly(['uid', 'nome', 'dia', 'modo', 'venceu', 'tentativas', 'duracaoMs', 'criadoEm'])
+        && d.uid == request.auth.uid
+        && nomeValido(d.nome)
+        && d.nome.size() <= 20
+        // o dia é o do navegador de quem joga: não dá pra comparar com
+        // request.time (que é UTC) sem recusar quem joga à noite, que no
+        // Brasil já é o dia seguinte lá fora
+        && d.dia is string && d.dia.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}$')
+        && (d.modo == 'termo' || d.modo == 'dueto')
+        && d.venceu is bool
+        && d.tentativas is int && d.tentativas >= 0 && d.tentativas <= 10
+        && d.duracaoMs is int && d.duracaoMs >= 0 && d.duracaoMs <= 86400000
+        && d.criadoEm == request.time;
+    }
+
+    match /termoRanking/{marcaId} {
+      allow read: if true;
+      allow create: if request.auth != null
+        && marcaValida(request.resource.data)
+        && marcaId == request.resource.data.dia + '_' + request.resource.data.modo + '_' + request.auth.uid;
+      // só o nome pode mudar depois (pra quem se arrependeu do apelido);
+      // tempo e tentativas ficam como foram registrados
+      allow update: if request.auth != null
+        && resource.data.uid == request.auth.uid
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['nome'])
+        && nomeValido(request.resource.data.nome)
+        && request.resource.data.nome.size() <= 20;
+      allow delete: if isAdmin();
+    }
+
     // Tudo mais fica bloqueado por padrão. Isso inclui as coleções de
     // features que já saíram do site: muralTracos (mural de neon,
     // removido em 2026-08-06) e cestaContribuicoes/cestaContatos (cesta
