@@ -1,22 +1,25 @@
-# Site EJAC — Pedido de Camiseta e Cesta Básica
+# Site EJAC — Termo e Camiseta
 
-Site pros membros do EJAC (Esperança Jovem Aliada a Cristo) pedirem a camiseta oficial e colaborarem com a cesta básica do grupo. 100% gratuito, hospedado no GitHub Pages, sem servidor próprio — tudo (camiseta, cesta básica e o painel administrativo) grava direto num banco **Firestore (Firebase)**, com atualização em tempo real. Os pedidos de camiseta também caem, em paralelo, numa planilha do Google (por pedido do grupo, como cópia/backup — o Firestore continua sendo a fonte usada pelo site e pelo painel).
+Site dos membros do EJAC (Esperança Jovem Aliada a Cristo). Hoje tem o **Termo EJAC** (jogo diário de adivinhar a palavra da nossa fé, roda 100% no navegador) e a seção da **camiseta oficial**, com as fotos e as informações de pagamento de quem já pediu. 100% gratuito, hospedado no GitHub Pages, sem servidor próprio — o que precisa de banco (pedidos de camiseta e painel administrativo) grava direto num **Firestore (Firebase)**. Os pedidos de camiseta também caíram, em paralelo, numa planilha do Google (cópia/backup — o Firestore é a fonte usada pelo site e pelo painel).
 
 ## Arquivos
 
 | Arquivo | O que é |
 |---|---|
-| `index.html` | A página principal (`/`): destaque da campanha ativa (hoje a cesta) + seção da camiseta com pagamento |
-| `cesta/index.html` | Página separada da cesta básica colaborativa (`/cesta/`), acessível pelo botão "Cesta básica" no menu |
-| `admin/index.html` | Painel administrativo (`/admin/`, login Google) — relatório dos pedidos de camiseta e da cesta básica, com opção de excluir |
+| `index.html` | A página principal (`/`): destaque do Termo + seção da camiseta com pagamento |
+| `termo/index.html` | O Termo EJAC (`/termo/`): jogo diário de palavras, com modo Dueto em `?modo=dueto` |
+| `termo/jogo.js` | Toda a lógica do jogo: palavra do dia, avaliação das tentativas, teclado, estatísticas e compartilhar |
+| `termo/palavras.js` | As palavras da fé (cada uma com significado) + palavras extras aceitas como tentativa |
+| `termo/jogo.css` | Visual do jogo (tabuleiro, teclado, animações) |
+| `termo/dicionario/` | Listas de palavras do português por tamanho, pra validar as tentativas — ver o `LEIA-ME.md` de lá |
+| `admin/index.html` | Painel administrativo (`/admin/`, login Google) — relatório dos pedidos de camiseta, com opção de excluir |
 | `styles.css` | Todo o visual. **As cores ficam no `:root`, no topo** — mexa só ali pra mudar a identidade |
 | `app.js` | Efeitos visuais e utilitários de UI compartilhados entre as páginas (prévia da camisa, copiar Pix, som, animação de campo inválido) |
 | `camiseta-firebase.js` | Grava o pedido de camiseta no Firestore (principal) e também na planilha do Google, via `Code.gs` (cópia) |
 | `Code.gs` | Script do Google que recebe a cópia dos pedidos de camiseta e grava na planilha — veja o Passo F |
-| `cesta-firebase.js` | Lê e grava as contribuições da cesta básica no Firestore, em tempo real |
-| `admin-firebase.js` | Login Google, leitura dos dados (inclusive WhatsApp dos pedidos de camiseta e IP das duas coisas) e exclusão de registros — só funciona pra e-mails autorizados |
-| `firebase-config.js` | A configuração do projeto Firebase (um só lugar, compartilhado pelos três módulos acima) |
-| `catalogos.js` | Listas de referência compartilhadas: itens da cesta básica (com meta de cada um) e tamanhos de camiseta válidos |
+| `admin-firebase.js` | Login Google, leitura dos pedidos de camiseta (inclusive WhatsApp e IP) e exclusão de registros — só funciona pra e-mails autorizados |
+| `firebase-config.js` | A configuração do projeto Firebase (um só lugar, compartilhado pelos dois módulos acima) |
+| `catalogos.js` | Lista de referência compartilhada: os tamanhos de camiseta válidos |
 | `firestore.rules` | Regras de segurança do Firestore — cole no Firebase Console (veja o Passo B) |
 | `favicon.svg` | Ícone da aba, baseado no logo do EJAC |
 | `assets/` | Fotos da camiseta (fundo removido), a fonte da estampa e o logo usado na prévia de compartilhamento |
@@ -26,21 +29,20 @@ Site pros membros do EJAC (Esperança Jovem Aliada a Cristo) pedirem a camiseta 
 > na página. Se voltar a escrever `<style>` ou `<script>` direto no HTML, o
 > navegador vai bloquear — é proposital.
 
-> **Por que `cesta` e `admin` são pastas com `index.html` dentro, em vez de
-> `cesta.html`/`admin.html`:** assim a URL fica `/cesta/` e `/admin/`, sem o
+> **Por que `termo` e `admin` são pastas com `index.html` dentro, em vez de
+> `termo.html`/`admin.html`:** assim a URL fica `/termo/` e `/admin/`, sem o
 > `.html` aparecendo — GitHub Pages (como qualquer servidor estático) serve
 > automaticamente o `index.html` de dentro de uma pasta quando alguém visita
-> ela. Os links entre páginas usam caminho relativo (`../`, `../cesta/`
-> etc.), então se mover algum arquivo de lugar, precisa ajustar esses
-> caminhos nos três HTMLs.
+> ela. Os links entre páginas usam caminho relativo (`../`, `termo/` etc.),
+> então se mover algum arquivo de lugar, precisa ajustar esses caminhos nos
+> três HTMLs.
 
 ## Como o site funciona (visão geral)
 
-- **Home** (`/`): destaca a campanha que estiver rolando no momento. Hoje o destaque é a cesta básica (o hero leva direto pra `/cesta/`), e a camiseta aparece abaixo como seção secundária: fotos, aviso de "pedidos encerrados" e as instruções de pagamento pra quem já pediu.
+- **Home** (`/`): destaca o que estiver rolando no momento. Hoje o destaque é o Termo (o hero leva direto pra `/termo/`), e a camiseta aparece abaixo como seção secundária: fotos, aviso de "pedidos encerrados" e as instruções de pagamento pra quem já pediu.
 - **Camiseta** (`/`, seção `#pedido`): o formulário de pedido ficou aberto até 15/08/2026 e foi removido quando os pedidos encerraram (está no histórico do git, em `f713940`, se precisar reabrir numa próxima campanha). Enquanto esteve aberto, gravava no Firestore (fonte usada pelo site/painel) e mandava uma cópia pra planilha do Google via `Code.gs`, como backup. Os pedidos antigos continuam no Firestore e visíveis no painel admin.
-- **Cesta básica** (`/cesta/`): formulário público onde os membros escolhem um item de uma lista fixa e dizem quanto vão trazer (a quantidade toda ou só uma parte) — só pede nome, sem WhatsApp. **Nome, item e quantidade ficam visíveis na própria página** (foi um pedido do grupo, pra dar controle de quem já trouxe o quê), atualizando em tempo real pra quem estiver com a página aberta. O IP **nunca aparece no site** — fica numa coleção separada, só legível pelo painel admin.
-- **Painel admin** (`/admin/`): login com conta Google. Só e-mails na lista `emailsAdmin()` do `firestore.rules` conseguem entrar — qualquer outra conta Google cai numa tela de "acesso não autorizado". De lá dá pra ver todos os pedidos de camiseta (com resumo por tamanho e exportar CSV), ver a cesta básica com IP incluído, e **excluir qualquer registro errado ou falso** direto pela interface, sem precisar abrir o Firebase Console.
-- Não existe cota fixa por pessoa na cesta: qualquer um pode contribuir com qualquer item, em qualquer quantidade (até um teto de 3× a meta, só pra barrar erro de digitação). Se um item já estiver completo, a página avisa mas ainda deixa contribuir a mais.
+- **Termo EJAC** (`/termo/`): joguinho diário de adivinhar a palavra, no estilo do termo.ooo, só que as palavras são todas da nossa fé e cada uma vem com o significado no fim da partida. Roda inteiro no navegador: **não usa Firebase nem grava nada em servidor** — o progresso e as estatísticas ficam só no `localStorage` de quem joga. A única requisição que faz é buscar o dicionário de português da própria pasta, pra saber se a tentativa é uma palavra que existe. Tem o modo **Dueto** (duas palavras ao mesmo tempo, 7 tentativas) em `?modo=dueto`.
+- **Painel admin** (`/admin/`): login com conta Google. Só e-mails na lista `emailsAdmin()` do `firestore.rules` conseguem entrar — qualquer outra conta Google cai numa tela de "acesso não autorizado". De lá dá pra ver todos os pedidos de camiseta (com resumo por tamanho, IP incluído e exportar CSV) e **excluir qualquer registro errado ou falso** direto pela interface, sem precisar abrir o Firebase Console.
 
 ## Passo A — Criar o projeto Firebase e o banco Firestore
 
@@ -76,7 +78,7 @@ Site pros membros do EJAC (Esperança Jovem Aliada a Cristo) pedirem a camiseta 
 3. Entre com um e-mail que você colocou em `emailsAdmin()` — deve cair direto no painel
 4. Teste com outra conta Google (uma pessoal, por exemplo) pra confirmar que aparece a tela de "acesso não autorizado"
 
-Se a lista de itens da cesta ou de tamanhos mudar, atualize em **três lugares**: `catalogos.js` (usado pelos formulários e pelo painel), a função `metas()`/`tamanhosValidos()` no `firestore.rules` (regras do Firestore não conseguem importar arquivo externo), e as opções do `<select>` em `cesta/index.html`.
+Se a lista de tamanhos de camiseta mudar, atualize em **dois lugares**: `catalogos.js` e a função `tamanhosValidos()` no `firestore.rules` (regras do Firestore não conseguem importar arquivo externo).
 
 ### Custo
 
@@ -86,8 +88,8 @@ O plano gratuito do Firestore (Spark) libera 50 mil leituras e 20 mil escritas p
 
 O site é estático (sem servidor nosso), então a superfície de ataque é pequena. Mesmo assim, tem várias camadas de proteção:
 
-- **As regras do Firestore são a validação que vale de verdade** (`firestore.rules`): tamanho de campo, formato de WhatsApp, item/tamanho dentro da lista oficial, quantidade dentro do razoável. A validação no navegador (`camiseta-firebase.js`/`cesta-firebase.js`) é só "de cortesia", pra dar feedback rápido — um usuário malicioso pode pular ela inteira e mesmo assim esbarra nas regras do servidor.
-- **Ninguém lê dado sensível sem estar autorizado:** os pedidos de camiseta (nome + WhatsApp) e o IP da cesta só são legíveis por quem faz login Google **e** está na lista `emailsAdmin()` das regras. Ninguém mais consegue ler essas coleções, nem o próprio código do site — as regras barram no servidor, não é só uma questão de "a página não mostra".
+- **As regras do Firestore são a validação que vale de verdade** (`firestore.rules`): tamanho de campo, formato de WhatsApp, item/tamanho dentro da lista oficial, quantidade dentro do razoável. A validação no navegador (`camiseta-firebase.js`) é só "de cortesia", pra dar feedback rápido — um usuário malicioso pode pular ela inteira e mesmo assim esbarra nas regras do servidor.
+- **Ninguém lê dado sensível sem estar autorizado:** os pedidos de camiseta (nome + WhatsApp + IP) só são legíveis por quem faz login Google **e** está na lista `emailsAdmin()` das regras. Ninguém mais consegue ler essas coleções, nem o próprio código do site — as regras barram no servidor, não é só uma questão de "a página não mostra".
 - **Ninguém edita ou apaga nada, exceto o admin:** criar um pedido/contribuição é público (é o formulário), mas alterar ou excluir só é permitido pra quem está autenticado como admin. Isso é forçado pelas regras, não pela interface.
 - **Honeypot anti-bot:** um campo invisível (`website`) que humanos não veem; se vier preenchido, o envio é descartado (bots costumam preencher tudo).
 - **Content-Security-Policy sem `unsafe-inline`:** a CSP nega tudo por padrão e libera só o essencial (o próprio domínio, as fontes do Google, o SDK do Firebase via `gstatic.com`, e os endpoints do Firestore/Auth). Como nenhum CSS ou JS fica embutido no HTML, o navegador **bloqueia qualquer script ou estilo injetado** na página — a defesa mais forte contra XSS. Também bloqueia envio de formulário pra fora (`form-action 'none'`) e o site ser colocado dentro de um iframe (`frame-ancestors 'none'`, evita clickjacking).
@@ -115,12 +117,12 @@ O site foi feito pra funcionar pra todo mundo, inclusive quem navega só pelo te
 1. Crie uma conta no [github.com](https://github.com) se ainda não tiver
 2. Clique em **New repository**, dê um nome (ex: `site-ejac`) e crie
 3. Na página do repositório, clique em **Add file → Upload files**
-4. Arraste `index.html`, `styles.css`, `app.js`, `camiseta-firebase.js`, `cesta-firebase.js`, `admin-firebase.js`, `firebase-config.js`, `catalogos.js`, `favicon.svg` e as pastas `assets/`, `cesta/` e `admin/` (arrastando a pasta inteira, não só o `index.html` de dentro dela, pra manter `cesta/index.html` e `admin/index.html` no lugar certo) e clique em **Commit changes** (`firestore.rules` e `Code.gs` não precisam subir pro GitHub Pages — o primeiro é usado no Firebase Console (Passo B), o segundo no editor do Apps Script (Passo F))
+4. Arraste `index.html`, `styles.css`, `app.js`, `camiseta-firebase.js`, `admin-firebase.js`, `firebase-config.js`, `catalogos.js`, `favicon.svg` e as pastas `assets/`, `termo/` e `admin/` (arrastando a pasta inteira, não só o `index.html` de dentro dela, pra manter `termo/index.html` e `admin/index.html` no lugar certo) e clique em **Commit changes** (`firestore.rules` e `Code.gs` não precisam subir pro GitHub Pages — o primeiro é usado no Firebase Console (Passo B), o segundo no editor do Apps Script (Passo F))
 5. Vá em **Settings → Pages**
 6. Em "Branch", selecione `main` e a pasta `/root`, depois clique em **Save**
 7. Espere 1–2 minutos e atualize a página — vai aparecer o link do site (algo como `https://seu-usuario.github.io/site-ejac/`)
 
-Esse é o link que vocês vão divulgar pro grupo pedir a camiseta e colaborar com a cesta.
+Esse é o link que vocês divulgam pro grupo.
 
 ## Passo F — Conectar a cópia dos pedidos de camiseta na planilha
 

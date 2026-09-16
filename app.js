@@ -357,8 +357,8 @@ function destacarInvalido(el) {
   el.addEventListener('animationend', () => el.classList.remove('campo-invalido'), { once: true });
 }
 
-// O envio dos formulários (camiseta e cesta básica) mudou pra Firestore
-// — a lógica de cada um mora em camiseta-firebase.js e cesta-firebase.js,
+// O envio do formulário de camiseta mudou pra Firestore
+// — a lógica mora em camiseta-firebase.js,
 // carregados só na página correspondente. Esses utilitários de UI (som,
 // prévia da camisa, animação de campo inválido) são compartilhados com
 // esses módulos via window.EJAC, já que são <script type="module"> e não

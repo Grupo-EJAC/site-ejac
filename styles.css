@@ -248,8 +248,8 @@
     align-items: center;
   }
 
-  /* Hero sem imagem ao lado: usado quando a home destaca a cesta básica,
-     que não tem foto própria. Vira uma coluna só, centralizada. */
+  /* Hero sem imagem ao lado: vira uma coluna só, centralizada. Usado
+     quando o destaque da home não tem foto própria. */
   .hero-simples {
     grid-template-columns: 1fr;
     justify-items: center;
@@ -341,8 +341,8 @@
   }
 
   /* Camisa flutuante no hero, com spotlight atrás.
-     Sem uso no momento: a home passou a destacar a cesta básica e o hero
-     virou só texto (.hero-simples). Mantido porque a campanha de camiseta
+     Sem uso no momento: o hero da home virou só texto (.hero-simples).
+     Mantido porque a campanha de camiseta
      é sazonal — pra voltar, é só recolocar a <div class="hero-shirt"> no
      index.html e tirar o .hero-simples do <section class="hero">. */
   .hero-shirt {
@@ -1007,163 +1007,6 @@
     width: 1px;
     height: 1px;
     overflow: hidden;
-  }
-
-  /* ============================================================
-     SEÇÃO CESTA BÁSICA
-     ============================================================ */
-  .cesta {
-    padding: 40px 24px 100px;
-    max-width: 640px;
-    margin: 0 auto;
-  }
-
-  .cesta h1 {
-    font-family: var(--font-display);
-    font-weight: 800;
-    font-size: clamp(1.8rem, 4vw, 2.4rem);
-    text-align: center;
-    margin-bottom: 8px;
-  }
-
-  /* Como página própria (sem hero acima), precisa de mais respiro no topo */
-  .cesta-pagina {
-    padding-top: 70px;
-  }
-
-  .cesta-sub {
-    text-align: center;
-    color: #ccc;
-    max-width: 52ch;
-    margin: 0 auto 32px;
-    line-height: 1.5;
-  }
-
-  .cesta-progresso {
-    list-style: none;
-    margin: 0 0 28px;
-    padding: 0;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-  }
-
-  .cesta-carregando {
-    text-align: center;
-    color: var(--cinza-texto);
-    font-size: .9rem;
-    padding: 20px 0;
-  }
-
-  .cesta-item {
-    background: #0d0d0d;
-    border: 2px solid var(--cinza);
-    border-radius: 14px;
-    padding: 14px 18px;
-  }
-
-  .cesta-item-topo {
-    display: flex;
-    align-items: baseline;
-    justify-content: space-between;
-    gap: 10px;
-    margin-bottom: 8px;
-  }
-
-  .cesta-item-nome {
-    font-weight: 700;
-    font-size: .95rem;
-    color: var(--branco);
-  }
-
-  .cesta-item-qtd {
-    font-size: .8rem;
-    color: var(--cinza-texto);
-    white-space: nowrap;
-  }
-
-  .cesta-item-qtd strong { color: var(--rosa); }
-
-  .cesta-barra {
-    height: 10px;
-    border-radius: 999px;
-    background: #1e1e1e;
-    overflow: hidden;
-  }
-
-  .cesta-barra-preenchida {
-    height: 100%;
-    border-radius: 999px;
-    background: var(--rosa);
-    transition: width .3s ease;
-  }
-
-  .cesta-item.completo .cesta-barra-preenchida { background: var(--laranja); }
-
-  .cesta-item.completo .cesta-item-qtd strong { color: var(--laranja); }
-
-  .cesta-contribuintes {
-    list-style: none;
-    margin: 10px 0 0;
-    padding: 10px 0 0;
-    border-top: 1px solid #222;
-    display: flex;
-    flex-direction: column;
-    gap: 5px;
-  }
-
-  .cesta-contribuinte {
-    display: flex;
-    align-items: baseline;
-    justify-content: space-between;
-    gap: 10px;
-    font-size: .78rem;
-    color: var(--cinza-texto);
-  }
-
-  .cesta-contribuinte span:first-child {
-    color: #ddd;
-    font-weight: 600;
-  }
-
-  .cesta-item-completo-selo {
-    font-size: .75rem;
-    font-weight: 700;
-    color: var(--laranja);
-  }
-
-  .cesta-hint {
-    text-align: center;
-    font-size: .8rem;
-    color: var(--cinza-texto);
-    margin: -6px 0 0;
-  }
-
-  .cesta-hint strong { color: var(--rosa); }
-
-  /* Selo de unidade colado no campo de quantidade — sem isso "2" fica
-     ambíguo (2kg? 2 unidades? 2L?), principalmente em itens como o
-     extrato de tomate, que é vendido por unidade, não por peso. */
-  .cesta-qtd-wrap {
-    position: relative;
-    display: flex;
-  }
-
-  .cesta-qtd-wrap input {
-    flex: 1;
-    padding-right: 76px;
-  }
-
-  .cesta-qtd-unidade {
-    position: absolute;
-    top: 50%;
-    right: 16px;
-    transform: translateY(-50%);
-    font-family: var(--font-display);
-    font-weight: 700;
-    font-size: .8rem;
-    color: var(--rosa);
-    pointer-events: none;
   }
 
   /* ============================================================

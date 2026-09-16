@@ -1,5 +1,5 @@
-// EJAC — Painel administrativo: pedidos de camiseta + cesta básica
-// (com WhatsApp/IP), com login Google.
+// EJAC — Painel administrativo: pedidos de camiseta (com WhatsApp/IP),
+// com login Google.
 // Quem entra vê e pode excluir; a lista de quem PODE entrar mora no
 // firestore.rules (função emailsAdmin()), não aqui — este arquivo não
 // decide autorização, só tenta ler os dados e reage se o servidor
@@ -10,8 +10,8 @@ import {
   getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged,
 } from 'https://www.gstatic.com/firebasejs/12.17.1/firebase-auth.js';
 import {
-  getFirestore, collection, doc, query, orderBy, where, limit,
-  onSnapshot, getDocs, deleteDoc, writeBatch,
+  getFirestore, collection, doc, query, orderBy, limit,
+  onSnapshot, getDocs, deleteDoc,
 } from 'https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js';
 import { firebaseConfig } from './firebase-config.js';
 
@@ -88,16 +88,12 @@ if (firebaseConfig.apiKey.includes('COLE_AQUI')) {
   const db = getFirestore(app);
 
   const colCamiseta = collection(db, 'camisetaPedidos');
-  const colCestaContatos = collection(db, 'cestaContatos');
-  const colCestaContribuicoes = collection(db, 'cestaContribuicoes');
 
   let pararCamiseta = null;
-  let pararCesta = null;
   let pedidosCamisetaAtuais = [];
 
   function pararListeners() {
     if (pararCamiseta) { pararCamiseta(); pararCamiseta = null; }
-    if (pararCesta) { pararCesta(); pararCesta = null; }
   }
 
   // ---------------- Camisetas ----------------
@@ -184,69 +180,6 @@ if (firebaseConfig.apiKey.includes('COLE_AQUI')) {
     });
   }
 
-  // ---------------- Cesta básica ----------------
-
-  function renderResumoCesta(contatos) {
-    const resumoEl = document.getElementById('cesta-resumo');
-    if (!resumoEl) return;
-    resumoEl.textContent = '';
-    const total = document.createElement('span');
-    total.className = 'admin-stat admin-stat-total';
-    total.textContent = `${contatos.length} contribuição${contatos.length === 1 ? '' : 'ões'}`;
-    resumoEl.appendChild(total);
-  }
-
-  // Cada contribuição vira DOIS documentos (cestaContatos + cestaContribuicoes,
-  // ligados pelo mesmo grupoId — veja o cesta-firebase.js). Excluir precisa
-  // apagar os dois, senão o total público em /cesta/ fica errado.
-  async function excluirContribuicaoCesta(contatoId, grupoId) {
-    if (!confirm('Excluir esta contribuição da cesta? Essa ação não pode ser desfeita.')) return;
-    try {
-      await deleteDoc(doc(colCestaContatos, contatoId));
-      const relacionados = await getDocs(query(colCestaContribuicoes, where('grupoId', '==', grupoId)));
-      if (!relacionados.empty) {
-        const lote = writeBatch(db);
-        relacionados.forEach((d) => lote.delete(d.ref));
-        await lote.commit();
-      }
-    } catch (err) {
-      alert('Não foi possível excluir. Tente de novo.');
-    }
-  }
-
-  function renderCesta(snapshot) {
-    const tbody = document.getElementById('cesta-tbody');
-    if (!tbody) return;
-    tbody.textContent = '';
-
-    const contatos = [];
-    snapshot.forEach((docSnap) => contatos.push({ id: docSnap.id, ...docSnap.data() }));
-    renderResumoCesta(contatos);
-
-    if (contatos.length === 0) {
-      const tr = document.createElement('tr');
-      const td = document.createElement('td');
-      td.colSpan = 6;
-      td.textContent = 'Nenhuma contribuição ainda.';
-      tr.appendChild(td);
-      tbody.appendChild(tr);
-      return;
-    }
-
-    contatos.forEach((c) => {
-      const tr = document.createElement('tr');
-      [formatarData(c.criadoEm), c.nome, c.item, c.quantidade, c.ip || '—'].forEach((valor) => {
-        const td = document.createElement('td');
-        td.textContent = valor;
-        tr.appendChild(td);
-      });
-      const tdAcao = document.createElement('td');
-      tdAcao.appendChild(criarBotaoExcluir(() => excluirContribuicaoCesta(c.id, c.grupoId)));
-      tr.appendChild(tdAcao);
-      tbody.appendChild(tr);
-    });
-  }
-
   // ---------------- Login / autorização ----------------
 
   if (btnLogin) {
@@ -297,6 +230,5 @@ if (firebaseConfig.apiKey.includes('COLE_AQUI')) {
     mostrarTela('painel');
 
     pararCamiseta = onSnapshot(query(colCamiseta, orderBy('criadoEm', 'desc')), renderCamiseta);
-    pararCesta = onSnapshot(query(colCestaContatos, orderBy('criadoEm', 'desc')), renderCesta);
   });
 }

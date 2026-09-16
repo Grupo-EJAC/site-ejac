@@ -1,19 +1,18 @@
-// EJAC — Regras de segurança do Firestore (camiseta + cesta básica + painel admin).
+// EJAC — Regras de segurança do Firestore (camiseta + painel admin).
 //
 // Cole isso no Firebase Console: Firestore Database → Regras → colar
 // tudo → Publicar. Isso é o que de fato valida cada envio e protege os
 // dados — os módulos .js do site só fazem validação "de cortesia" no
 // navegador, que qualquer um pode pular; quem barra de verdade é isto.
 //
-// Ninguém (nem o próprio site) pode ler os pedidos de camiseta, ler o
-// WhatsApp/IP da cesta, ou apagar/editar qualquer coisa, a não ser que
-// esteja logado com um e-mail da lista ADMIN abaixo (login Google, feito
-// em /admin/). É assim que o painel admin funciona sem senha própria
-// nem backend nosso: quem autentica é o Firebase, quem autoriza é a
-// lista de e-mails aqui embaixo.
+// Ninguém (nem o próprio site) pode ler os pedidos de camiseta, ou
+// apagar/editar qualquer coisa, a não ser que esteja logado com um
+// e-mail da lista ADMIN abaixo (login Google, feito em /admin/). É assim
+// que o painel admin funciona sem senha própria nem backend nosso: quem
+// autentica é o Firebase, quem autoriza é a lista de e-mails aqui embaixo.
 //
-// Se a lista de itens da cesta mudar, atualize a função metas() aqui
-// TAMBÉM, além do cesta-firebase.js e do <select> em /cesta/.
+// Se a lista de tamanhos mudar, atualize a função tamanhosValidos() aqui
+// TAMBÉM, além do catalogos.js e do <select> no index.html.
 
 rules_version = '2';
 
@@ -22,8 +21,8 @@ service cloud.firestore {
 
     // ---------- Quem é admin ----------
 
-    // Coordenadores com acesso a /admin/ (ver pedidos de camiseta, ver
-    // IP da cesta, excluir itens). Sempre em minúsculas — a comparação
+    // Coordenadores com acesso a /admin/ (ver os pedidos de camiseta com
+    // WhatsApp e IP, excluir registros). Sempre em minúsculas — a comparação
     // em isAdmin() também baixa a caixa do e-mail logado, então não
     // importa como a pessoa digitou o Gmail dela originalmente.
     function emailsAdmin() {
@@ -51,56 +50,6 @@ service cloud.firestore {
       return whatsapp is string && whatsapp.matches('^[0-9]{10,11}$');
     }
 
-    // ---------- Cesta básica colaborativa ----------
-
-    // Meta de cada item — teto de sanidade (aceita até 3x a meta por
-    // contribuição, pra barrar "9999" digitado por engano).
-    function metas() {
-      return {
-        'arroz': 12, 'feijao': 2, 'bolacha': 1, 'acucar': 1, 'tempero': 1,
-        'cafe': 2, 'macarrao': 8, 'oleo': 3, 'cha': 1, 'suco': 4,
-        'extrato': 10, 'leite': 2, 'farofa': 1, 'vinagre': 1, 'sal': 1,
-        'vina': 8, 'creme_leite': 2, 'cebola': 3, 'alho': 0.3,
-      };
-    }
-
-    function quantidadeValida(itemId, quantidade) {
-      return itemId in metas()
-        && quantidade is number
-        && quantidade > 0
-        && quantidade <= metas()[itemId] * 3;
-    }
-
-    function grupoIdValido(grupoId) {
-      return grupoId is string && grupoId.size() > 0 && grupoId.size() <= 100;
-    }
-
-    // Dados públicos: nome, item e quantidade — aparecem em /cesta/ de
-    // propósito, é o "quem já trouxe o quê" que o grupo pediu pra ver.
-    match /cestaContribuicoes/{id} {
-      allow read: if true;
-      allow create: if request.resource.data.keys().hasOnly(['grupoId', 'nome', 'item', 'quantidade', 'criadoEm'])
-        && grupoIdValido(request.resource.data.grupoId)
-        && nomeValido(request.resource.data.nome)
-        && quantidadeValida(request.resource.data.item, request.resource.data.quantidade)
-        && request.resource.data.criadoEm == request.time;
-      allow update, delete: if isAdmin();
-    }
-
-    // Dados privados: IP (antifraude) — só o painel admin lê, nunca a
-    // página pública da cesta. Sem WhatsApp de propósito: a cesta não
-    // pede esse dado, diferente do pedido de camiseta.
-    match /cestaContatos/{id} {
-      allow read: if isAdmin();
-      allow create: if request.resource.data.keys().hasOnly(['grupoId', 'nome', 'item', 'quantidade', 'ip', 'criadoEm'])
-        && grupoIdValido(request.resource.data.grupoId)
-        && nomeValido(request.resource.data.nome)
-        && quantidadeValida(request.resource.data.item, request.resource.data.quantidade)
-        && request.resource.data.ip is string && request.resource.data.ip.size() <= 45
-        && request.resource.data.criadoEm == request.time;
-      allow update, delete: if isAdmin();
-    }
-
     // ---------- Pedido de camiseta ----------
 
     function tamanhosValidos() {
@@ -122,11 +71,12 @@ service cloud.firestore {
         && request.resource.data.criadoEm == request.time;
     }
 
-    // Tudo mais fica bloqueado por padrão. Isso inclui muralTracos: a
-    // feature do mural de neon foi removida do site (2026-08-06), mas
-    // os traços que já tinham sido desenhados continuam guardados aqui
-    // (não foram apagados, só ficaram inacessíveis) — se a feature
-    // voltar um dia, é só reabrir as regras dessa coleção de novo.
+    // Tudo mais fica bloqueado por padrão. Isso inclui as coleções de
+    // features que já saíram do site: muralTracos (mural de neon,
+    // removido em 2026-08-06) e cestaContribuicoes/cestaContatos (cesta
+    // básica, removida em 2026-09-16, com 27 contribuições registradas).
+    // Nada disso foi apagado, só ficou inacessível — se alguma delas
+    // voltar um dia, é só reabrir as regras da coleção de novo.
     match /{document=**} {
       allow read, write: if false;
     }

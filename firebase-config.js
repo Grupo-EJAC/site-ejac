@@ -1,5 +1,5 @@
 // EJAC — Configuração do projeto Firebase, compartilhada por todos os
-// módulos do site (cesta, camiseta e painel admin — veja o README.md
+// módulos do site (camiseta e painel admin — veja o README.md
 // pra gerar a sua e colar aqui).
 //
 // Não é segredo: toda config de app web do Firebase é pública por
