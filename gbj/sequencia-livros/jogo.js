@@ -123,9 +123,15 @@ const db = getFirestore(app);
 let uid = null;
 
 onAuthStateChanged(auth, async (user) => {
-  if (!user) {
-    // Não tem sessão: volta pro login. É o próprio /gbj/ que autentica —
-    // esta página só treina quem já entrou por lá.
+  // O login anônimo do Termo e o login Google do /admin/ usam o mesmo
+  // projeto Firebase (e o mesmo app "padrão"), então a sessão de um vaza
+  // pro outro: alguém pode chegar aqui "autenticado" com uma conta que
+  // nunca foi de membro do GBJ. Nesse caso não é sessão nossa pra
+  // desconectar — só manda pro login do GBJ, sem mexer em nada.
+  const ehLoginSenha = user && !user.isAnonymous && user.providerData.some((p) => p.providerId === 'password');
+  if (!ehLoginSenha) {
+    // Não tem sessão do GBJ: volta pro login. É o próprio /gbj/ que
+    // autentica — esta página só treina quem já entrou por lá.
     location.replace('../');
     return;
   }
@@ -253,10 +259,9 @@ function responder(porTempoEsgotado) {
     elFeedback.className = 'gbj-sl-feedback gbj-sl-feedback-certo';
   } else {
     sessao.vidas -= 1;
-    const partes = [];
-    if (!acertouAntes) partes.push(`antes de ${LIVROS_BIBLIA[rodadaAtual.indice]}: ${rodadaAtual.antes}`);
-    if (!acertouDepois) partes.push(`depois de ${LIVROS_BIBLIA[rodadaAtual.indice]}: ${rodadaAtual.depois}`);
-    elFeedback.textContent = (porTempoEsgotado ? 'Tempo esgotado. ' : 'Errou. ') + 'Certo era — ' + partes.join(' | ');
+    const livroAnunciado = LIVROS_BIBLIA[rodadaAtual.indice];
+    const prefixo = porTempoEsgotado ? 'Tempo esgotado.' : 'Errou.';
+    elFeedback.textContent = `${prefixo} A sequência é ${rodadaAtual.antes}, ${livroAnunciado}, ${rodadaAtual.depois}.`;
     elFeedback.className = 'gbj-sl-feedback gbj-sl-feedback-errado';
   }
 

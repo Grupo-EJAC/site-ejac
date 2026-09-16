@@ -126,7 +126,15 @@ if (btnLogout) {
 onAuthStateChanged(auth, async (user) => {
   if (pararHistorico) { pararHistorico(); pararHistorico = null; }
 
-  if (!user) {
+  // O login anônimo do Termo e o login Google do /admin/ usam o MESMO
+  // projeto Firebase (e o mesmo app "padrão", já que ninguém aqui dá nome
+  // pro initializeApp). Isso significa que a sessão de um vaza pro outro:
+  // quem jogou o Termo ou é coordenador logado no admin chega aqui já
+  // "autenticado" com uma conta que nunca foi de membro do GBJ — e sem
+  // este filtro, isso mostrava "sua conta não está mais ativa", uma
+  // mensagem alarmante e errada pra quem nunca tentou entrar no GBJ.
+  const ehLoginSenha = user && !user.isAnonymous && user.providerData.some((p) => p.providerId === 'password');
+  if (!ehLoginSenha) {
     mostrarTela('login');
     return;
   }
