@@ -1,11 +1,13 @@
 // EJAC — GBJ, Quiz: perguntas gerais e dos livros pré-selecionados
-// (Tobias, Evangelho de João, Efésios). Vieram de dois documentos —
-// "PERGUNTAS - JUREF - GBJ - 2026" (id 1 a 25 de cada seção) e
-// "PERGUNTAS GBJ EJAC" (id 26 a 50) — juntados na mesma lista, mesmo
-// formato. Cada pergunta tem um id estável (secao-numero) usado pra
-// registrar contestação, então não muda a ordem nem os ids depois de
-// publicado — só adicione no fim (ou continue a numeração de uma seção)
-// se quiser crescer o banco de novo.
+// (Tobias, Evangelho de João, Efésios). Vieram de três fontes —
+// "PERGUNTAS - JUREF - GBJ - 2026" (id 1 a 25 de cada seção),
+// "PERGUNTAS GBJ EJAC" (id 26 a 50) e um lote escrito por revisão
+// direta, sem PDF de origem (id 51 em diante, cada uma com um comentário
+// "// fonte:" logo acima citando de onde veio, pra conferir) — juntados
+// na mesma lista, mesmo formato. Cada pergunta tem um id estável
+// (secao-numero) usado pra registrar contestação, então não muda a ordem
+// nem os ids depois de publicado — só adicione no fim (ou continue a
+// numeração de uma seção) se quiser crescer o banco de novo.
 export const SECOES_QUIZ = {
   joao: 'Evangelho de João',
   tobias: 'Tobias',
@@ -2413,5 +2415,356 @@ export const PERGUNTAS_QUIZ = [
       "Los Angeles, Estados Unidos",
     ],
     correta: 2,
+  },
+  // fonte: Doutrina/CIC 1113
+  {
+    id: 'gerais-51',
+    secao: 'gerais',
+    pergunta: "Quantos sacramentos existem na Igreja Católica?",
+    alternativas: [
+      "5",
+      "6",
+      "7",
+      "9",
+    ],
+    correta: 2,
+  },
+  // fonte: CIC 1212
+  {
+    id: 'gerais-52',
+    secao: 'gerais',
+    pergunta: "Quais são os sacramentos de iniciação cristã?",
+    alternativas: [
+      "Batismo, Confirmação e Eucaristia",
+      "Batismo, Penitência e Eucaristia",
+      "Confirmação, Eucaristia e Unção dos Enfermos",
+      "Batismo, Ordem e Matrimônio",
+    ],
+    correta: 0,
+  },
+  // fonte: CIC 1420-1532
+  {
+    id: 'gerais-53',
+    secao: 'gerais',
+    pergunta: "Quais são os sacramentos de cura, segundo a classificação da Igreja?",
+    alternativas: [
+      "Batismo e Confirmação",
+      "Penitência e Unção dos Enfermos",
+      "Ordem e Matrimônio",
+      "Eucaristia e Penitência",
+    ],
+    correta: 1,
+  },
+  // fonte: Dogma da Santíssima Trindade
+  {
+    id: 'gerais-54',
+    secao: 'gerais',
+    pergunta: "Quantas pessoas há na Santíssima Trindade?",
+    alternativas: [
+      "1",
+      "2",
+      "3",
+      "4",
+    ],
+    correta: 2,
+  },
+  // fonte: 1Cor 13,13 / CIC 1812-1829
+  {
+    id: 'gerais-55',
+    secao: 'gerais',
+    pergunta: "Quais são as três virtudes teologais?",
+    alternativas: [
+      "Prudência, Justiça e Fortaleza",
+      "Fé, Esperança e Caridade",
+      "Sabedoria, Ciência e Piedade",
+      "Humildade, Paciência e Mansidão",
+    ],
+    correta: 1,
+  },
+  // fonte: CIC 1805
+  {
+    id: 'gerais-56',
+    secao: 'gerais',
+    pergunta: "Quantas virtudes cardeais existem?",
+    alternativas: [
+      "3",
+      "4",
+      "5",
+      "7",
+    ],
+    correta: 1,
+  },
+  // fonte: Is 11,2-3 / CIC 1831
+  {
+    id: 'gerais-57',
+    secao: 'gerais',
+    pergunta: "Quantos dons do Espírito Santo a tradição da Igreja reconhece?",
+    alternativas: [
+      "5",
+      "6",
+      "7",
+      "9",
+    ],
+    correta: 2,
+  },
+  // fonte: ordem canônica da Bíblia
+  {
+    id: 'gerais-58',
+    secao: 'gerais',
+    pergunta: "Qual é o primeiro livro da Bíblia?",
+    alternativas: [
+      "Êxodo",
+      "Gênesis",
+      "Levítico",
+      "Números",
+    ],
+    correta: 1,
+  },
+  // fonte: ordem canônica da Bíblia
+  {
+    id: 'gerais-59',
+    secao: 'gerais',
+    pergunta: "Qual é o último livro da Bíblia?",
+    alternativas: [
+      "Apocalipse",
+      "Judas",
+      "3ª João",
+      "Hebreus",
+    ],
+    correta: 0,
+  },
+  // fonte: canon catolico (46 AT + 27 NT)
+  {
+    id: 'gerais-60',
+    secao: 'gerais',
+    pergunta: "Quantos livros ao todo tem a Bíblia Católica (Antigo e Novo Testamento juntos)?",
+    alternativas: [
+      "66",
+      "27",
+      "73",
+      "46",
+    ],
+    correta: 2,
+  },
+  // fonte: canon do Novo Testamento
+  {
+    id: 'gerais-61',
+    secao: 'gerais',
+    pergunta: "Quantos evangelhos há no Novo Testamento, e quais são?",
+    alternativas: [
+      "3: Mateus, Marcos e Lucas",
+      "4: Mateus, Marcos, Lucas e João",
+      "4: Mateus, Marcos, João e Paulo",
+      "5: Mateus, Marcos, Lucas, João e Atos",
+    ],
+    correta: 1,
+  },
+  // fonte: Mt 6,9-13 / Lc 11,1-4
+  {
+    id: 'gerais-62',
+    secao: 'gerais',
+    pergunta: "Qual oração o próprio Jesus ensinou aos discípulos, quando pediram \"Senhor, ensina-nos a rezar\"?",
+    alternativas: [
+      "Ave Maria",
+      "Pai Nosso",
+      "Credo",
+      "Glória ao Pai",
+    ],
+    correta: 1,
+  },
+  // fonte: tradição da Ordem do Carmo
+  {
+    id: 'gerais-63',
+    secao: 'gerais',
+    pergunta: "A Ordem do Carmo remonta tradicionalmente à presença de eremitas no Monte Carmelo, ligados a qual profeta do Antigo Testamento?",
+    alternativas: [
+      "Isaías",
+      "Elias",
+      "Eliseu",
+      "Jeremias",
+    ],
+    correta: 1,
+  },
+  // fonte: calendário litúrgico, 16 de julho
+  {
+    id: 'gerais-64',
+    secao: 'gerais',
+    pergunta: "Em que dia a Igreja celebra Nossa Senhora do Carmo?",
+    alternativas: [
+      "15 de agosto",
+      "16 de julho",
+      "8 de dezembro",
+      "11 de fevereiro",
+    ],
+    correta: 1,
+  },
+  // fonte: autoria tradicional
+  {
+    id: 'efesios-51',
+    secao: 'efesios',
+    pergunta: "Quem é o autor tradicional da Carta aos Efésios?",
+    alternativas: [
+      "São Pedro",
+      "São João",
+      "São Paulo",
+      "São Tiago",
+    ],
+    correta: 2,
+  },
+  // fonte: cartas do cativeiro
+  {
+    id: 'efesios-52',
+    secao: 'efesios',
+    pergunta: "De qual cidade Paulo escreveu a Carta aos Efésios, durante seu cativeiro?",
+    alternativas: [
+      "Éfeso",
+      "Roma",
+      "Corinto",
+      "Atenas",
+    ],
+    correta: 1,
+  },
+  // fonte: estrutura do livro
+  {
+    id: 'efesios-53',
+    secao: 'efesios',
+    pergunta: "Quantos capítulos tem a Carta aos Efésios?",
+    alternativas: [
+      "4",
+      "5",
+      "6",
+      "8",
+    ],
+    correta: 2,
+  },
+  // fonte: Ef 6,12
+  {
+    id: 'efesios-54',
+    secao: 'efesios',
+    pergunta: "Em Efésios 6,12, contra o que Paulo diz que a nossa luta NÃO é?",
+    alternativas: [
+      "Contra o pecado",
+      "Contra a carne e o sangue",
+      "Contra o mundo",
+      "Contra as tentações",
+    ],
+    correta: 1,
+  },
+  // fonte: estrutura do livro
+  {
+    id: 'tobias-51',
+    secao: 'tobias',
+    pergunta: "Quantos capítulos tem o livro de Tobias?",
+    alternativas: [
+      "10",
+      "12",
+      "14",
+      "16",
+    ],
+    correta: 2,
+  },
+  // fonte: Tb 12,15 e tradição
+  {
+    id: 'tobias-52',
+    secao: 'tobias',
+    pergunta: "Quais são os três arcanjos mencionados pelo nome nas Escrituras reconhecidas pela Igreja Católica?",
+    alternativas: [
+      "Miguel, Gabriel e Rafael",
+      "Miguel, Uriel e Rafael",
+      "Gabriel, Rafael e Sealtiel",
+      "Miguel, Gabriel e Uriel",
+    ],
+    correta: 0,
+  },
+  // fonte: classificação da Bíblia Ave Maria
+  {
+    id: 'tobias-53',
+    secao: 'tobias',
+    pergunta: "O livro de Tobias é classificado, junto com Judite e Ester, em qual grupo de livros do Antigo Testamento?",
+    alternativas: [
+      "Livros Proféticos",
+      "Livros Sapienciais",
+      "Livros Históricos",
+      "Livros Poéticos",
+    ],
+    correta: 2,
+  },
+  // fonte: Jo 1,1
+  {
+    id: 'joao-51',
+    secao: 'joao',
+    pergunta: "Com qual frase inicia o prólogo do Evangelho de João, uma clara referência ao início do livro de Gênesis?",
+    alternativas: [
+      "\"No princípio Deus criou os céus e a terra\"",
+      "\"No princípio era o Verbo\"",
+      "\"No princípio havia luz\"",
+      "\"No princípio Deus falou ao mundo\"",
+    ],
+    correta: 1,
+  },
+  // fonte: Jo 14,6
+  {
+    id: 'joao-52',
+    secao: 'joao',
+    pergunta: "Em João 14,6, Jesus se declara \"o caminho, a...\", completando com quais duas palavras?",
+    alternativas: [
+      "A luz e a paz",
+      "A verdade e a vida",
+      "A porta e o pastor",
+      "A videira e o pão",
+    ],
+    correta: 1,
+  },
+  // fonte: Jo 20,24-29
+  {
+    id: 'joao-53',
+    secao: 'joao',
+    pergunta: "No Evangelho de João, qual discípulo só creu na ressurreição de Jesus depois de tocar suas feridas?",
+    alternativas: [
+      "Pedro",
+      "André",
+      "Tomé",
+      "Filipe",
+    ],
+    correta: 2,
+  },
+  // fonte: Jo 11
+  {
+    id: 'joao-54',
+    secao: 'joao',
+    pergunta: "Quem Jesus ressuscitou dentre os mortos em Betânia, depois de já estar sepultado há quatro dias?",
+    alternativas: [
+      "O filho da viúva de Naim",
+      "A filha de Jairo",
+      "Lázaro",
+      "O jovem de Naim",
+    ],
+    correta: 2,
+  },
+  // fonte: Jo 2,1-11
+  {
+    id: 'joao-55',
+    secao: 'joao',
+    pergunta: "Em qual cidade Jesus realizou seu primeiro milagre, transformando água em vinho?",
+    alternativas: [
+      "Nazaré",
+      "Cafarnaum",
+      "Caná",
+      "Betânia",
+    ],
+    correta: 2,
+  },
+  // fonte: Jo 21,20 e tradição
+  {
+    id: 'joao-56',
+    secao: 'joao',
+    pergunta: "Como é chamado, no próprio texto do Evangelho, o discípulo tradicionalmente identificado como autor do quarto evangelho?",
+    alternativas: [
+      "O discípulo fiel",
+      "O discípulo amado",
+      "O discípulo zeloso",
+      "O discípulo primeiro",
+    ],
+    correta: 1,
   },
 ];
