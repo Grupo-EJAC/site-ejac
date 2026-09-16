@@ -202,7 +202,11 @@ const elTitulo = document.getElementById('titulo-modo');
 
 if (!elTabuleiros || !elTeclado) return;
 
-let digitacao = '';
+// A linha sendo digitada agora não é mais só uma string que só cresce no
+// fim: é um vetor de posições fixas (uma por coluna) mais um cursor, pra
+// dar pra clicar em qualquer quadrado e digitar ali, não só no próximo.
+let letras = Array(TAMANHO).fill('');
+let cursor = 0;
 let travado = jogo.estado !== 'jogando';
 
 // ------------------------------------------------------------
@@ -259,6 +263,17 @@ function linhasVisiveis(b) {
 // ------------------------------------------------------------
 // Desenhar os tabuleiros
 // ------------------------------------------------------------
+// Clicar/tocar numa célula da linha que ainda está sendo digitada move o
+// cursor pra ali — só faz sentido no tabuleiro que ainda não travou
+// (no dueto, um lado pode já ter sido resolvido antes do outro).
+function selecionarCelula(b, linha, col) {
+  if (travado) return;
+  if (linha !== jogo.tentativas.length) return;
+  if (tabuleiroResolvido(b)) return;
+  cursor = col;
+  pintarTabuleiros(false);
+}
+
 function montarTabuleiros() {
   elTabuleiros.innerHTML = '';
   elTabuleiros.classList.toggle('dueto', EH_DUETO);
@@ -275,6 +290,7 @@ function montarTabuleiros() {
       for (let col = 0; col < TAMANHO; col++) {
         const cel = document.createElement('div');
         cel.className = 'cel';
+        cel.addEventListener('click', () => selecionarCelula(b, linha, col));
         elLinha.appendChild(cel);
       }
       grade.appendChild(elLinha);
@@ -300,9 +316,13 @@ function pintarTabuleiros(animarUltima) {
         const ehUltima = animarUltima && i === visiveis - 1 && i === jogo.tentativas.length - 1;
 
         celulas.forEach((cel, j) => {
-          cel.textContent = tentativa[j];
+          // Quem digita não tem tecla de acento (o teclado só tem A-Z), então
+          // "TERCO" acerta contra "TERÇO" na posição certa. Mas exibir o "C"
+          // sem cedilha ensinaria a grafia errada — na posição CERTA, mostra
+          // a letra de verdade, com acento, tirada da resposta original.
+          cel.textContent = resultado[j] === 'certo' ? ENTRADAS[b].palavra[j] : tentativa[j];
           cel.classList.add('preenchida');
-          cel.classList.remove('certo', 'presente', 'ausente');
+          cel.classList.remove('certo', 'presente', 'ausente', 'cel-cursor', 'cel-editavel');
           if (ehUltima && !PREFERE_MENOS_MOVIMENTO) {
             cel.style.animationDelay = (j * 0.18) + 's';
             cel.classList.add('virando');
@@ -313,16 +333,20 @@ function pintarTabuleiros(animarUltima) {
           }
         });
       } else if (i === jogo.tentativas.length && !resolvido) {
-        // linha que está sendo digitada agora
+        // linha que está sendo digitada agora: cada célula aceita clique
+        // (por isso "cel-editavel" no cursor do mouse), e a do cursor
+        // ganha destaque pra mostrar onde a próxima letra vai cair
         celulas.forEach((cel, j) => {
-          cel.textContent = digitacao[j] || '';
-          cel.classList.toggle('preenchida', Boolean(digitacao[j]));
+          cel.textContent = letras[j] || '';
+          cel.classList.toggle('preenchida', Boolean(letras[j]));
+          cel.classList.toggle('cel-cursor', j === cursor);
+          cel.classList.add('cel-editavel');
           cel.classList.remove('certo', 'presente', 'ausente');
         });
       } else {
         celulas.forEach(cel => {
           cel.textContent = '';
-          cel.classList.remove('preenchida', 'certo', 'presente', 'ausente');
+          cel.classList.remove('preenchida', 'certo', 'presente', 'ausente', 'cel-cursor', 'cel-editavel');
         });
       }
     }
@@ -335,7 +359,7 @@ function pintarTabuleiros(animarUltima) {
 const LINHAS_TECLADO = [
   ['Q','W','E','R','T','Y','U','I','O','P'],
   ['A','S','D','F','G','H','J','K','L'],
-  ['ENTER','Z','X','C','V','B','N','M','APAGAR'],
+  ['APAGAR','Z','X','C','V','B','N','M','ENTER'],
 ];
 
 function montarTeclado() {
@@ -459,11 +483,19 @@ function aoPressionar(tecla) {
 
   if (tecla === 'ENTER') { enviar(); return; }
   if (tecla === 'APAGAR') {
-    digitacao = digitacao.slice(0, -1);
+    // Se a célula do cursor já tem letra, só apaga ela (backspace "no
+    // lugar"). Se já estava vazia, volta uma casa e apaga a de lá — é o
+    // comportamento que qualquer um já espera de um campo de texto.
+    if (letras[cursor]) {
+      letras[cursor] = '';
+    } else if (cursor > 0) {
+      cursor -= 1;
+      letras[cursor] = '';
+    }
     pintarTabuleiros(false);
     return;
   }
-  if (/^[A-Z]$/.test(tecla) && digitacao.length < TAMANHO) {
+  if (/^[A-Z]$/.test(tecla)) {
     // O cronômetro começa na PRIMEIRA letra, não ao abrir a página: senão
     // quem deixa a aba aberta e volta depois aparece com um tempo absurdo.
     // Testa com "!" e não "=== null" porque jogo salvo antes desta versão
@@ -472,14 +504,20 @@ function aoPressionar(tecla) {
       jogo.inicio = Date.now();
       gravarJSON(CHAVE_JOGO, jogo);
     }
-    digitacao += tecla;
+    letras[cursor] = tecla;
+    // Anda pro próximo quadrado, sem passar do último — clicar em algum
+    // quadrado específico antes de digitar só muda de onde essa andada
+    // começa, não muda a regra.
+    cursor = Math.min(cursor + 1, TAMANHO - 1);
     pintarTabuleiros(false);
   }
 }
 
 function enviar() {
-  if (digitacao.length < TAMANHO) {
-    // Concorda com o modo: uma palavra no termo, duas no dueto.
+  if (letras.some(letra => !letra)) {
+    // Concorda com o modo: uma palavra no termo, duas no dueto. Pega tanto
+    // quem não terminou de digitar quanto quem clicou num quadrado do meio
+    // e pulou uma célula sem querer.
     avisar(EH_DUETO
       ? `Faltam letras — as palavras de hoje têm ${TAMANHO} letras.`
       : `Faltam letras — a palavra de hoje tem ${TAMANHO} letras.`);
@@ -487,17 +525,20 @@ function enviar() {
     return;
   }
 
+  const tentativa = letras.join('');
+
   // Só vale chutar palavra que existe. Enquanto o dicionário do português
   // não chega, vale qualquer coisa — é melhor deixar jogar do que travar a
   // pessoa por causa de um download lento.
-  if (dicionarioCarregado && !ACEITAS.has(digitacao)) {
+  if (dicionarioCarregado && !ACEITAS.has(tentativa)) {
     avisar('Essa palavra não existe.');
     sacudirLinha();
     return;
   }
 
-  jogo.tentativas.push(digitacao);
-  digitacao = '';
+  jogo.tentativas.push(tentativa);
+  letras = Array(TAMANHO).fill('');
+  cursor = 0;
 
   if (todosResolvidos()) {
     jogo.estado = 'ganhou';

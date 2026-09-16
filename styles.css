@@ -1099,6 +1099,22 @@
     border-color: var(--rosa);
   }
 
+  .admin-filtro {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    align-items: flex-end;
+    margin-bottom: 20px;
+  }
+
+  .admin-filtro label {
+    min-width: 160px;
+  }
+
+  .admin-filtro input, .admin-filtro select {
+    padding: 10px 14px;
+  }
+
   .admin-resumo {
     display: flex;
     flex-wrap: wrap;

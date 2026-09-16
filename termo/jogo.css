@@ -137,6 +137,17 @@
   border-color: var(--cinza-texto);
 }
 
+/* Célula da linha sendo digitada: dá pra clicar nela pra escolher onde a
+   próxima letra entra, não só digitar em sequência */
+.cel-editavel {
+  cursor: pointer;
+}
+
+.cel-cursor {
+  border-color: var(--rosa);
+  box-shadow: 0 0 0 2px var(--rosa) inset;
+}
+
 .cel.certo    { background: #2f8f4e; border-color: #2f8f4e; color: #fff; }
 .cel.presente { background: #b8902a; border-color: #b8902a; color: #fff; }
 .cel.ausente  { background: #2a2a2a; border-color: #2a2a2a; color: var(--cinza-texto); }

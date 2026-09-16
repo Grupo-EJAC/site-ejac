@@ -10,7 +10,7 @@ import {
   getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged,
 } from 'https://www.gstatic.com/firebasejs/12.17.1/firebase-auth.js';
 import {
-  getFirestore, collection, doc, query, orderBy, limit,
+  getFirestore, collection, doc, query, where, orderBy, limit,
   onSnapshot, getDocs, deleteDoc,
 } from 'https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js';
 import { firebaseConfig } from './firebase-config.js';
@@ -88,12 +88,15 @@ if (firebaseConfig.apiKey.includes('COLE_AQUI')) {
   const db = getFirestore(app);
 
   const colCamiseta = collection(db, 'camisetaPedidos');
+  const colRanking = collection(db, 'termoRanking');
 
   let pararCamiseta = null;
+  let pararRanking = null;
   let pedidosCamisetaAtuais = [];
 
   function pararListeners() {
     if (pararCamiseta) { pararCamiseta(); pararCamiseta = null; }
+    if (pararRanking) { pararRanking(); pararRanking = null; }
   }
 
   // ---------------- Camisetas ----------------
@@ -180,6 +183,115 @@ if (firebaseConfig.apiKey.includes('COLE_AQUI')) {
     });
   }
 
+  // ---------------- Termo: ranking ----------------
+  //
+  // As regras do Firestore já deixam qualquer um LER o termoRanking (é o
+  // placar público) — o que só o admin pode fazer é EXCLUIR uma marca.
+  // Por isso não precisa de leitura de teste aqui como tem no camiseta:
+  // se chegou até o painel, já passou pela verificação de admin.
+
+  function diaDeHoje() {
+    // Mesma conta do jogo: data LOCAL, não UTC (ver termo/jogo.js)
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  }
+
+  function formatarTempoRanking(ms) {
+    if (!ms) return '—';
+    const s = Math.round(ms / 1000);
+    return s < 60 ? `${s}s` : `${Math.floor(s / 60)}min${String(s % 60).padStart(2, '0')}`;
+  }
+
+  async function excluirMarcaRanking(id, nome) {
+    if (!confirm(`Excluir a marca de "${nome}" do placar? Essa ação não pode ser desfeita.`)) return;
+    try {
+      await deleteDoc(doc(colRanking, id));
+    } catch (err) {
+      alert('Não foi possível excluir. Tente de novo.');
+    }
+  }
+
+  function renderRanking(snapshot) {
+    const tbody = document.getElementById('termo-tbody');
+    const resumoEl = document.getElementById('termo-resumo');
+    if (!tbody) return;
+
+    const marcas = [];
+    snapshot.forEach((docSnap) => marcas.push({ id: docSnap.id, ...docSnap.data() }));
+
+    if (resumoEl) {
+      resumoEl.textContent = '';
+      const total = document.createElement('span');
+      total.className = 'admin-stat admin-stat-total';
+      total.textContent = `${marcas.length} marca${marcas.length === 1 ? '' : 's'}`;
+      resumoEl.appendChild(total);
+      const vitorias = marcas.filter((m) => m.venceu).length;
+      const chip = document.createElement('span');
+      chip.className = 'admin-stat';
+      chip.textContent = `${vitorias} ${vitorias === 1 ? 'venceu' : 'venceram'}`;
+      resumoEl.appendChild(chip);
+    }
+
+    tbody.textContent = '';
+    if (marcas.length === 0) {
+      const tr = document.createElement('tr');
+      const td = document.createElement('td');
+      td.colSpan = 6;
+      td.textContent = 'Ninguém jogou nesse dia/modo.';
+      tr.appendChild(td);
+      tbody.appendChild(tr);
+      return;
+    }
+
+    // Mesma ordem do placar público: quem venceu primeiro, depois menos
+    // tentativas, depois menor tempo — pra achar rápido quem está no topo.
+    marcas.sort((a, b) => {
+      if (a.venceu !== b.venceu) return a.venceu ? -1 : 1;
+      if (!a.venceu) return 0;
+      if (a.tentativas !== b.tentativas) return a.tentativas - b.tentativas;
+      return (a.duracaoMs || Infinity) - (b.duracaoMs || Infinity);
+    });
+
+    marcas.forEach((m) => {
+      const tr = document.createElement('tr');
+      [
+        m.nome, m.venceu ? 'Venceu' : 'Não venceu', String(m.tentativas),
+        formatarTempoRanking(m.duracaoMs), formatarData(m.criadoEm),
+      ].forEach((valor) => {
+        const td = document.createElement('td');
+        td.textContent = valor;
+        tr.appendChild(td);
+      });
+      const tdAcao = document.createElement('td');
+      tdAcao.appendChild(criarBotaoExcluir(() => excluirMarcaRanking(m.id, m.nome)));
+      tr.appendChild(tdAcao);
+      tbody.appendChild(tr);
+    });
+  }
+
+  const inputDiaRanking = document.getElementById('termo-filtro-dia');
+  const selectModoRanking = document.getElementById('termo-filtro-modo');
+
+  function assinarRanking() {
+    if (pararRanking) { pararRanking(); pararRanking = null; }
+    const dia = (inputDiaRanking && inputDiaRanking.value) || diaDeHoje();
+    const modo = (selectModoRanking && selectModoRanking.value) || 'termo';
+    pararRanking = onSnapshot(
+      query(colRanking, where('dia', '==', dia), where('modo', '==', modo)),
+      renderRanking,
+      () => {
+        const tbody = document.getElementById('termo-tbody');
+        if (tbody) { tbody.textContent = ''; }
+      }
+    );
+  }
+
+  if (inputDiaRanking) {
+    inputDiaRanking.value = diaDeHoje();
+    inputDiaRanking.addEventListener('change', assinarRanking);
+  }
+  if (selectModoRanking) selectModoRanking.addEventListener('change', assinarRanking);
+
   // ---------------- Login / autorização ----------------
 
   if (btnLogin) {
@@ -230,5 +342,6 @@ if (firebaseConfig.apiKey.includes('COLE_AQUI')) {
     mostrarTela('painel');
 
     pararCamiseta = onSnapshot(query(colCamiseta, orderBy('criadoEm', 'desc')), renderCamiseta);
+    assinarRanking();
   });
 }
