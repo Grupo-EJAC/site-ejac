@@ -597,7 +597,7 @@ function montarTextoCompartilhar() {
   }
 
   return [
-    `${nome} ${d}/${m} — ${placar}`,
+    `${nome} ${d}/${m} - ${placar}`,
     '',
     linhas.join('\n'),
     '',
