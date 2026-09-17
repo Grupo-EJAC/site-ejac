@@ -736,7 +736,13 @@ if (elBtnCompartilhar) {
     const texto = montarTextoCompartilhar();
 
     // No celular abre o menu nativo (WhatsApp direto). No desktop, copia.
-    if (navigator.share) {
+    // "navigator.share existe" não basta pra saber isso: Windows/Chromium
+    // hoje tem a API no PC também, só que aí ela abre o painel de
+    // compartilhamento do próprio Windows (sem opção de copiar o texto)
+    // em vez de simplesmente copiar — por isso confere se é uma tela de
+    // toque (celular/tablet de verdade), não só se a API existe.
+    const ehTelaDeToque = matchMedia('(pointer: coarse)').matches;
+    if (ehTelaDeToque && navigator.share) {
       try {
         await navigator.share({ text: texto });
         return;
