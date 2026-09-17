@@ -129,7 +129,7 @@ service cloud.firestore {
     }
 
     function sessaoGbjValida(d) {
-      return d.keys().hasOnly(['uid', 'modalidade', 'tempoLimiteSeg', 'rodadas', 'acertos', 'mediaTempoAcertosMs', 'motivo', 'criadoEm'])
+      return d.keys().hasOnly(['uid', 'modalidade', 'tempoLimiteSeg', 'rodadas', 'acertos', 'mediaTempoAcertosMs', 'motivo', 'modoEstudo', 'criadoEm'])
         && d.uid == request.auth.uid
         && d.modalidade is string && d.modalidade.size() <= 40
         // 0 = "sem limite" (a pessoa treinando escolhe, não é competição)
@@ -139,6 +139,10 @@ service cloud.firestore {
         // null quando não teve nenhum acerto pra tirar média
         && (d.mediaTempoAcertosMs == null || (d.mediaTempoAcertosMs is int && d.mediaTempoAcertosMs >= 0 && d.mediaTempoAcertosMs <= 3600000))
         && d.motivo in ['eliminado', 'parou']
+        // modo estudo (sem vidas, sem eliminar) nunca termina em "eliminado" —
+        // não valida essa combinação aqui pra não duplicar regra de negócio
+        // que já vive só no cliente, só garante o tipo do campo
+        && d.modoEstudo is bool
         && d.criadoEm == request.time;
     }
 

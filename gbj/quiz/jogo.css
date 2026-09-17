@@ -42,6 +42,22 @@
   max-width: 340px;
 }
 
+.gbj-qz-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: .9rem;
+  color: #ccc;
+  cursor: pointer;
+}
+
+.gbj-qz-checkbox input {
+  width: 17px;
+  height: 17px;
+  accent-color: var(--rosa);
+  cursor: pointer;
+}
+
 /* ------------------------------------------------------------
    HUD (vidas, rodada, acertos, tempo)
    ------------------------------------------------------------ */
@@ -168,4 +184,10 @@
   justify-content: center;
   gap: 14px;
   margin-top: 10px;
+}
+
+/* mesmo motivo do .gbj-qz-config[hidden] acima: display:flex no mesmo
+   elemento precisa de override explícito pro [hidden] esconder de verdade */
+.gbj-qz-fim-acoes[hidden] {
+  display: none;
 }

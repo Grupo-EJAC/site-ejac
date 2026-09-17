@@ -93,7 +93,7 @@ function renderHistorico() {
 
     const modalidade = document.createElement('span');
     modalidade.className = 'gbj-historico-modalidade';
-    modalidade.textContent = MODALIDADE_TEXTO[s.modalidade] || s.modalidade;
+    modalidade.textContent = (MODALIDADE_TEXTO[s.modalidade] || s.modalidade) + (s.modoEstudo ? ' (estudo)' : '');
 
     const quando = document.createElement('span');
     quando.className = 'gbj-historico-quando';

@@ -492,7 +492,7 @@ if (firebaseConfig.apiKey.includes('COLE_AQUI')) {
       const tr = document.createElement('tr');
       [
         nomeMembro,
-        MODALIDADE_TEXTO_ADMIN[s.modalidade] || s.modalidade,
+        (MODALIDADE_TEXTO_ADMIN[s.modalidade] || s.modalidade) + (s.modoEstudo ? ' (estudo)' : ''),
         formatarData(s.criadoEm),
         formatarTempoLimiteGbj(s.tempoLimiteSeg),
         String(s.rodadas),

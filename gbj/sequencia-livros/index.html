@@ -56,7 +56,11 @@
             <option value="0">Sem limite</option>
           </select>
         </label>
-        <p class="admin-sub">Você começa com 3 vidas. Errar uma pergunta (ou o tempo acabar) tira uma vida; zerar encerra o treino.</p>
+        <label class="gbj-sl-checkbox">
+          <input type="checkbox" id="gbj-sl-modo-estudo">
+          Modo estudo (sem vidas, no seu ritmo)
+        </label>
+        <p class="admin-sub" id="gbj-sl-config-sub">Você começa com 3 vidas. Errar uma pergunta (ou o tempo acabar) tira uma vida; zerar encerra o treino.</p>
         <button type="button" id="gbj-sl-comecar" class="hero-cta">Começar treino</button>
       </section>
 
@@ -94,7 +98,8 @@
       <section class="admin-tela" id="gbj-sl-fim" hidden>
         <h2 class="sombra-dura-laranja" id="gbj-sl-fim-titulo"></h2>
         <p class="admin-sub" id="gbj-sl-fim-resumo"></p>
-        <div class="gbj-sl-fim-acoes">
+        <p class="admin-sub" id="gbj-sl-fim-salvando" hidden>Salvando no seu histórico...</p>
+        <div class="gbj-sl-fim-acoes" id="gbj-sl-fim-acoes" hidden>
           <button type="button" id="gbj-sl-treinar-de-novo" class="hero-cta">Treinar de novo</button>
           <a href="../" class="nav-cta nav-cta-secundario">Voltar ao painel GBJ</a>
         </div>

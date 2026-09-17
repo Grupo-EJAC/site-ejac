@@ -37,6 +37,8 @@ const telaJogo = document.getElementById('gbj-qz-jogo');
 const telaFim = document.getElementById('gbj-qz-fim');
 
 const selectTempo = document.getElementById('gbj-qz-tempo');
+const checkboxModoEstudo = document.getElementById('gbj-qz-modo-estudo');
+const elConfigSub = document.getElementById('gbj-qz-config-sub');
 const btnComecar = document.getElementById('gbj-qz-comecar');
 
 const elVidas = document.getElementById('gbj-qz-vidas');
@@ -53,6 +55,8 @@ const btnParar = document.getElementById('gbj-qz-parar');
 
 const elFimTitulo = document.getElementById('gbj-qz-fim-titulo');
 const elFimResumo = document.getElementById('gbj-qz-fim-resumo');
+const elFimSalvando = document.getElementById('gbj-qz-fim-salvando');
+const elFimAcoes = document.getElementById('gbj-qz-fim-acoes');
 const btnTreinarDeNovo = document.getElementById('gbj-qz-treinar-de-novo');
 
 function mostrarTela(el) {
@@ -62,6 +66,15 @@ function mostrarTela(el) {
 function lerTempoPreferido() {
   const salvo = Number(localStorage.getItem(CHAVE_TEMPO));
   return TEMPOS_PADRAO.includes(salvo) ? salvo : 0;
+}
+
+const TEXTO_SUB_TREINO = 'Você começa com 5 vidas. Errar uma pergunta (ou o tempo acabar) tira uma vida; zerar encerra o treino.';
+const TEXTO_SUB_ESTUDO = 'Sem vidas: erre à vontade que a resposta certa aparece na hora, e você para quando quiser.';
+
+if (checkboxModoEstudo && elConfigSub) {
+  checkboxModoEstudo.addEventListener('change', () => {
+    elConfigSub.textContent = checkboxModoEstudo.checked ? TEXTO_SUB_ESTUDO : TEXTO_SUB_TREINO;
+  });
 }
 
 // ------------------------------------------------------------
@@ -143,6 +156,7 @@ if (btnComecar) {
     localStorage.setItem(CHAVE_TEMPO, String(tempoLimiteSeg));
     sessao = {
       tempoLimiteSeg,
+      modoEstudo: !!(checkboxModoEstudo && checkboxModoEstudo.checked),
       vidas: VIDAS_INICIAIS,
       rodada: 0,
       acertos: 0,
@@ -164,7 +178,9 @@ function sortearPergunta() {
 }
 
 function desenharVidas() {
-  elVidas.textContent = '❤️'.repeat(Math.max(sessao.vidas, 0)) + '🖤'.repeat(VIDAS_INICIAIS - Math.max(sessao.vidas, 0));
+  elVidas.textContent = sessao.modoEstudo
+    ? '📖 Modo estudo'
+    : '❤️'.repeat(Math.max(sessao.vidas, 0)) + '🖤'.repeat(VIDAS_INICIAIS - Math.max(sessao.vidas, 0));
 }
 
 function proximaRodada() {
@@ -219,7 +235,7 @@ function responder(idxEscolhido, porTempoEsgotado) {
     elFeedback.textContent = 'Acertou! ✓';
     elFeedback.className = 'gbj-qz-feedback gbj-qz-feedback-certo';
   } else {
-    sessao.vidas -= 1;
+    if (!sessao.modoEstudo) sessao.vidas -= 1;
     elFeedback.textContent = porTempoEsgotado ? 'Tempo esgotado.' : 'Errou.';
     elFeedback.className = 'gbj-qz-feedback gbj-qz-feedback-errado';
   }
@@ -228,7 +244,7 @@ function responder(idxEscolhido, porTempoEsgotado) {
   elAcertos.textContent = String(sessao.acertos);
   btnContestar.hidden = false;
 
-  if (sessao.vidas <= 0) {
+  if (!sessao.modoEstudo && sessao.vidas <= 0) {
     btnProxima.hidden = true;
     setTimeout(() => encerrar('eliminado'), 1400);
   } else {
@@ -278,12 +294,21 @@ async function encerrar(motivo) {
     rodadas: sessao.rodada, acertos: sessao.acertos, tempoLimiteSeg: sessao.tempoLimiteSeg, mediaTempoAcertosMs,
   };
 
-  elFimTitulo.textContent = motivo === 'eliminado' ? 'Zerou as vidas' : 'Treino encerrado';
+  elFimTitulo.textContent = motivo === 'eliminado' ? 'Zerou as vidas' : (sessao.modoEstudo ? 'Estudo encerrado' : 'Treino encerrado');
   elFimResumo.textContent = `${resumo.acertos} acerto${resumo.acertos === 1 ? '' : 's'} em ${resumo.rodadas} rodada${resumo.rodadas === 1 ? '' : 's'}`
     + (mediaTempoAcertosMs ? ` — tempo médio dos acertos: ${formatarTempo(mediaTempoAcertosMs)}` : '') + '.';
+  // Os botões "Treinar de novo"/"Voltar ao painel" só aparecem depois que
+  // o histórico já foi gravado (ou já falhou) — antes disso ficam
+  // escondidos de propósito, senão quem treina pode sair da página rápido
+  // demais e cancelar a gravação, que ainda está em andamento.
+  if (elFimAcoes) elFimAcoes.hidden = true;
+  if (elFimSalvando) elFimSalvando.hidden = resumo.rodadas === 0;
   mostrarTela(telaFim);
 
-  if (resumo.rodadas === 0) return;
+  if (resumo.rodadas === 0) {
+    if (elFimAcoes) elFimAcoes.hidden = false;
+    return;
+  }
 
   try {
     await addDoc(collection(db, 'gbjHistoricoQuiz'), {
@@ -294,6 +319,7 @@ async function encerrar(motivo) {
       acertos: resumo.acertos,
       mediaTempoAcertosMs: resumo.mediaTempoAcertosMs,
       motivo,
+      modoEstudo: sessao.modoEstudo,
       criadoEm: serverTimestamp(),
     });
   } catch (err) {
@@ -301,6 +327,9 @@ async function encerrar(motivo) {
     aviso.className = 'form-msg erro';
     aviso.textContent = 'Não deu pra salvar este treino no seu histórico.';
     elFimResumo.insertAdjacentElement('afterend', aviso);
+  } finally {
+    if (elFimSalvando) elFimSalvando.hidden = true;
+    if (elFimAcoes) elFimAcoes.hidden = false;
   }
 }
 
