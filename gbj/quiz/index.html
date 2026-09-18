@@ -22,6 +22,16 @@
 <link rel="stylesheet" href="../../styles.css">
 <link rel="stylesheet" href="../gbj.css">
 <link rel="stylesheet" href="jogo.css">
+
+<!-- O treino depende do Firebase Auth + Firestore desde a tela de
+     carregando; sem isso o navegador só descobre essas libs depois de
+     baixar e ler jogo.js, e cada uma passa de 100KB. Começar a buscar
+     mais cedo, em paralelo com o resto da página, tira essa demora do
+     caminho crítico. -->
+<link rel="preconnect" href="https://www.gstatic.com" crossorigin>
+<link rel="modulepreload" href="https://www.gstatic.com/firebasejs/12.17.1/firebase-app.js" crossorigin>
+<link rel="modulepreload" href="https://www.gstatic.com/firebasejs/12.17.1/firebase-auth.js" crossorigin>
+<link rel="modulepreload" href="https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js" crossorigin>
 </head>
 <body>
 
