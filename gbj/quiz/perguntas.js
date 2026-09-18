@@ -197,18 +197,6 @@ export const PERGUNTAS_QUIZ = [
     correta: 0,
   },
   {
-    id: 'joao-16',
-    secao: 'joao',
-    pergunta: "O QUE ACONTECE COM QUEM NÃO PERMANECE EM CRISTO? (JO 15, 06)",
-    alternativas: [
-      "NÃO PERTENCERÁ AO REINO DOS CÉUS",
-      "SERÁ PERDOADO",
-      "NÃO SERÁ PERDOADO",
-      "SERÁ JOGADO FORA",
-    ],
-    correta: 3,
-  },
-  {
     id: 'joao-17',
     secao: 'joao',
     pergunta: "QUEM COLOCOU AS MÃOS NAS FERIDAS DE JESUS POIS NÃO ACREDITAVA NA RESSURREIÇÃO? (JO 20,24-29)",
@@ -1877,18 +1865,6 @@ export const PERGUNTAS_QUIZ = [
     correta: 1,
   },
   {
-    id: 'efesios-31',
-    secao: 'efesios',
-    pergunta: "A quem Paulo se refere ao usar o termo “vós” ?",
-    alternativas: [
-      "Antigos pagãos",
-      "Antigos judeus",
-      "Aliados em Éfeso",
-      "Todos os cristãos",
-    ],
-    correta: 3,
-  },
-  {
     id: 'efesios-32',
     secao: 'efesios',
     pergunta: "Paulo diz ao Efésios que a nossa salvação provém pela:",
@@ -2273,18 +2249,6 @@ export const PERGUNTAS_QUIZ = [
     correta: 2,
   },
   {
-    id: 'gerais-39',
-    secao: 'gerais',
-    pergunta: "Qual dessas opções a seguir não é uma das partes da missa?",
-    alternativas: [
-      "Ritos Iniciais",
-      "Ritos Finais",
-      "Liturgia Eucarística",
-      "Ritos da Paz",
-    ],
-    correta: 3,
-  },
-  {
     id: 'gerais-40',
     secao: 'gerais',
     pergunta: "Qual Papa do século XX foi responsável por convocar e abrir oficialmente o Concílio Ecumênico Vaticano II no ano de 1962?",
@@ -2569,19 +2533,6 @@ export const PERGUNTAS_QUIZ = [
       "Pai Nosso",
       "Credo",
       "Glória ao Pai",
-    ],
-    correta: 1,
-  },
-  // fonte: tradição da Ordem do Carmo
-  {
-    id: 'gerais-63',
-    secao: 'gerais',
-    pergunta: "A Ordem do Carmo remonta tradicionalmente à presença de eremitas no Monte Carmelo, ligados a qual profeta do Antigo Testamento?",
-    alternativas: [
-      "Isaías",
-      "Elias",
-      "Eliseu",
-      "Jeremias",
     ],
     correta: 1,
   },
