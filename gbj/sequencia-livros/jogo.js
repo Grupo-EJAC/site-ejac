@@ -77,6 +77,51 @@ function respostaCorreta(digitada, esperada) {
 }
 
 // ------------------------------------------------------------
+// Aproxima o texto ouvido do nome de livro mais parecido.
+//
+// A resposta só pode ser um dos 73 livros da lista — não é texto livre.
+// Por isso, em vez de aceitar cru o que o reconhecimento de voz entendeu
+// (que pode errar uma letra ou outra), mede a distância de edição até
+// cada livro e troca pelo mais próximo, se estiver perto o bastante. Isso
+// cobre a maioria dos erros de transcrição usando um modelo de voz leve
+// e rápido, sem precisar de um modelo maior (e mais lento) só por causa
+// da precisão.
+// ------------------------------------------------------------
+const LIVROS_NORMALIZADOS = LIVROS_BIBLIA.map(normalizar);
+
+function distanciaEdicao(a, b) {
+  const linha = new Array(b.length + 1);
+  for (let j = 0; j <= b.length; j++) linha[j] = j;
+  for (let i = 1; i <= a.length; i++) {
+    let anterior = linha[0];
+    linha[0] = i;
+    for (let j = 1; j <= b.length; j++) {
+      const temp = linha[j];
+      linha[j] = a[i - 1] === b[j - 1]
+        ? anterior
+        : 1 + Math.min(anterior, linha[j], linha[j - 1]);
+      anterior = temp;
+    }
+  }
+  return linha[b.length];
+}
+
+function aproximarLivro(textoOuvido) {
+  const alvo = normalizar(textoOuvido);
+  if (!alvo) return textoOuvido;
+
+  let melhorIndice = -1;
+  let melhorDistancia = Infinity;
+  LIVROS_NORMALIZADOS.forEach((nome, i) => {
+    const d = distanciaEdicao(alvo, nome);
+    if (d < melhorDistancia) { melhorDistancia = d; melhorIndice = i; }
+  });
+
+  const tolerancia = Math.max(1, Math.round(alvo.length * 0.34));
+  return melhorDistancia <= tolerancia ? LIVROS_BIBLIA[melhorIndice] : textoOuvido;
+}
+
+// ------------------------------------------------------------
 // Elementos da página
 // ------------------------------------------------------------
 const telaCarregando = document.getElementById('gbj-sl-carregando');
@@ -138,8 +183,8 @@ function avisarVoz(texto) {
   elVozStatus.hidden = !texto;
 }
 
-const DURACAO_GRAVACAO_MS = 3500;
-const MODELO_VOZ = 'Xenova/whisper-base';
+const DURACAO_GRAVACAO_MS = 4000;
+const MODELO_VOZ = 'Xenova/whisper-tiny';
 
 let promessaTranscritor = null;
 function carregarTranscritor() {
@@ -273,6 +318,7 @@ function configurarBotaoVoz(botao, input, aoReconhecer) {
     input.value = '';
     avisarVoz('');
     let cancelado = false;
+    pausarTimerRodada();
 
     function finalizarCancelado() {
       stream.getTracks().forEach((t) => t.stop());
@@ -281,6 +327,7 @@ function configurarBotaoVoz(botao, input, aoReconhecer) {
       estado = 'parado';
       vozEmUso = false;
       cancelarVozAtual = null;
+      retomarTimerRodada();
     }
 
     estado = 'preparando';
@@ -327,6 +374,7 @@ function configurarBotaoVoz(botao, input, aoReconhecer) {
       estado = 'parado';
       vozEmUso = false;
       cancelarVozAtual = null;
+      retomarTimerRodada();
       return;
     }
 
@@ -348,7 +396,7 @@ function configurarBotaoVoz(botao, input, aoReconhecer) {
         .replace(/[.,!?]+$/, '');
       esconderPainelVoz();
       if (texto) {
-        input.value = texto;
+        input.value = aproximarLivro(texto);
         if (aoReconhecer) aoReconhecer();
       } else {
         avisarVoz('Não entendi. Tenta de novo ou digite.');
@@ -361,6 +409,7 @@ function configurarBotaoVoz(botao, input, aoReconhecer) {
       botao.classList.remove('gbj-sl-transcrevendo');
       estado = 'parado';
       vozEmUso = false;
+      retomarTimerRodada();
     }
   });
 }
@@ -447,6 +496,7 @@ let rodadaAtual = null; // { indiceAnunciado, antes, depois }
 let inicioRodada = null; // Date.now() de quando o livro apareceu na tela
 let timerId = null;
 let prazoId = null;
+let restanteSeg = null; // segundos restantes na rodada atual; null = sem limite de tempo
 
 function formatarTempo(ms) {
   const s = ms / 1000;
@@ -458,20 +508,42 @@ function pararTimer() {
   if (prazoId) { clearTimeout(prazoId); prazoId = null; }
 }
 
+function rodarTimer() {
+  if (elTempoRestante) elTempoRestante.textContent = `${restanteSeg}s`;
+  timerId = setInterval(() => {
+    restanteSeg -= 1;
+    if (elTempoRestante) elTempoRestante.textContent = `${Math.max(restanteSeg, 0)}s`;
+    if (restanteSeg <= 0) clearInterval(timerId);
+  }, 1000);
+  prazoId = setTimeout(() => responder(true), restanteSeg * 1000);
+}
+
 function iniciarTimer() {
   pararTimer();
   if (!sessao.tempoLimiteSeg) {
+    restanteSeg = null;
     if (elTempoRestante) elTempoRestante.textContent = '';
     return;
   }
-  let restante = sessao.tempoLimiteSeg;
-  if (elTempoRestante) elTempoRestante.textContent = `${restante}s`;
-  timerId = setInterval(() => {
-    restante -= 1;
-    if (elTempoRestante) elTempoRestante.textContent = `${Math.max(restante, 0)}s`;
-    if (restante <= 0) clearInterval(timerId);
-  }, 1000);
-  prazoId = setTimeout(() => responder(true), sessao.tempoLimiteSeg * 1000);
+  restanteSeg = sessao.tempoLimiteSeg;
+  rodarTimer();
+}
+
+// Enquanto grava ou reconhece a voz, o cronômetro da rodada fica pausado —
+// não seria justo perder a rodada por causa da demora do reconhecimento,
+// só de verdade por não responder a tempo.
+function pausarTimerRodada() {
+  pararTimer();
+}
+
+function retomarTimerRodada() {
+  if (restanteSeg === null || restanteSeg <= 0) return; // sem limite, ou já esgotado
+  // A gravação/reconhecimento roda em segundo plano e pode terminar depois
+  // que a rodada já foi respondida por outro caminho (digitou e enviou, ou
+  // parou o treino) — nesse caso não faz sentido religar o cronômetro.
+  if (!telaJogo || telaJogo.hidden) return;
+  if (!btnResponder || btnResponder.hidden) return;
+  rodarTimer();
 }
 
 if (btnComecar) {
