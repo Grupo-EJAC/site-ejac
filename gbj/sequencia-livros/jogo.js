@@ -100,6 +100,10 @@ const inputDepois = document.getElementById('gbj-sl-depois');
 const btnVozAntes = document.getElementById('gbj-sl-antes-voz');
 const btnVozDepois = document.getElementById('gbj-sl-depois-voz');
 const elVozStatus = document.getElementById('gbj-sl-voz-status');
+const elVozPainel = document.getElementById('gbj-sl-voz-painel');
+const elVozTitulo = document.getElementById('gbj-sl-voz-titulo');
+const elVozBarras = document.getElementById('gbj-sl-voz-barras');
+const btnVozCancelar = document.getElementById('gbj-sl-voz-cancelar');
 const btnResponder = document.getElementById('gbj-sl-responder');
 const elFeedback = document.getElementById('gbj-sl-feedback');
 const btnProxima = document.getElementById('gbj-sl-proxima');
@@ -135,7 +139,7 @@ function avisarVoz(texto) {
 }
 
 const DURACAO_GRAVACAO_MS = 3500;
-const MODELO_VOZ = 'Xenova/whisper-tiny';
+const MODELO_VOZ = 'Xenova/whisper-base';
 
 let promessaTranscritor = null;
 function carregarTranscritor() {
@@ -167,18 +171,95 @@ async function decodificarPara16kHz(blob) {
   return renderizado.getChannelData(0);
 }
 
+// ------------------------------------------------------------
+// Painel de voz (compartilhado pelos dois microfones — só um grava por
+// vez) e o equalizador que reage ao volume de verdade do microfone, pra
+// ficar claro que está ouvindo de verdade e não travado.
+// ------------------------------------------------------------
+const barrasVoz = elVozBarras ? Array.from(elVozBarras.children) : [];
+
+function zerarBarrasVoz() {
+  barrasVoz.forEach((s) => s.style.setProperty('--altura', '0'));
+}
+
+function mostrarPainelVoz(titulo) {
+  if (elVozTitulo) {
+    elVozTitulo.textContent = titulo;
+    elVozTitulo.classList.remove('gbj-sl-voz-processando');
+  }
+  if (elVozPainel) elVozPainel.hidden = false;
+}
+
+function marcarPainelProcessando(titulo) {
+  if (elVozTitulo) {
+    elVozTitulo.textContent = titulo;
+    elVozTitulo.classList.add('gbj-sl-voz-processando');
+  }
+}
+
+function esconderPainelVoz() {
+  if (elVozPainel) elVozPainel.hidden = true;
+  zerarBarrasVoz();
+}
+
+// Liga um AnalyserNode no stream do microfone e anima as barras a cada
+// frame com o volume de verdade captado (por faixa de frequência, pra
+// parecer um equalizador e não 7 barrinhas idênticas subindo e descendo
+// juntas). Retorna uma função pra desligar tudo.
+function iniciarVisualizadorVoz(stream) {
+  if (barrasVoz.length === 0) return () => {};
+  const ctx = new (window.AudioContext || window.webkitAudioContext)();
+  const fonte = ctx.createMediaStreamSource(stream);
+  const analisador = ctx.createAnalyser();
+  analisador.fftSize = 64;
+  analisador.smoothingTimeConstant = 0.6;
+  fonte.connect(analisador);
+  const dados = new Uint8Array(analisador.frequencyBinCount);
+  const binsPorBarra = Math.max(1, Math.floor(dados.length / barrasVoz.length));
+  let rafId = null;
+
+  function passo() {
+    analisador.getByteFrequencyData(dados);
+    barrasVoz.forEach((span, i) => {
+      let soma = 0;
+      for (let j = 0; j < binsPorBarra; j++) soma += dados[i * binsPorBarra + j];
+      const nivel = Math.min((soma / binsPorBarra / 255) * 1.6, 1);
+      span.style.setProperty('--altura', nivel.toFixed(2));
+    });
+    rafId = requestAnimationFrame(passo);
+  }
+  passo();
+
+  return () => {
+    if (rafId) cancelAnimationFrame(rafId);
+    fonte.disconnect();
+    ctx.close();
+    zerarBarrasVoz();
+  };
+}
+
+// Chamada pelo botão "Cancelar" do painel — aponta sempre pra quem está
+// gravando/preparando no momento (só um microfone por vez faz sentido).
+let cancelarVozAtual = null;
+if (btnVozCancelar) {
+  btnVozCancelar.addEventListener('click', () => { if (cancelarVozAtual) cancelarVozAtual(); });
+}
+
+let vozEmUso = false;
+
 function configurarBotaoVoz(botao, input, aoReconhecer) {
   if (!botao) return;
   if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia || !window.MediaRecorder) return;
 
   botao.hidden = false;
 
-  let estado = 'parado'; // 'parado' | 'ouvindo' | 'transcrevendo'
+  let estado = 'parado'; // 'parado' | 'preparando' | 'ouvindo' | 'transcrevendo'
   let pararGravacao = null;
 
   botao.addEventListener('click', async () => {
     if (estado === 'transcrevendo') return; // ocupado processando, ignora clique
-    if (estado === 'ouvindo') { if (pararGravacao) pararGravacao(); return; }
+    if (estado !== 'parado') { if (pararGravacao) pararGravacao(); return; } // clicar de novo encerra e já manda transcrever
+    if (vozEmUso) return; // o outro microfone já está gravando
 
     let stream;
     try {
@@ -188,10 +269,38 @@ function configurarBotaoVoz(botao, input, aoReconhecer) {
       return;
     }
 
+    vozEmUso = true;
     input.value = '';
-    avisarVoz('Ouvindo... fale o nome do livro.');
-    estado = 'ouvindo';
+    avisarVoz('');
+    let cancelado = false;
+
+    function finalizarCancelado() {
+      stream.getTracks().forEach((t) => t.stop());
+      esconderPainelVoz();
+      botao.classList.remove('gbj-sl-ouvindo');
+      estado = 'parado';
+      vozEmUso = false;
+      cancelarVozAtual = null;
+    }
+
+    estado = 'preparando';
     botao.classList.add('gbj-sl-ouvindo');
+    mostrarPainelVoz('Prepare-se...');
+    cancelarVozAtual = () => {
+      cancelado = true;
+      if (pararGravacao) pararGravacao();
+      else finalizarCancelado();
+    };
+
+    // Um instante antes de gravar de verdade: sem essa folga, a primeira
+    // sílaba de quem já começa a falar assim que clica ("Alô" virando
+    // "nalo") ficava cortada, porque MediaRecorder.start() não é instantâneo.
+    await new Promise((resolver) => setTimeout(resolver, 600));
+    if (cancelado) { finalizarCancelado(); return; }
+
+    estado = 'ouvindo';
+    mostrarPainelVoz('Ouvindo... fale o nome do livro');
+    const pararVisualizador = iniciarVisualizadorVoz(stream);
 
     const pedacos = [];
     const gravador = new MediaRecorder(stream);
@@ -204,6 +313,7 @@ function configurarBotaoVoz(botao, input, aoReconhecer) {
     pararGravacao = () => {
       clearTimeout(timer);
       pararGravacao = null;
+      pararVisualizador();
       gravador.stop();
       stream.getTracks().forEach((t) => t.stop());
     };
@@ -211,9 +321,19 @@ function configurarBotaoVoz(botao, input, aoReconhecer) {
 
     const blob = await blobPromise;
     botao.classList.remove('gbj-sl-ouvindo');
-    botao.classList.add('gbj-sl-transcrevendo');
+
+    if (cancelado) {
+      esconderPainelVoz();
+      estado = 'parado';
+      vozEmUso = false;
+      cancelarVozAtual = null;
+      return;
+    }
+
     estado = 'transcrevendo';
-    avisarVoz('Reconhecendo...');
+    botao.classList.add('gbj-sl-transcrevendo');
+    marcarPainelProcessando('Reconhecendo...');
+    cancelarVozAtual = null; // a gravação já acabou, só falta esperar o modelo
 
     try {
       const amostras = await decodificarPara16kHz(blob);
@@ -226,19 +346,21 @@ function configurarBotaoVoz(botao, input, aoReconhecer) {
         .replace(/[[(][^\])]*[\])]/g, '')
         .trim()
         .replace(/[.,!?]+$/, '');
+      esconderPainelVoz();
       if (texto) {
         input.value = texto;
-        avisarVoz('');
         if (aoReconhecer) aoReconhecer();
       } else {
         avisarVoz('Não entendi. Tenta de novo ou digite.');
       }
     } catch (err) {
       console.error('gbj-sl: transcrição de voz falhou —', err);
+      esconderPainelVoz();
       avisarVoz('Não deu pra reconhecer agora. Pode digitar.');
     } finally {
       botao.classList.remove('gbj-sl-transcrevendo');
       estado = 'parado';
+      vozEmUso = false;
     }
   });
 }

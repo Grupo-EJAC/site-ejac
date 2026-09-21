@@ -111,6 +111,18 @@
           <button type="submit" id="gbj-sl-responder" class="hero-cta">Responder</button>
         </form>
 
+        <!-- Painel que aparece por cima enquanto grava/reconhece — um só,
+             compartilhado pelos dois microfones (só um de cada vez faz
+             sentido). As barrinhas reagem ao volume de verdade captado
+             pelo microfone, então dá pra ver ao vivo que está ouvindo. -->
+        <div class="gbj-sl-voz-painel" id="gbj-sl-voz-painel" hidden>
+          <p class="gbj-sl-voz-titulo" id="gbj-sl-voz-titulo">Ouvindo...</p>
+          <div class="gbj-sl-voz-barras" id="gbj-sl-voz-barras" aria-hidden="true">
+            <span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+          </div>
+          <button type="button" id="gbj-sl-voz-cancelar" class="nav-cta nav-cta-secundario">Cancelar</button>
+        </div>
+
         <p class="form-msg" id="gbj-sl-voz-status" hidden></p>
         <p class="gbj-sl-feedback" id="gbj-sl-feedback" role="status" aria-live="polite"></p>
 
