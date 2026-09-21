@@ -115,6 +115,49 @@
   text-align: left;
 }
 
+.gbj-sl-campo {
+  position: relative;
+}
+
+/* Lista de livros que batem com o que já foi digitado — a resposta só
+   pode ser um dos 73 livros da lista, então em vez de digitar tudo (ou
+   depender de reconhecimento de voz, que não deu certo aqui), a pessoa
+   digita 2-3 letras e toca no livro certo. */
+.gbj-sl-sugestoes {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  z-index: 5;
+  margin: 0;
+  padding: 6px;
+  list-style: none;
+  background: #161616;
+  border: 2px solid var(--rosa);
+  border-radius: 12px;
+  max-height: 240px;
+  overflow-y: auto;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, .5);
+}
+
+.gbj-sl-sugestoes[hidden] {
+  display: none;
+}
+
+.gbj-sl-sugestoes li {
+  padding: 10px 12px;
+  border-radius: 8px;
+  font-weight: 600;
+  color: var(--branco);
+  cursor: pointer;
+}
+
+.gbj-sl-sugestoes li:hover,
+.gbj-sl-sugestoes li.gbj-sl-sugestao-ativa {
+  background: rgba(228, 86, 143, .22);
+  color: var(--rosa);
+}
+
 /* ------------------------------------------------------------
    Feedback e ações pós-rodada
    ------------------------------------------------------------ */

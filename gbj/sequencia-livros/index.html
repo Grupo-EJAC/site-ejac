@@ -88,11 +88,19 @@
         <form id="gbj-sl-form-resposta" class="gbj-sl-form">
           <label>
             Livro anterior (antecessor)
-            <input type="text" id="gbj-sl-antes" autocomplete="off" autocapitalize="words" required>
+            <div class="gbj-sl-campo">
+              <input type="text" id="gbj-sl-antes" autocomplete="off" autocapitalize="words" required
+                     role="combobox" aria-expanded="false" aria-autocomplete="list" aria-controls="gbj-sl-antes-lista">
+              <ul class="gbj-sl-sugestoes" id="gbj-sl-antes-lista" role="listbox" hidden></ul>
+            </div>
           </label>
           <label>
             Livro seguinte (sucessor)
-            <input type="text" id="gbj-sl-depois" autocomplete="off" autocapitalize="words" required>
+            <div class="gbj-sl-campo">
+              <input type="text" id="gbj-sl-depois" autocomplete="off" autocapitalize="words" required
+                     role="combobox" aria-expanded="false" aria-autocomplete="list" aria-controls="gbj-sl-depois-lista">
+              <ul class="gbj-sl-sugestoes" id="gbj-sl-depois-lista" role="listbox" hidden></ul>
+            </div>
           </label>
           <button type="submit" id="gbj-sl-responder" class="hero-cta">Responder</button>
         </form>

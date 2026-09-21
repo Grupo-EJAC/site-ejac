@@ -79,6 +79,9 @@ function respostaCorreta(digitada, esperada) {
 // ------------------------------------------------------------
 // Elementos da página
 // ------------------------------------------------------------
+const listaAntes = document.getElementById('gbj-sl-antes-lista');
+const listaDepois = document.getElementById('gbj-sl-depois-lista');
+
 const telaCarregando = document.getElementById('gbj-sl-carregando');
 const telaConfig = document.getElementById('gbj-sl-config');
 const telaJogo = document.getElementById('gbj-sl-jogo');
@@ -111,6 +114,101 @@ const btnTreinarDeNovo = document.getElementById('gbj-sl-treinar-de-novo');
 function mostrarTela(el) {
   [telaCarregando, telaConfig, telaJogo, telaFim].forEach((t) => { if (t) t.hidden = t !== el; });
 }
+
+// ------------------------------------------------------------
+// Sugestões de livro enquanto digita — a resposta só pode ser um dos 73
+// livros da lista, então em vez de digitar tudo (e depender de acertar a
+// grafia), a pessoa digita 2-3 letras e toca no livro certo. Tentamos
+// reconhecimento de voz antes disso, mas não ficou rápido nem confiável
+// o bastante; isso resolve o mesmo problema (responder rápido) sem
+// microfone, modelo pra carregar ou dependência de rede.
+// ------------------------------------------------------------
+const LIVROS_NORMALIZADOS = LIVROS_BIBLIA.map(normalizar);
+const MAX_SUGESTOES = 6;
+
+function sugestoesPara(textoDigitado) {
+  const alvo = normalizar(textoDigitado);
+  if (!alvo) return [];
+  const comecaCom = [];
+  const contem = [];
+  LIVROS_BIBLIA.forEach((livro, i) => {
+    const norm = LIVROS_NORMALIZADOS[i];
+    if (norm.startsWith(alvo)) comecaCom.push(livro);
+    else if (norm.includes(alvo)) contem.push(livro);
+  });
+  return [...comecaCom, ...contem].slice(0, MAX_SUGESTOES);
+}
+
+function configurarAutocomplete(input, lista, aoEscolher) {
+  if (!input || !lista) return;
+  let indiceAtivo = -1;
+
+  function marcarAtivo(indice) {
+    Array.from(lista.children).forEach((li, i) => {
+      li.classList.toggle('gbj-sl-sugestao-ativa', i === indice);
+    });
+    indiceAtivo = indice;
+  }
+
+  function esconder() {
+    lista.hidden = true;
+    lista.innerHTML = '';
+    indiceAtivo = -1;
+    input.setAttribute('aria-expanded', 'false');
+  }
+
+  function escolher(livro) {
+    input.value = livro;
+    esconder();
+    if (aoEscolher) aoEscolher();
+  }
+
+  function renderizar(livros) {
+    lista.innerHTML = '';
+    if (livros.length === 0) { esconder(); return; }
+    livros.forEach((livro) => {
+      const li = document.createElement('li');
+      li.textContent = livro;
+      li.setAttribute('role', 'option');
+      // pointerdown (não click) + preventDefault: dispara antes do blur do
+      // input, então a lista não fecha sozinha antes da escolha registrar
+      li.addEventListener('pointerdown', (e) => {
+        e.preventDefault();
+        escolher(livro);
+      });
+      lista.appendChild(li);
+    });
+    indiceAtivo = -1;
+    lista.hidden = false;
+    input.setAttribute('aria-expanded', 'true');
+  }
+
+  input.addEventListener('input', () => renderizar(sugestoesPara(input.value)));
+
+  input.addEventListener('keydown', (e) => {
+    if (lista.hidden) return;
+    const itens = lista.children;
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      marcarAtivo(Math.min(indiceAtivo + 1, itens.length - 1));
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      marcarAtivo(Math.max(indiceAtivo - 1, 0));
+    } else if (e.key === 'Enter') {
+      if (indiceAtivo >= 0 && itens[indiceAtivo]) {
+        e.preventDefault();
+        escolher(itens[indiceAtivo].textContent);
+      }
+    } else if (e.key === 'Escape') {
+      esconder();
+    }
+  });
+
+  input.addEventListener('blur', esconder);
+}
+
+configurarAutocomplete(inputAntes, listaAntes, () => inputDepois.focus());
+configurarAutocomplete(inputDepois, listaDepois, () => btnResponder.focus());
 
 function lerTempoPreferido() {
   const salvo = Number(localStorage.getItem(CHAVE_TEMPO));
