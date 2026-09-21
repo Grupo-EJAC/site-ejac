@@ -1826,7 +1826,7 @@ export const PERGUNTAS_QUIZ = [
       "Imitadores de Cristo",
       "Astutos e resilientes",
     ],
-    correta: 3,
+    correta: 0,
   },
   {
     id: 'efesios-28',
@@ -1898,7 +1898,7 @@ export const PERGUNTAS_QUIZ = [
       "Porque antes de sua morte Cristo fez um acordo de paz entre os dois lados",
       "Porque após a ressurreição Cristo ordenou que houvesse paz",
     ],
-    correta: 3,
+    correta: 1,
   },
   {
     id: 'efesios-35',
@@ -2174,7 +2174,7 @@ export const PERGUNTAS_QUIZ = [
       "Domingo de Pentecostes e Domingo da Misericórdia",
       "2o Domingo da Quaresma e Domingo da Epifania",
     ],
-    correta: 3,
+    correta: 1,
   },
   {
     id: 'gerais-33',
@@ -2235,18 +2235,6 @@ export const PERGUNTAS_QUIZ = [
       "São Matias",
     ],
     correta: 1,
-  },
-  {
-    id: 'gerais-38',
-    secao: 'gerais',
-    pergunta: "Na cronologia litúrgica da Igreja Católica, qual período se inicia imediatamente após as Vésperas do Domingo de Pentecostes?",
-    alternativas: [
-      "Tempo do Advento",
-      "Tempo da Quaresma",
-      "Tempo Comum",
-      "Tempo Pascal",
-    ],
-    correta: 2,
   },
   {
     id: 'gerais-40',
