@@ -1886,7 +1886,7 @@ export const PERGUNTAS_QUIZ = [
       "A caridade com os mais necessitados",
       "O cuidado com aquilo nos vem do alto",
     ],
-    correta: 3,
+    correta: 1,
   },
   {
     id: 'efesios-34',
