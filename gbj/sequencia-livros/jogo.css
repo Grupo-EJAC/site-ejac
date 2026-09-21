@@ -125,9 +125,9 @@
   min-width: 0;
 }
 
-/* Só aparece quando o navegador tem reconhecimento de voz de verdade
-   (o JS tira o [hidden]) — sem isso, quem usa Firefox/Safari mais velho
-   veria um botão que não faz nada. */
+/* Só aparece quando o aparelho tem microfone/gravação de verdade (o JS
+   tira o [hidden]) — sem isso, quem usa um navegador sem suporte veria
+   um botão que não faz nada. */
 .gbj-sl-btn-voz {
   flex-shrink: 0;
   width: 48px;
@@ -151,6 +151,14 @@
   border-color: var(--rosa);
   background: rgba(228, 86, 143, .18);
   animation: gbj-sl-pulso 1s ease-in-out infinite;
+}
+
+/* Transcrevendo (rodando o modelo local): fica claro que tá ocupado,
+   sem o pulso — não é mais a hora de falar, é a hora de esperar */
+.gbj-sl-btn-voz.gbj-sl-transcrevendo {
+  border-color: var(--laranja);
+  opacity: .6;
+  cursor: wait;
 }
 
 @keyframes gbj-sl-pulso {

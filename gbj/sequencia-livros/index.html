@@ -7,11 +7,15 @@
 <!-- Content-Security-Policy: esta página só abre pra quem já está logado
      no /gbj/ (mesma sessão do Firebase Auth, que vale pro site inteiro),
      e grava o resultado do treino no Firestore no final. O
-     https://www.google.com em connect-src é pro reconhecimento de voz:
-     o Chrome manda o áudio pra nuvem do Google pra transcrever, e sem
-     essa origem liberada a CSP barra a requisição sem erro nenhum
-     visível pra quem usa — só fica sem acontecer nada ao falar. -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'none'; script-src 'self' https://www.gstatic.com https://apis.google.com; style-src 'self' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self' https://firestore.googleapis.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://apis.google.com https://www.google.com; form-action 'none'; frame-ancestors 'none'; upgrade-insecure-requests">
+     reconhecimento de voz virou local (Whisper via Transformers.js,
+     rodando no navegador por WebAssembly, sem backend nem chave de
+     API) — por isso libera cdn.jsdelivr.net (a biblioteca em si),
+     huggingface.co (metadados/config do modelo) e *.cdn.hf.co (onde
+     os pesos do modelo de verdade ficam guardados — sistema "Xet" da
+     Hugging Face, em CDNs regionais tipo us.aws.cdn.hf.co), além de
+     'wasm-unsafe-eval' (exigido pra compilar WebAssembly sob esta CSP
+     restrita). O áudio em si nunca sai do aparelho de quem treina. -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'none'; script-src 'self' https://www.gstatic.com https://apis.google.com https://cdn.jsdelivr.net 'wasm-unsafe-eval'; style-src 'self' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self' https://firestore.googleapis.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://apis.google.com https://cdn.jsdelivr.net https://huggingface.co https://*.cdn.hf.co; worker-src 'self' blob:; form-action 'none'; frame-ancestors 'none'; upgrade-insecure-requests">
 <meta name="referrer" content="no-referrer">
 <meta name="robots" content="noindex, nofollow">
 <meta name="theme-color" content="#000001">

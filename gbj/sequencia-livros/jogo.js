@@ -118,10 +118,15 @@ function mostrarTela(el) {
 // ------------------------------------------------------------
 // Responder por voz — a prova de verdade também é falada ("a pessoa
 // diz o antecessor e o sucessor"), então dizer em vez de digitar é
-// mais rápido e mais parecido com o dia real. Só aparece em navegador
-// que tem a API de verdade (Chrome/Edge no Android e no PC; Firefox e
-// Safari mais velho não têm) — nesses o botão nem chega a existir na
-// tela, ninguém vê um microfone que não faz nada.
+// mais rápido e mais parecido com o dia real.
+//
+// Roda inteiro no navegador via Whisper (Transformers.js, sobre
+// WebAssembly) — nada de backend, chave de API ou serviço de voz de
+// terceiro que possa falhar sem aviso (foi exatamente o que aconteceu
+// com a Web Speech API do navegador antes desta versão: dava erro
+// "network" sem explicação, em qualquer rede). O áudio nunca sai do
+// aparelho de quem treina; só o modelo (uns 30-70MB) é baixado da CDN
+// na primeira vez, e fica em cache do navegador dali pra frente.
 // ------------------------------------------------------------
 function avisarVoz(texto) {
   if (!elVozStatus) return;
@@ -129,81 +134,124 @@ function avisarVoz(texto) {
   elVozStatus.hidden = !texto;
 }
 
-const ERRO_VOZ_TEXTO = {
-  'not-allowed': 'Sem acesso ao microfone. Confira a permissão do navegador.',
-  'service-not-allowed': 'Sem acesso ao microfone. Confira a permissão do navegador.',
-  'no-speech': 'Não ouvi nada. Tenta de novo.',
-  network: 'Sem conexão com o serviço de voz agora. Pode digitar.',
-  'audio-capture': 'Não achei um microfone neste aparelho.',
-};
+const DURACAO_GRAVACAO_MS = 3500;
+const MODELO_VOZ = 'Xenova/whisper-tiny';
+
+let promessaTranscritor = null;
+function carregarTranscritor() {
+  if (!promessaTranscritor) {
+    promessaTranscritor = import('https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.7.5')
+      .then(({ pipeline }) => pipeline('automatic-speech-recognition', MODELO_VOZ));
+  }
+  return promessaTranscritor;
+}
+
+// Reamostra o áudio gravado (geralmente 44.1kHz ou 48kHz) pros 16kHz
+// mono que o Whisper espera. OfflineAudioContext já faz a reamostragem
+// sozinho ao renderizar num sampleRate diferente do original.
+async function decodificarPara16kHz(blob) {
+  const bruto = await blob.arrayBuffer();
+  const ctxTemp = new (window.AudioContext || window.webkitAudioContext)();
+  let audioBuffer;
+  try {
+    audioBuffer = await ctxTemp.decodeAudioData(bruto);
+  } finally {
+    ctxTemp.close();
+  }
+  const offline = new OfflineAudioContext(1, Math.ceil(audioBuffer.duration * 16000), 16000);
+  const fonte = offline.createBufferSource();
+  fonte.buffer = audioBuffer;
+  fonte.connect(offline.destination);
+  fonte.start();
+  const renderizado = await offline.startRendering();
+  return renderizado.getChannelData(0);
+}
 
 function configurarBotaoVoz(botao, input, aoReconhecer) {
-  const Reconhecimento = window.SpeechRecognition || window.webkitSpeechRecognition;
-  if (!Reconhecimento || !botao) return;
+  if (!botao) return;
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia || !window.MediaRecorder) return;
 
   botao.hidden = false;
 
-  const reconhecimento = new Reconhecimento();
-  reconhecimento.lang = 'pt-BR';
-  reconhecimento.continuous = false;
-  reconhecimento.interimResults = false;
-  reconhecimento.maxAlternatives = 1;
+  let estado = 'parado'; // 'parado' | 'ouvindo' | 'transcrevendo'
+  let pararGravacao = null;
 
-  let ouvindo = false;
-  // Marca se "result" ou "error" já trataram esta rodada de escuta — sem
-  // isso, um término silencioso (sem os dois eventos, que já apareceu em
-  // alguns navegadores) deixava a pessoa sem nenhuma pista do que houve.
-  let tratado = false;
+  botao.addEventListener('click', async () => {
+    if (estado === 'transcrevendo') return; // ocupado processando, ignora clique
+    if (estado === 'ouvindo') { if (pararGravacao) pararGravacao(); return; }
 
-  function pararVisual() {
-    ouvindo = false;
-    botao.classList.remove('gbj-sl-ouvindo');
-  }
-
-  reconhecimento.addEventListener('result', (e) => {
-    tratado = true;
-    const texto = e.results[0][0].transcript.trim().replace(/[.,!?]+$/, '');
-    if (texto) {
-      input.value = texto;
-      avisarVoz('');
-      if (aoReconhecer) aoReconhecer();
-    } else {
-      avisarVoz('Não entendi. Tenta de novo ou digite.');
-    }
-  });
-
-  reconhecimento.addEventListener('end', () => {
-    pararVisual();
-    if (!tratado) avisarVoz('Não entendi. Tenta de novo ou digite.');
-  });
-
-  reconhecimento.addEventListener('error', (e) => {
-    tratado = true;
-    pararVisual();
-    console.error('gbj-sl: reconhecimento de voz falhou —', e.error);
-    if (e.error === 'aborted') { avisarVoz(''); return; }
-    avisarVoz(ERRO_VOZ_TEXTO[e.error] || 'Não deu pra ouvir agora. Pode digitar.');
-  });
-
-  botao.addEventListener('click', () => {
-    if (ouvindo) { reconhecimento.stop(); return; }
-    avisarVoz('');
-    input.value = '';
-    ouvindo = true;
-    tratado = false;
-    botao.classList.add('gbj-sl-ouvindo');
+    let stream;
     try {
-      reconhecimento.start();
+      stream = await navigator.mediaDevices.getUserMedia({ audio: true });
     } catch (err) {
-      console.error('gbj-sl: não consegui iniciar o reconhecimento de voz —', err);
-      pararVisual();
-      avisarVoz('Não deu pra ouvir agora. Pode digitar.');
+      avisarVoz('Sem acesso ao microfone. Confira a permissão do navegador.');
+      return;
+    }
+
+    input.value = '';
+    avisarVoz('Ouvindo... fale o nome do livro.');
+    estado = 'ouvindo';
+    botao.classList.add('gbj-sl-ouvindo');
+
+    const pedacos = [];
+    const gravador = new MediaRecorder(stream);
+    gravador.addEventListener('dataavailable', (e) => { if (e.data.size > 0) pedacos.push(e.data); });
+    const blobPromise = new Promise((resolve) => {
+      gravador.addEventListener('stop', () => resolve(new Blob(pedacos, { type: gravador.mimeType })));
+    });
+
+    const timer = setTimeout(() => { if (pararGravacao) pararGravacao(); }, DURACAO_GRAVACAO_MS);
+    pararGravacao = () => {
+      clearTimeout(timer);
+      pararGravacao = null;
+      gravador.stop();
+      stream.getTracks().forEach((t) => t.stop());
+    };
+    gravador.start();
+
+    const blob = await blobPromise;
+    botao.classList.remove('gbj-sl-ouvindo');
+    botao.classList.add('gbj-sl-transcrevendo');
+    estado = 'transcrevendo';
+    avisarVoz('Reconhecendo...');
+
+    try {
+      const amostras = await decodificarPara16kHz(blob);
+      const transcritor = await carregarTranscritor();
+      const resultado = await transcritor(amostras, { language: 'portuguese', task: 'transcribe' });
+      // Em trecho sem fala de verdade (silêncio, ruído), o Whisper às vezes
+      // "alucina" marcadores tipo "[música]" ou "(risos)" em vez de dizer
+      // que não ouviu nada — tira isso antes de aceitar o texto.
+      const texto = (resultado.text || '')
+        .replace(/[[(][^\])]*[\])]/g, '')
+        .trim()
+        .replace(/[.,!?]+$/, '');
+      if (texto) {
+        input.value = texto;
+        avisarVoz('');
+        if (aoReconhecer) aoReconhecer();
+      } else {
+        avisarVoz('Não entendi. Tenta de novo ou digite.');
+      }
+    } catch (err) {
+      console.error('gbj-sl: transcrição de voz falhou —', err);
+      avisarVoz('Não deu pra reconhecer agora. Pode digitar.');
+    } finally {
+      botao.classList.remove('gbj-sl-transcrevendo');
+      estado = 'parado';
     }
   });
 }
 
 configurarBotaoVoz(btnVozAntes, inputAntes, () => inputDepois.focus());
 configurarBotaoVoz(btnVozDepois, inputDepois, () => btnResponder.focus());
+
+// Começa a preparar o modelo assim que a página abre, em segundo plano —
+// se der tempo antes da pessoa clicar no microfone pela primeira vez,
+// ela nem percebe a espera do download.
+carregarTranscritor().catch((err) => {
+  console.error('gbj-sl: não consegui preparar o reconhecimento de voz —', err);
+});
 
 function lerTempoPreferido() {
   const salvo = Number(localStorage.getItem(CHAVE_TEMPO));
