@@ -115,6 +115,49 @@
   text-align: left;
 }
 
+.gbj-sl-campo {
+  display: flex;
+  gap: 8px;
+}
+
+.gbj-sl-campo input {
+  flex: 1;
+  min-width: 0;
+}
+
+/* Só aparece quando o navegador tem reconhecimento de voz de verdade
+   (o JS tira o [hidden]) — sem isso, quem usa Firefox/Safari mais velho
+   veria um botão que não faz nada. */
+.gbj-sl-btn-voz {
+  flex-shrink: 0;
+  width: 48px;
+  border-radius: 10px;
+  border: 2px solid var(--cinza);
+  background: var(--preto);
+  color: var(--branco);
+  font-size: 1.3rem;
+  line-height: 1;
+  cursor: pointer;
+  transition: border-color .15s ease, background-color .15s ease;
+}
+
+.gbj-sl-btn-voz:hover {
+  border-color: var(--rosa);
+}
+
+/* Enquanto está ouvindo, pulsa em rosa — o mesmo feedback visual de
+   "gravando" que qualquer app de voz usa */
+.gbj-sl-btn-voz.gbj-sl-ouvindo {
+  border-color: var(--rosa);
+  background: rgba(228, 86, 143, .18);
+  animation: gbj-sl-pulso 1s ease-in-out infinite;
+}
+
+@keyframes gbj-sl-pulso {
+  0%, 100% { opacity: 1; }
+  50% { opacity: .55; }
+}
+
 /* ------------------------------------------------------------
    Feedback e ações pós-rodada
    ------------------------------------------------------------ */

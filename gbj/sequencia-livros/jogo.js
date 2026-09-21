@@ -97,6 +97,9 @@ const elTempoRestante = document.getElementById('gbj-sl-tempo-restante');
 const formResposta = document.getElementById('gbj-sl-form-resposta');
 const inputAntes = document.getElementById('gbj-sl-antes');
 const inputDepois = document.getElementById('gbj-sl-depois');
+const btnVozAntes = document.getElementById('gbj-sl-antes-voz');
+const btnVozDepois = document.getElementById('gbj-sl-depois-voz');
+const elVozStatus = document.getElementById('gbj-sl-voz-status');
 const btnResponder = document.getElementById('gbj-sl-responder');
 const elFeedback = document.getElementById('gbj-sl-feedback');
 const btnProxima = document.getElementById('gbj-sl-proxima');
@@ -111,6 +114,96 @@ const btnTreinarDeNovo = document.getElementById('gbj-sl-treinar-de-novo');
 function mostrarTela(el) {
   [telaCarregando, telaConfig, telaJogo, telaFim].forEach((t) => { if (t) t.hidden = t !== el; });
 }
+
+// ------------------------------------------------------------
+// Responder por voz — a prova de verdade também é falada ("a pessoa
+// diz o antecessor e o sucessor"), então dizer em vez de digitar é
+// mais rápido e mais parecido com o dia real. Só aparece em navegador
+// que tem a API de verdade (Chrome/Edge no Android e no PC; Firefox e
+// Safari mais velho não têm) — nesses o botão nem chega a existir na
+// tela, ninguém vê um microfone que não faz nada.
+// ------------------------------------------------------------
+function avisarVoz(texto) {
+  if (!elVozStatus) return;
+  elVozStatus.textContent = texto;
+  elVozStatus.hidden = !texto;
+}
+
+const ERRO_VOZ_TEXTO = {
+  'not-allowed': 'Sem acesso ao microfone. Confira a permissão do navegador.',
+  'service-not-allowed': 'Sem acesso ao microfone. Confira a permissão do navegador.',
+  'no-speech': 'Não ouvi nada. Tenta de novo.',
+  network: 'Sem conexão com o serviço de voz agora. Pode digitar.',
+  'audio-capture': 'Não achei um microfone neste aparelho.',
+};
+
+function configurarBotaoVoz(botao, input, aoReconhecer) {
+  const Reconhecimento = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!Reconhecimento || !botao) return;
+
+  botao.hidden = false;
+
+  const reconhecimento = new Reconhecimento();
+  reconhecimento.lang = 'pt-BR';
+  reconhecimento.continuous = false;
+  reconhecimento.interimResults = false;
+  reconhecimento.maxAlternatives = 1;
+
+  let ouvindo = false;
+  // Marca se "result" ou "error" já trataram esta rodada de escuta — sem
+  // isso, um término silencioso (sem os dois eventos, que já apareceu em
+  // alguns navegadores) deixava a pessoa sem nenhuma pista do que houve.
+  let tratado = false;
+
+  function pararVisual() {
+    ouvindo = false;
+    botao.classList.remove('gbj-sl-ouvindo');
+  }
+
+  reconhecimento.addEventListener('result', (e) => {
+    tratado = true;
+    const texto = e.results[0][0].transcript.trim().replace(/[.,!?]+$/, '');
+    if (texto) {
+      input.value = texto;
+      avisarVoz('');
+      if (aoReconhecer) aoReconhecer();
+    } else {
+      avisarVoz('Não entendi. Tenta de novo ou digite.');
+    }
+  });
+
+  reconhecimento.addEventListener('end', () => {
+    pararVisual();
+    if (!tratado) avisarVoz('Não entendi. Tenta de novo ou digite.');
+  });
+
+  reconhecimento.addEventListener('error', (e) => {
+    tratado = true;
+    pararVisual();
+    console.error('gbj-sl: reconhecimento de voz falhou —', e.error);
+    if (e.error === 'aborted') { avisarVoz(''); return; }
+    avisarVoz(ERRO_VOZ_TEXTO[e.error] || 'Não deu pra ouvir agora. Pode digitar.');
+  });
+
+  botao.addEventListener('click', () => {
+    if (ouvindo) { reconhecimento.stop(); return; }
+    avisarVoz('');
+    input.value = '';
+    ouvindo = true;
+    tratado = false;
+    botao.classList.add('gbj-sl-ouvindo');
+    try {
+      reconhecimento.start();
+    } catch (err) {
+      console.error('gbj-sl: não consegui iniciar o reconhecimento de voz —', err);
+      pararVisual();
+      avisarVoz('Não deu pra ouvir agora. Pode digitar.');
+    }
+  });
+}
+
+configurarBotaoVoz(btnVozAntes, inputAntes, () => inputDepois.focus());
+configurarBotaoVoz(btnVozDepois, inputDepois, () => btnResponder.focus());
 
 function lerTempoPreferido() {
   const salvo = Number(localStorage.getItem(CHAVE_TEMPO));
