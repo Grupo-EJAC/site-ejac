@@ -6,16 +6,8 @@
 
 <!-- Content-Security-Policy: esta página só abre pra quem já está logado
      no /gbj/ (mesma sessão do Firebase Auth, que vale pro site inteiro),
-     e grava o resultado do treino no Firestore no final. O
-     reconhecimento de voz virou local (Whisper via Transformers.js,
-     rodando no navegador por WebAssembly, sem backend nem chave de
-     API) — por isso libera cdn.jsdelivr.net (a biblioteca em si),
-     huggingface.co (metadados/config do modelo) e *.cdn.hf.co (onde
-     os pesos do modelo de verdade ficam guardados — sistema "Xet" da
-     Hugging Face, em CDNs regionais tipo us.aws.cdn.hf.co), além de
-     'wasm-unsafe-eval' (exigido pra compilar WebAssembly sob esta CSP
-     restrita). O áudio em si nunca sai do aparelho de quem treina. -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'none'; script-src 'self' https://www.gstatic.com https://apis.google.com https://cdn.jsdelivr.net 'wasm-unsafe-eval'; style-src 'self' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self' https://firestore.googleapis.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://apis.google.com https://cdn.jsdelivr.net https://huggingface.co https://*.cdn.hf.co; worker-src 'self' blob:; form-action 'none'; frame-ancestors 'none'; upgrade-insecure-requests">
+     e grava o resultado do treino no Firestore no final. -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'none'; script-src 'self' https://www.gstatic.com https://apis.google.com; style-src 'self' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self' https://firestore.googleapis.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://apis.google.com; form-action 'none'; frame-ancestors 'none'; upgrade-insecure-requests">
 <meta name="referrer" content="no-referrer">
 <meta name="robots" content="noindex, nofollow">
 <meta name="theme-color" content="#000001">
@@ -96,34 +88,15 @@
         <form id="gbj-sl-form-resposta" class="gbj-sl-form">
           <label>
             Livro anterior (antecessor)
-            <div class="gbj-sl-campo">
-              <input type="text" id="gbj-sl-antes" autocomplete="off" autocapitalize="words" required>
-              <button type="button" id="gbj-sl-antes-voz" class="gbj-sl-btn-voz" aria-label="Falar o livro anterior" hidden>🎤</button>
-            </div>
+            <input type="text" id="gbj-sl-antes" autocomplete="off" autocapitalize="words" required>
           </label>
           <label>
             Livro seguinte (sucessor)
-            <div class="gbj-sl-campo">
-              <input type="text" id="gbj-sl-depois" autocomplete="off" autocapitalize="words" required>
-              <button type="button" id="gbj-sl-depois-voz" class="gbj-sl-btn-voz" aria-label="Falar o livro seguinte" hidden>🎤</button>
-            </div>
+            <input type="text" id="gbj-sl-depois" autocomplete="off" autocapitalize="words" required>
           </label>
           <button type="submit" id="gbj-sl-responder" class="hero-cta">Responder</button>
         </form>
 
-        <!-- Painel que aparece por cima enquanto grava/reconhece — um só,
-             compartilhado pelos dois microfones (só um de cada vez faz
-             sentido). As barrinhas reagem ao volume de verdade captado
-             pelo microfone, então dá pra ver ao vivo que está ouvindo. -->
-        <div class="gbj-sl-voz-painel" id="gbj-sl-voz-painel" hidden>
-          <p class="gbj-sl-voz-titulo" id="gbj-sl-voz-titulo">Ouvindo...</p>
-          <div class="gbj-sl-voz-barras" id="gbj-sl-voz-barras" aria-hidden="true">
-            <span></span><span></span><span></span><span></span><span></span><span></span><span></span>
-          </div>
-          <button type="button" id="gbj-sl-voz-cancelar" class="nav-cta nav-cta-secundario">Cancelar</button>
-        </div>
-
-        <p class="form-msg" id="gbj-sl-voz-status" hidden></p>
         <p class="gbj-sl-feedback" id="gbj-sl-feedback" role="status" aria-live="polite"></p>
 
         <div class="gbj-sl-acoes">
