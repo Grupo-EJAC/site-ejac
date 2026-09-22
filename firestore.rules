@@ -94,7 +94,11 @@ service cloud.firestore {
         && d.dia is string && d.dia.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}$')
         && (d.modo == 'termo' || d.modo == 'dueto')
         && d.venceu is bool
-        && d.tentativas is int && d.tentativas >= 0 && d.tentativas <= 10
+        // Dueto normal vai até 7; o easter egg de 22/09 (duas palavras de
+        // tamanhos diferentes, 7 tentativas cada tabuleiro) soma até 14 —
+        // sem essa folga, a marca de quem jogasse mais de 10 vezes no total
+        // era rejeitada aqui (foi o que aconteceu com o primeiro jogador).
+        && d.tentativas is int && d.tentativas >= 0 && d.tentativas <= 14
         && d.duracaoMs is int && d.duracaoMs >= 0 && d.duracaoMs <= 86400000
         && d.criadoEm == request.time;
     }

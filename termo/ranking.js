@@ -137,7 +137,6 @@ function iniciar() {
       duracaoMs: resultado.duracaoMs,
       nome,
     };
-    gravarMarcaLocal(marca);
 
     try {
       await setDoc(doc(colMarcas, `${marca.dia}_${marca.modo}_${uid}`), {
@@ -150,9 +149,16 @@ function iniciar() {
         duracaoMs: Number(marca.duracaoMs) || 0,
         criadoEm: serverTimestamp(),
       });
+      // Só marca como "já mandou" DEPOIS de confirmar que o Firestore aceitou
+      // — gravar isso antes (mesmo que a escrita falhasse) deixava quem
+      // tomasse um erro (rede ruim, ou as regras rejeitando por algum motivo)
+      // preso pra sempre: aoFim() nunca tentaria de novo num recarregamento,
+      // porque já achava que tinha um resultado local salvo pra hoje.
+      gravarMarcaLocal(marca);
     } catch (err) {
       // Pode ser a segunda tentativa do dia (as regras barram atualizar) ou
-      // rede ruim. Nos dois casos o jogo já acabou e o placar é acessório.
+      // rede ruim. Nos dois casos o jogo já acabou e o placar é acessório —
+      // e como não marcamos localmente, um recarregamento tenta de novo.
       if (elAviso) elAviso.textContent = 'Não deu pra enviar sua marca de hoje.';
     }
   }
